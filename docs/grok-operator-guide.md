@@ -194,7 +194,7 @@ Codex also reviews dependency locks, migrations, generated artifacts, security b
 
 ## 6. Cloud and Git boundaries
 
-Grok may generate deployment code or infrastructure definitions in the isolated worktree. It may not execute them. Actual provisioning requires the owner-confirmed project ID, billing account, region, USD 400 ceiling, working budget, and stop conditions. Project `project-5e761e8c-65aa-4033-8cb` and the USD 400 ceiling are recorded; billing account and region are still required.
+Grok may generate deployment code or infrastructure definitions. It may execute them only after the owner confirms project ID, billing account, region, budget ceiling, and says to provision. Those fields are now: project `project-5e761e8c-65aa-4033-8cb`, billing `01B820-8960C8-EFE153`, region `europe-west3` (verified working), ceiling EUR 350. Do not deploy an always-on Cloud Run worker until a real image exists. Do not migrate the live Cloud SQL instance to another region without an explicit owner request.
 
 Grok may not push. After the primary agent accepts the work, the owner or primary agent performs the integration and any remote push under the repository's English-only and local-progress exclusion rules.
 

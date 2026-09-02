@@ -4,7 +4,7 @@ Real-time protocol-to-wallet risk intelligence for perpetual markets on Monad.
 
 PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wallet context into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
 
-> Status: first implementation slice. The canonical ledger, golden fixtures, and protocol-to-wallet-to-event demo run locally from fixtures. Licensed Apache-2.0. GCP project `project-5e761e8c-65aa-4033-8cb` is recorded with a USD 400 ceiling; billing account and region are still required before any provisioning. No cloud resources have been deployed. Public repository: `https://github.com/witold-andelie/PerpPulse`.
+> Status: first implementation slice. The canonical ledger, golden fixtures, and protocol-to-wallet-to-event demo run locally from fixtures. Licensed Apache-2.0. GCP foundation is live in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350. No Cloud Run worker is deployed yet. Public repository: `https://github.com/witold-andelie/PerpPulse`.
 
 ## Competition fit
 
@@ -55,6 +55,17 @@ cargo test
 cargo run -p perppulse -- demo fixtures/golden/open-increase-reduce-close.json
 python scripts/check_repository_policy.py --tracked
 ```
+
+### Google Cloud foundation
+
+Owner-authorized project `project-5e761e8c-65aa-4033-8cb` in `europe-west3` (Frankfurt). That region is in use: Cloud SQL `perppulse-pg` is `RUNNABLE` there. The script creates Artifact Registry, evidence storage, a runtime service account, Secret Manager, a EUR 350 budget, and Cloud SQL `db-g1-small`. It does not deploy Cloud Run.
+
+```powershell
+.\deploy\foundation.ps1
+.\deploy\stop.ps1
+```
+
+The database password is stored in Secret Manager as `perppulse-db-password` and is not printed.
 
 Envio local indexer (optional, needs Docker and an Envio API token that must not be committed):
 

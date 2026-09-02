@@ -909,13 +909,13 @@ digraph PerpPulseOPM {
   // OPD-1E: planned GCP deployment and FinOps. No resources are provisioned.
   // -------------------------------------------------------------------------
   subgraph cluster_gcp_plane {
-    label="OPD-1E · Planned GCP Deployment and FinOps (not yet provisioned)";
+    label="OPD-1E · GCP Deployment and FinOps (foundation live in europe-west3; Cloud Run not deployed)";
     color="#4285F4";
     style="rounded,filled";
     fillcolor="#F2F7FF";
 
     deployment_blueprint [
-      label="GCP Deployment Blueprint\n<<Object>>\nsingle European region · separate dev runtime identity\nleast-purpose IAM · reproducible containers · no embedded secrets"
+      label="GCP Deployment Blueprint\n<<Object>>\neurope-west3 Frankfurt · separate runtime identity\nleast-purpose IAM · reproducible containers · no embedded secrets"
     ];
 
     cloud_run_worker [
@@ -997,14 +997,14 @@ digraph PerpPulseOPM {
     gcp_budget [
       fillcolor="#FFF7E6",
       color="#A86E00",
-      label="Owner-Authorized GCP Envelope\n<<Object>>\nproject-5e761e8c-65aa-4033-8cb · ceiling USD 400\nworking target USD 180–220 · remainder is reserve\nworker/soak 20–35 · SQL/storage/backups 35–55\nbackfill/replay/load tests 50–80 · API/logging/network 20–35\noptional BigQuery 10–25 · Vertex evals capped at 10\nbilling account and region not yet confirmed · not provisioned"
+      label="Owner-Authorized GCP Envelope\n<<Object>>\nproject-5e761e8c-65aa-4033-8cb · europe-west3\nbilling 01B820-8960C8-EFE153 · ceiling EUR 350\nworking target EUR 180–220 · remainder is reserve\nSQL db-g1-small live · Cloud Run worker not deployed"
     ];
 
     guarding_cost [
       shape=ellipse,
       fillcolor="#FFF0C2",
       color="#A86E00",
-      label="Guarding Cost and Capacity\n<<Process>>\nlabels · min/max instances · job caps · log retention\nalerts at USD 100/200/300/360/400 · automated stop trigger"
+      label="Guarding Cost and Capacity\n<<Process>>\nlabels · min/max instances · job caps · log retention\nalerts at 25/50/75/90/100 percent of EUR 350 · SQL stop script"
     ];
 
     budget_status [

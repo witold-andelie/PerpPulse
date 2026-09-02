@@ -2,24 +2,38 @@
 
 ## Outcome
 
-Use a bounded share of the owner-authorized Google Cloud budget to create durable engineering and judging evidence for PerpPulse, rather than adding infrastructure that does not improve the product. The working target remains USD 180 to USD 220. The owner-authorized ceiling is USD 400. Unused budget stays in reserve for pricing variance, delayed billing reports, taxes, or uncovered services.
+Use a bounded share of the owner-authorized Google Cloud budget to create durable engineering and judging evidence for PerpPulse, rather than adding infrastructure that does not improve the product. The billing account currency is **EUR**. The owner-authorized ceiling is **EUR 350**. The working target remains about EUR 180 to EUR 220. Unused budget stays in reserve.
 
-No resource has been provisioned. Billing account and region are still unconfirmed, so no billable action will be taken yet. The existing agriculture project ID must not be reused.
+`europe-west3` (Frankfurt) works: Cloud SQL, Artifact Registry, and Cloud Storage were created there. Do not migrate to `europe-west1` unless the owner later requires it; that would mean deleting and recreating the database. Cloud Run worker and API images are not deployed until an application container exists. This is the same Google Cloud project as the Origin/agriculture stack; PerpPulse uses separate service accounts and resource names.
 
 ## Owner authorization
 
-Recorded 2026-09-03 from the project owner. This is authorization to *use this project and budget envelope*, not approval to create resources before region and billing account are confirmed.
+Recorded 2026-09-03 from the project owner. The four required fields are now complete. Owner said to start provisioning.
 
 | Field | Value | Status |
 | --- | --- | --- |
 | GCP project ID | `project-5e761e8c-65aa-4033-8cb` | Owner-confirmed |
-| Budget ceiling | USD 400 | Owner-confirmed |
-| Working spend target | USD 180 to USD 220 | Planning default; do not spend the full ceiling by default |
-| Billing account | Not provided | Blocked |
-| Region | Not provided | Blocked; `europe-west1` is the planning default only |
-| Provisioning | None | Blocked until billing account and region are confirmed |
+| Budget ceiling | EUR 350 | Owner-confirmed; billing account currency is EUR |
+| Working spend target | EUR 180 to EUR 220 | Do not spend the full ceiling by default |
+| Billing account | `01B820-8960C8-EFE153` | Linked and billing enabled |
+| Region | `europe-west3` (Frankfurt) | Owner-confirmed and verified working |
+| Provisioning | Foundation live | See table below. No Cloud Run worker or API |
 
-Budget notifications, when a billing account exists, should fire at USD 100, USD 200, USD 300, USD 360, and USD 400. Treat those alerts as delayed notifications, not hard caps. Keep resource-level instance, job, and retry limits in place and stop manually at the campaign boundary.
+Budget `PerpPulse350` (`2f05607b-8490-483d-b91e-6c0608ba2cdd`) is filtered to this project. Alerts are 25%, 50%, 75%, 90%, and 100% of EUR 350. Treat those alerts as delayed notifications, not hard caps.
+
+## Provisioned foundation (2026-09-03)
+
+| Resource | Name | Notes |
+| --- | --- | --- |
+| Artifact Registry | `europe-west3-docker.pkg.dev/project-5e761e8c-65aa-4033-8cb/perppulse` | Docker, empty |
+| Evidence bucket | `gs://project-5e761e8c-65aa-4033-8cb-perppulse-evidence` | Uniform access, 30-day delete for `disposable/`, `tmp/`, `scratch/` |
+| Runtime identity | `perppulse-runtime@project-5e761e8c-65aa-4033-8cb.iam.gserviceaccount.com` | Cloud SQL client, secret accessor, bucket objectAdmin, log/metric writer |
+| Cloud SQL | `perppulse-pg` | POSTGRES_16, `db-g1-small`, zonal `europe-west3-b`, 20 GiB, SSL required, public IP with no authorized networks (Cloud SQL Auth Proxy / connectors only) |
+| Database / user | `perppulse` / `perppulse` | Password in Secret Manager `perppulse-db-password`; never printed |
+| Budget Pub/Sub | `perppulse-budget` | Topic created |
+| Billing budget | `PerpPulse350` | EUR 350 / month, this project only |
+
+Stop the database (pauses instance compute, keeps disks) with `.\deploy\stop.ps1`.
 
 ## Proposed topology
 
@@ -35,7 +49,7 @@ Budget notifications, when a billing account exists, should fire at USD 100, USD
 | Cloud Logging and Monitoring | Freshness, sequence gaps, reorgs, retries, reconciliation, and cost telemetry | Short retention and sampled debug logs |
 | Cloud Build and Artifact Registry | Reproducible images tied to Git commit SHA | Retain only useful image versions |
 
-Keep all resources in one nearby European region after checking current product availability and price. `europe-west1` is a likely starting point because the reference agriculture deployment already exercises that region, but it must be confirmed rather than copied blindly.
+Keep all resources in `europe-west3` (Frankfurt). Cloud SQL Enterprise shared-core and Cloud Run are available there. Cloud Run in this region uses [Tier 2 pricing](https://cloud.google.com/run/pricing), which is higher than `europe-west1` / `europe-west4`. That is why the worker stays undeployed until there is a real image to run.
 
 ## Useful September credit campaign
 
@@ -64,14 +78,14 @@ The following is a planning range, not a quote. Pricing varies by region, utiliz
 | API, web, logs, storage, and network | USD 20 to USD 35 | Public demo and observability |
 | Optional BigQuery benchmark | USD 10 to USD 25 | Compare analytical scans only after the PostgreSQL baseline |
 | Optional Vertex AI explanation evaluation | USD 0 to USD 10 | Bounded explanation quality experiment |
-| Working target | **USD 180 to USD 220** | Useful consumption with at least USD 80 reserved |
+| Working target | **EUR 180 to EUR 220** | Useful consumption; ceiling EUR 350 |
 
-Current reference prices should be rechecked immediately before provisioning. The official Cloud Run example estimates a one-instance 1 vCPU and 512 MiB worker pool in `europe-west1` at about USD 11.61 per month after free tier. The Cloud SQL pricing page lists shared-core examples around USD 0.035 per hour for `db-g1-small`, before storage, backups, IP, and network charges.
+Current reference prices should be rechecked against `europe-west3`. Shared-core Cloud SQL `db-g1-small` is the first always-on cost. Cloud Run examples around USD 11.61 per month are for Tier 1 regions such as `europe-west1`; Frankfurt is Tier 2.
 
 ## Cost controls
 
 - Create a dedicated environment and label every resource with project, environment, owner, and expiry date.
-- Configure budget notifications at USD 100, USD 200, USD 300, USD 360, and USD 400.
+- Configure budget notifications at 25%, 50%, 75%, 90%, and 100% of EUR 350.
 - Publish budget events to Pub/Sub and prepare an idempotent stop action for the worker pool and scheduled jobs.
 - Treat budget alerts as delayed notifications, not hard spending caps.
 - Enforce Cloud Run maximum instances, job task counts, retry counts, execution timeouts, and schedules.

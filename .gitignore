@@ -1,0 +1,48 @@
+# Local-only project state
+PROGRESS.md
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node.js
+node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# Rust
+target/
+
+# Envio generated indexer code
+envio/generated/
+
+# Local data and generated runtime state
+.scratch/
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.log
+tmp/
+temp/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

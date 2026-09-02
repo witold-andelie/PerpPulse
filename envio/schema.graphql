@@ -1,0 +1,50 @@
+enum LifecycleKind {
+  ACCOUNT_CREATED
+  COLLATERAL_DEPOSIT
+  COLLATERAL_WITHDRAWAL
+  POSITION_OPENED
+  POSITION_INCREASED
+  POSITION_DECREASED
+  POSITION_CLOSED
+  POSITION_LIQUIDATED
+  POSITION_DELEVERAGED
+  POSITION_INVERTED
+  POSITION_UNWOUND
+  COLLATERAL_INCREASED
+  COLLATERAL_DECREASED
+  MARKET_FUNDING
+  MAKER_FILL
+  TAKER_FILL
+  ORDER_REQUEST
+  CONTRACT_ADDED
+}
+
+"""
+Canonical on-chain fact. Identity is (chainId, blockHash, txHash, logIndex).
+This table is the Envio-backed source for the Rust ledger; it is not a second
+position book.
+"""
+type CanonicalEvent {
+  id: ID!
+  chainId: Int!
+  blockNumber: BigInt!
+  blockHash: String!
+  txHash: String!
+  logIndex: Int!
+  timestamp: Timestamp!
+  srcAddress: String!
+  abiEventName: String!
+  kind: LifecycleKind!
+  accountId: BigInt
+  perpetualId: Int
+  positionType: Int
+  payloadJson: String!
+}
+
+type IndexerCheckpoint {
+  id: ID!
+  processedBlock: BigInt!
+  processedBlockHash: String!
+  schemaVersion: String!
+  handlerVersion: String!
+}

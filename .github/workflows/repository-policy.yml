@@ -1,0 +1,19 @@
+name: Repository policy
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-public-content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Reject local progress and CJK content
+        run: python scripts/check_repository_policy.py --tracked

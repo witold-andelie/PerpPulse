@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: perppulse
+description: Canonical Perpl position lifecycle indexer for PerpPulse on Monad
+rollback_on_reorg: true
+field_selection:
+  transaction_fields:
+    - hash
+  block_fields:
+    - hash
+    - timestamp
+    - parentHash
+contracts:
+  - name: Exchange
+    abi_file_path: abis/Exchange.events.json
+    handler: src/EventHandlers.ts
+    events:
+      - event: AccountCreated
+      - event: CollateralDeposit
+      - event: CollateralWithdrawal
+      - event: IncreasePositionCollateral
+      - event: PositionCollateralDecreased
+      - event: PositionOpened
+      - event: PositionOpenedV2
+      - event: PositionIncreased
+      - event: PositionIncreasedV2
+      - event: PositionDecreased
+      - event: PositionClosed
+      - event: PositionLiquidated
+      - event: PositionDeleveraged
+      - event: PositionDeleveragedV2
+      - event: PositionInverted
+      - event: PositionUnwound
+      - event: PositionUnwoundV2
+      - event: FundingEventCompleted
+      - event: MakerOrderFilled
+      - event: MakerOrderFilledV2
+      - event: TakerOrderFilled
+      - event: TakerOrderFilledV2
+      - event: OrderRequest
+      - event: OrderRequestV2
+      - event: ContractAdded
+      - event: ContractAddedV2
+chains:
+  - id: 143
+    start_block: 54773010
+    contracts:
+      - name: Exchange
+        address: "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F"

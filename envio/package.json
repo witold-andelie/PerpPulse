@@ -1,0 +1,18 @@
+{
+  "name": "perppulse-indexer",
+  "private": true,
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Envio HyperIndex indexer that materializes canonical Perpl lifecycle events",
+  "scripts": {
+    "codegen": "envio codegen",
+    "dev": "envio dev",
+    "start": "envio start"
+  },
+  "dependencies": {
+    "envio": "2.32.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

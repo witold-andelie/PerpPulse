@@ -1,0 +1,90 @@
+{
+  "name": "liquidation",
+  "registry_file": "fixtures/protocol/mainnet-registry.json",
+  "as_of": {
+    "chain_id": 143,
+    "block_number": 54773070,
+    "block_hash": "0xasofliqccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "timestamp_ms": 1770003300000
+  },
+  "market_state": [
+    {
+      "perpetual_id": 1,
+      "mark_pns": 620000,
+      "oracle_pns": 619000,
+      "block_number": 54773070,
+      "timestamp_ms": 1770003300000
+    }
+  ],
+  "events": [
+    {
+      "chain_id": 143,
+      "block_hash": "0xblock21cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tx_hash": "0xtxacct3cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 0,
+      "block_number": 54773020,
+      "timestamp_ms": 1770000000000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "abi_event_name": "AccountCreated",
+      "kind": "account_created",
+      "account_id": 99,
+      "owner": "0x2222222222222222222222222222222222222222"
+    },
+    {
+      "chain_id": 143,
+      "block_hash": "0xblock22cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tx_hash": "0xtxopen3cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 0,
+      "block_number": 54773030,
+      "timestamp_ms": 1770000600000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "abi_event_name": "PositionOpened",
+      "kind": "position_opened",
+      "account_id": 99,
+      "perpetual_id": 1,
+      "position_type": 1,
+      "leverage_hdths": 1000,
+      "deposit_cns": 7000000000,
+      "price_pns": 700000,
+      "lot_lns": 100000,
+      "ins_fee_cns": 10000,
+      "prot_fee_cns": 59000
+    },
+    {
+      "chain_id": 143,
+      "block_hash": "0xblock22cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tx_hash": "0xtxopen3cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 1,
+      "block_number": 54773030,
+      "timestamp_ms": 1770000600000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "abi_event_name": "MakerOrderFilled",
+      "kind": "maker_fill",
+      "account_id": 7,
+      "perpetual_id": 1,
+      "price_pns": 700000,
+      "lot_lns": 100000,
+      "fee_cns": 9000
+    },
+    {
+      "chain_id": 143,
+      "block_hash": "0xblock23cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tx_hash": "0xtxliqcccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 0,
+      "block_number": 54773070,
+      "timestamp_ms": 1770002700000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "abi_event_name": "PositionLiquidated",
+      "kind": "position_liquidated",
+      "account_id": 99,
+      "perpetual_id": 1,
+      "position_type": 1,
+      "liq_price_pns": 625000,
+      "liq_lot_lns": 100000,
+      "end_lot_lns": 0,
+      "deposit_cns": 0,
+      "delta_pnl_cns": -7500000000,
+      "funding_cns": -2000000
+    }
+  ]
+}

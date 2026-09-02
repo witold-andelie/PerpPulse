@@ -1,0 +1,1077 @@
+// PerpPulse — OPM-inspired project framework rendered with Graphviz DOT.
+//
+// OPM-to-DOT conventions used here:
+//   * Object              : rectangle
+//   * Process             : ellipse, verb phrase
+//   * Object state        : rounded rectangle, linked to its object with "state of"
+//   * Agent link          : bold purple edge
+//   * Instrument link     : dashed blue edge (the object enables a process but persists)
+//   * Consumption/result  : solid edge into/out of a process
+//   * Effect link         : dotted bidirectional edge
+//   * In-zooming          : nested clusters that expose subprocesses of the system process
+//
+// Graphviz is used as a portable rendering target; it is not an ISO 19450
+// interchange format. Explicit link labels preserve the intended OPM semantics.
+
+digraph PerpPulseOPM {
+  graph [
+    rankdir=TB,
+    compound=true,
+    newrank=true,
+    splines=polyline,
+    nodesep=0.35,
+    ranksep=0.75,
+    pad=0.30,
+    margin=0.08,
+    bgcolor="#F7F9FC",
+    fontname="Microsoft YaHei",
+    fontsize=16,
+    labelloc=t,
+    label="PerpPulse — Real-Time Protocol-to-Wallet Risk Intelligence on Monad\nPrimary: Onchain Finance & Trading | Bounties: Perpl Analytics/Risk + Envio + Nansen"
+  ];
+
+  node [
+    shape=box,
+    style="filled",
+    fillcolor="#EAF3FF",
+    color="#38658C",
+    fontcolor="#102A43",
+    fontname="Microsoft YaHei",
+    fontsize=10,
+    margin="0.10,0.07"
+  ];
+
+  edge [
+    color="#52667A",
+    fontcolor="#334E68",
+    fontname="Microsoft YaHei",
+    fontsize=8,
+    arrowsize=0.7
+  ];
+
+  // -------------------------------------------------------------------------
+  // OPD-0: system purpose, beneficiary, external instruments, and value.
+  // -------------------------------------------------------------------------
+  subgraph cluster_opd0 {
+    label="OPD-0 · System Function and Value";
+    color="#7B61A8";
+    penwidth=1.4;
+    style="rounded,filled";
+    fillcolor="#F7F2FF";
+
+    user_agent [
+      shape=box,
+      style="rounded,filled,bold",
+      fillcolor="#EFE6FF",
+      color="#6B46A1",
+      label="Trader / Risk Analyst\n<<Agent>>"
+    ];
+
+    judge_agent [
+      shape=box,
+      style="rounded,filled,bold",
+      fillcolor="#EFE6FF",
+      color="#6B46A1",
+      label="Hackathon Judge\n<<Agent>>"
+    ];
+
+    decision_context [
+      label="Decision Context\n<<Object>>"
+    ];
+
+    decision_fragmented [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#FFF0F0",
+      color="#B54747",
+      label="fragmented / delayed\n<<State>>"
+    ];
+
+    decision_actionable [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="prioritized / explainable\n<<State>>"
+    ];
+
+    delivering_intelligence [
+      shape=ellipse,
+      style="filled,bold",
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      penwidth=1.8,
+      label="Delivering Near-Real-Time\nPerpPulse Risk Intelligence\n<<System Process>>"
+    ];
+
+    perpl_instrument [
+      style="dashed,filled",
+      fillcolor="#F3F7FA",
+      label="Perpl Protocol + API\n<<Environmental Object>>"
+    ];
+
+    envio_instrument [
+      style="dashed,filled",
+      fillcolor="#F3F7FA",
+      label="Envio HyperSync / HyperIndex / HyperRPC\n<<Environmental Object>>"
+    ];
+
+    nansen_instrument [
+      style="dashed,filled",
+      fillcolor="#F3F7FA",
+      label="Nansen Data / Labels / Behavior\n<<Environmental Object>>"
+    ];
+
+    read_only_boundary [
+      style="dashed,filled",
+      fillcolor="#F3F7FA",
+      label="Read-Only Product Boundary\n<<Object>>\nno order placement · no wallet private keys\npublic chain/market data · server-side sponsor keys"
+    ];
+
+    intelligence_product [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="PerpPulse Product\n<<Object>>\nRisk Pulse + protocol → market → wallet → event drilldown\nwallet comparison + actionable alerts"
+    ];
+
+    decision_context -> decision_fragmented [
+      style=dotted,
+      arrowhead=none,
+      label="state of",
+      constraint=false
+    ];
+    decision_context -> decision_actionable [
+      style=dotted,
+      arrowhead=none,
+      label="state of",
+      constraint=false
+    ];
+    decision_fragmented -> delivering_intelligence [label="consumed state"];
+    delivering_intelligence -> decision_actionable [label="result state"];
+    delivering_intelligence -> intelligence_product [label="yields"];
+
+    user_agent -> delivering_intelligence [
+      style=bold,
+      color="#6B46A1",
+      fontcolor="#6B46A1",
+      label="agent"
+    ];
+    perpl_instrument -> delivering_intelligence [
+      style=dashed,
+      color="#2F6FB0",
+      label="instrument · domain truth"
+    ];
+    envio_instrument -> delivering_intelligence [
+      style=dashed,
+      color="#2F6FB0",
+      label="instrument · chain data"
+    ];
+    nansen_instrument -> delivering_intelligence [
+      style=dashed,
+      color="#2F6FB0",
+      label="instrument · wallet context"
+    ];
+    read_only_boundary -> delivering_intelligence [
+      style=dashed,
+      color="#2F6FB0",
+      label="instrument · safety scope"
+    ];
+  }
+
+  // -------------------------------------------------------------------------
+  // OPD-1A: ingesting, canonicalizing, finalizing, and enriching data.
+  // -------------------------------------------------------------------------
+  subgraph cluster_data_plane {
+    label="OPD-1A · Data Plane (in-zoomed system process)";
+    color="#4C78A8";
+    style="rounded,filled";
+    fillcolor="#EEF5FC";
+
+    monad_chain [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Monad Blocks, Transactions, Logs\n<<Environmental Object>>"
+    ];
+
+    perpl_api [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Perpl Public REST + Market WebSocket\n<<Environmental Object>>\ncontext · oracle/mark/bid/ask · OI/TVL\nfunding · candles/trades/order book · heartbeat sequence"
+    ];
+
+    perpl_sdk [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Perpl dex-sdk Snapshot / Trace\n<<Verification Instrument>>\nas-of-block exchange state + event trace"
+    ];
+
+    nansen_api [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Nansen Monad Wallet Context\n<<Environmental Object>>\naddress labels · Profiler · Smart Money flows/holdings"
+    ];
+
+    source_truth_contract [
+      fillcolor="#EAF3FF",
+      label="Source-of-Truth Contract\n<<Object>>\nEnvio/onchain = global account + position facts\nPerpl stream = low-latency market state\nPerpl snapshot/trace = reconciliation only\nNansen = behavioral context only"
+    ];
+
+    protocol_registry [
+      fillcolor="#EAF3FF",
+      label="Protocol + Schema Registry\n<<Object>>\nchain/exchange/deployment block · ABI/version\nmarket/token IDs · price/size/amount decimals"
+    ];
+
+    historical_backfill [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Backfilling Historical Events\n<<Process>>"
+    ];
+
+    realtime_capture [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Capturing Near-Real-Time Events\n<<Process>>"
+    ];
+
+    api_snapshotting [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Acquiring Perpl Reference Snapshots\n<<Process>>"
+    ];
+
+    market_state_capturing [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Capturing Point-in-Time Market State\n<<Process>>"
+    ];
+
+    market_reference [
+      label="Point-in-Time Market Reference\n<<Object>>\noracle/mark/mid/bid/ask · order-book depth\nfunding · OI/TVL · decimals · as-of block/time"
+    ];
+
+    event_dataset [
+      label="Canonical Event Dataset\n<<Object>>\nPartitioned by chain / block time / market\naddressable by as-of block"
+    ];
+
+    dataset_raw [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#FFF8E6",
+      color="#AA7A00",
+      label="raw · append-only\n<<State>>"
+    ];
+
+    dataset_deduped [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#FFF8E6",
+      color="#AA7A00",
+      label="normalized · deduplicated\n<<State>>"
+    ];
+
+    dataset_final [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="finalized · reconciled\n<<State>>"
+    ];
+
+    dataset_quarantined [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#FFF0F0",
+      color="#B54747",
+      label="affected range quarantined · replay pending\n<<State>>"
+    ];
+
+    normalizing [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Decoding, Normalizing, Deduplicating\n<<Process>>"
+    ];
+
+    reconciling [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Finalizing and Reconciling\n<<Process>>"
+    ];
+
+    checkpoint_lineage [
+      label="Checkpoint + Lineage Registry\n<<Object>>\nhead/processed/finalized block · cursor · source\nschema/handler/rule version · run ID"
+    ];
+
+    event_identity [
+      label="Event Identity Contract\n<<Object>>\n(chain_id, block_hash, tx_hash, log_index)"
+    ];
+
+    continuity_monitoring [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Detecting Gaps, Reorgs, and Staleness\n<<Process>>\nblock parent + heartbeat sequence + lag"
+    ];
+
+    deterministic_replaying [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Replaying Affected Ranges Deterministically\n<<Process>>\nfrom last valid checkpoint"
+    ];
+
+    ingestion_health [
+      fillcolor="#FFF7E6",
+      color="#A86E00",
+      label="Ingestion + Data Quality Status\n<<Object>>\nlag · completeness · sequence gaps · reorg depth\ndecode failures · reconciliation delta · retry state"
+    ];
+
+    enriching_wallets [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Caching and Enriching Wallet Context\n<<Process>>\ncredit budget · TTL · 429 backoff"
+    ];
+
+    wallet_context [
+      label="Wallet Context Features\n<<Object>>\nlabels · cohorts · Smart Money context · behavioral features\nendpoint · observed-at · cache age · provenance · warnings"
+    ];
+
+    monad_chain -> historical_backfill [
+      style=dashed,
+      color="#2F6FB0",
+      label="instrument"
+    ];
+    envio_instrument -> historical_backfill [
+      style=dashed,
+      color="#2F6FB0",
+      label="HyperSync"
+    ];
+    monad_chain -> realtime_capture [
+      style=dashed,
+      color="#2F6FB0",
+      label="instrument"
+    ];
+    envio_instrument -> realtime_capture [
+      style=dashed,
+      color="#2F6FB0",
+      label="HyperIndex / HyperRPC"
+    ];
+    perpl_api -> api_snapshotting [
+      style=dashed,
+      color="#2F6FB0",
+      label="instrument"
+    ];
+    perpl_api -> market_state_capturing [
+      style=dashed,
+      color="#2F6FB0",
+      label="instrument · public WebSocket"
+    ];
+    source_truth_contract -> historical_backfill [style=dashed, color="#2F6FB0", label="instrument"];
+    source_truth_contract -> realtime_capture [style=dashed, color="#2F6FB0", label="instrument"];
+    source_truth_contract -> market_state_capturing [style=dashed, color="#2F6FB0", label="instrument"];
+    protocol_registry -> historical_backfill [style=dashed, color="#2F6FB0", label="instrument"];
+    protocol_registry -> realtime_capture [style=dashed, color="#2F6FB0", label="instrument"];
+    protocol_registry -> market_state_capturing [style=dashed, color="#2F6FB0", label="instrument"];
+    historical_backfill -> dataset_raw [label="yields"];
+    realtime_capture -> dataset_raw [label="yields"];
+    api_snapshotting -> market_reference [label="adds reconciliation snapshot"];
+    market_state_capturing -> market_reference [label="yields low-latency state"];
+
+    event_dataset -> dataset_raw [style=dotted, arrowhead=none, label="state of", constraint=false];
+    event_dataset -> dataset_deduped [style=dotted, arrowhead=none, label="state of", constraint=false];
+    event_dataset -> dataset_final [style=dotted, arrowhead=none, label="state of", constraint=false];
+    event_dataset -> dataset_quarantined [style=dotted, arrowhead=none, label="state of", constraint=false];
+
+    dataset_raw -> normalizing [label="consumed state"];
+    event_identity -> normalizing [style=dashed, color="#2F6FB0", label="instrument"];
+    source_truth_contract -> normalizing [style=dashed, color="#2F6FB0", label="instrument"];
+    protocol_registry -> normalizing [style=dashed, color="#2F6FB0", label="instrument"];
+    checkpoint_lineage -> historical_backfill [style=dashed, color="#2F6FB0", label="instrument"];
+    checkpoint_lineage -> realtime_capture [style=dashed, color="#2F6FB0", label="instrument"];
+    normalizing -> dataset_deduped [label="result state"];
+    dataset_deduped -> reconciling [label="consumed state"];
+    perpl_api -> reconciling [style=dashed, color="#2F6FB0", label="instrument · cross-check"];
+    perpl_sdk -> reconciling [style=dashed, color="#2F6FB0", label="instrument · golden snapshot/trace"];
+    monad_chain -> reconciling [style=dashed, color="#2F6FB0", label="instrument · finality"];
+    source_truth_contract -> reconciling [style=dashed, color="#2F6FB0", label="instrument"];
+    protocol_registry -> reconciling [style=dashed, color="#2F6FB0", label="instrument"];
+    market_reference -> reconciling [style=dashed, color="#2F6FB0", label="instrument · point-in-time cross-check"];
+    reconciling -> dataset_final [label="result state"];
+    reconciling -> checkpoint_lineage [label="updates"];
+    reconciling -> ingestion_health [label="updates reconciliation delta"];
+
+    dataset_raw -> continuity_monitoring [label="consumed observations"];
+    market_reference -> continuity_monitoring [style=dashed, color="#2F6FB0", label="instrument · heartbeat/age"];
+    checkpoint_lineage -> continuity_monitoring [style=dashed, color="#2F6FB0", label="instrument"];
+    source_truth_contract -> continuity_monitoring [style=dashed, color="#2F6FB0", label="instrument"];
+    continuity_monitoring -> ingestion_health [label="yields status"];
+    continuity_monitoring -> dataset_quarantined [label="marks affected range"];
+    dataset_quarantined -> deterministic_replaying [label="consumed state"];
+    monad_chain -> deterministic_replaying [style=dashed, color="#2F6FB0", label="instrument"];
+    envio_instrument -> deterministic_replaying [style=dashed, color="#2F6FB0", label="instrument · range backfill"];
+    protocol_registry -> deterministic_replaying [style=dashed, color="#2F6FB0", label="instrument"];
+    checkpoint_lineage -> deterministic_replaying [style=dashed, color="#2F6FB0", label="instrument"];
+    deterministic_replaying -> dataset_deduped [label="restores normalized range"];
+    deterministic_replaying -> checkpoint_lineage [label="records replay run"];
+
+    dataset_final -> enriching_wallets [style=dashed, color="#2F6FB0", label="instrument"];
+    nansen_api -> enriching_wallets [style=dashed, color="#2F6FB0", label="instrument"];
+    nansen_instrument -> enriching_wallets [style=dashed, color="#2F6FB0", label="API / MCP / CLI"];
+    source_truth_contract -> enriching_wallets [style=dashed, color="#2F6FB0", label="instrument · context-only boundary"];
+    enriching_wallets -> wallet_context [label="yields derived context"];
+  }
+
+  // -------------------------------------------------------------------------
+  // OPD-1B: protocol metrics, wallet accounting, and prioritized risk signals.
+  // -------------------------------------------------------------------------
+  subgraph cluster_intelligence_plane {
+    label="OPD-1B · Intelligence Plane";
+    color="#D58A00";
+    style="rounded,filled";
+    fillcolor="#FFF8E8";
+
+    metric_contract [
+      fillcolor="#EAF3FF",
+      label="Versioned Metric Contract\n<<Object>>\nname · grain · UTC window · dimensions · decimals\nfinality · formula · methodology · owner · version"
+    ];
+
+    protocol_aggregating [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Aggregating Protocol Intelligence\n<<Process>>"
+    ];
+
+    wallet_reconstructing [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Reconstructing Canonical Position Lifecycle\n<<Process>>\nopen → increase/reduce → funding/fees → liquidate/close"
+    ];
+
+    position_ledger [
+      label="Canonical Position Lifecycle Ledger\n<<Object>>\nappend-only events · one source of truth\nmarket/account/position IDs · block/time · event identity"
+    ];
+
+    wallet_accounting [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Calculating Point-in-Time Wallet Accounting\n<<Process>>\nstrict as-of cutoff · finite-value checks"
+    ];
+
+    protocol_mart [
+      label="Protocol Metric Mart\n<<Object>>\n24h / 7d / 30d / history\nvolume · OI · TVL · fees/revenue · active users\ndeposits · withdrawals · net flow\nmarket/asset split · long/short skew\nliquidations · funding rates"
+    ];
+
+    wallet_mart [
+      label="Wallet Intelligence Mart\n<<Object>>\nopen positions · size · entry · leverage\nunrealized PnL · liquidation price\ntrade ledger · realized PnL\nwin rate · profit factor · max drawdown\nstreak · holding time · best/worst markets\nportfolio and profit overview"
+    ];
+
+    scenario_contract [
+      label="Deterministic Risk Scenario Contract\n<<Object>>\nscenario fingerprint · as-of cutoff · market shocks\nfunding/liquidity assumptions · model/rule version"
+    ];
+
+    stress_testing [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Replaying Stress and Liquidation Scenarios\n<<Process>>\nno forecasting · no future observations"
+    ];
+
+    stress_result [
+      label="Stress Result Set\n<<Object>>\nliquidation-at-risk notional · cascade bands\ncollateral shortfall · affected wallets/markets · input hash"
+    ];
+
+    competitor_context [
+      style="dashed,filled",
+      fillcolor="#F5F5F5",
+      color="#8A8A8A",
+      label="Competitor / Market Share Data\n<<Optional Object>>"
+    ];
+
+    risk_assessing [
+      shape=ellipse,
+      style="filled,bold",
+      fillcolor="#FFE0B2",
+      color="#B65F00",
+      label="Assessing Risk and Detecting Anomalies\n<<Process>>"
+    ];
+
+    behavioral_reasoning [
+      shape=ellipse,
+      style="dashed,filled",
+      fillcolor="#F8F0FF",
+      color="#7B61A8",
+      label="Explaining Behavioral Patterns with AI\n<<Optional Process>>"
+    ];
+
+    risk_signal_set [
+      fillcolor="#FFECEC",
+      color="#B54747",
+      label="Candidate Risk Signal Set\n<<Object>>\ncrowding OI/TVL · liquidation-distance/cascade bands\nfunding/price divergence · concentration · net outflow\nSmart-Money divergence (context)\nrule ID · severity · evidence · affected entity · freshness"
+    ];
+
+    signal_quality_policy [
+      label="Fail-Closed Signal Quality Policy\n<<Object>>\nrequired sources · max age · completeness · finality\nfinite metrics · reconciliation tolerance · rule version"
+    ];
+
+    gating_signals [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Gating Signals by Evidence Quality\n<<Process>>\nstale/invalid/incomplete signals are suppressed visibly"
+    ];
+
+    verified_signal_set [
+      fillcolor="#FFECEC",
+      color="#B54747",
+      label="Eligible Risk Signal Set\n<<Object>>\nwhy now · confidence · source status · evidence refs\nas-of block/time · rule/input hash"
+    ];
+
+    signal_prioritizing [
+      shape=ellipse,
+      style="filled,bold",
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Ranking and Explaining Signals\n<<Process>>"
+    ];
+
+    prioritized_feed [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="Prioritized Signal Feed\n<<Object>>\nimportant changes first · raw detail on demand"
+    ];
+
+    materializing_semantic_api [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Materializing Versioned Analytics API\n<<Process>>\ndefine metrics once · incremental aggregates · bounded cache"
+    ];
+
+    query_api [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="PerpPulse Query Contract\n<<Object>>\nprotocol / market / wallet / risk endpoints\nas-of + freshness + pagination cursor + provenance\ncache key includes metric/schema version and filters"
+    ];
+
+    dataset_final -> protocol_aggregating [style=dashed, color="#2F6FB0", label="instrument"];
+    dataset_final -> wallet_reconstructing [style=dashed, color="#2F6FB0", label="instrument"];
+    market_reference -> protocol_aggregating [style=dashed, color="#2F6FB0", label="instrument · point-in-time"];
+    metric_contract -> protocol_aggregating [style=dashed, color="#2F6FB0", label="instrument"];
+    metric_contract -> wallet_reconstructing [style=dashed, color="#2F6FB0", label="instrument"];
+    competitor_context -> protocol_aggregating [style=dashed, color="#8A8A8A", label="optional instrument"];
+    protocol_aggregating -> protocol_mart [label="yields"];
+    wallet_reconstructing -> position_ledger [label="yields"];
+    position_ledger -> wallet_accounting [label="consumed as-of"];
+    market_reference -> wallet_accounting [style=dashed, color="#2F6FB0", label="instrument · no look-ahead"];
+    metric_contract -> wallet_accounting [style=dashed, color="#2F6FB0", label="instrument"];
+    wallet_accounting -> wallet_mart [label="yields"];
+
+    protocol_mart -> stress_testing [style=dashed, color="#2F6FB0", label="instrument"];
+    wallet_mart -> stress_testing [style=dashed, color="#2F6FB0", label="instrument"];
+    market_reference -> stress_testing [style=dashed, color="#2F6FB0", label="instrument · as-of"];
+    scenario_contract -> stress_testing [style=dashed, color="#2F6FB0", label="instrument"];
+    stress_testing -> stress_result [label="yields"];
+
+    protocol_mart -> risk_assessing [style=dashed, color="#2F6FB0", label="instrument"];
+    wallet_mart -> risk_assessing [style=dashed, color="#2F6FB0", label="instrument"];
+    stress_result -> risk_assessing [style=dashed, color="#2F6FB0", label="instrument"];
+    wallet_context -> risk_assessing [style=dashed, color="#2F6FB0", label="instrument · context only"];
+    risk_assessing -> risk_signal_set [label="yields"];
+
+    wallet_mart -> behavioral_reasoning [style=dashed, color="#7B61A8", label="optional instrument"];
+    wallet_context -> behavioral_reasoning [style=dashed, color="#7B61A8", label="optional instrument"];
+    behavioral_reasoning -> risk_signal_set [style=dotted, color="#7B61A8", label="adds explanation; never overwrites facts"];
+
+    risk_signal_set -> gating_signals [label="consumed"];
+    ingestion_health -> gating_signals [style=dashed, color="#2F6FB0", label="instrument"];
+    signal_quality_policy -> gating_signals [style=dashed, color="#2F6FB0", label="instrument"];
+    gating_signals -> verified_signal_set [label="yields eligible or suppressed status"];
+    verified_signal_set -> signal_prioritizing [label="consumed"];
+    protocol_mart -> signal_prioritizing [style=dashed, color="#2F6FB0", label="instrument · evidence"];
+    wallet_mart -> signal_prioritizing [style=dashed, color="#2F6FB0", label="instrument · evidence"];
+    signal_prioritizing -> prioritized_feed [label="yields"];
+
+    protocol_mart -> materializing_semantic_api [label="consumed"];
+    wallet_mart -> materializing_semantic_api [label="consumed"];
+    prioritized_feed -> materializing_semantic_api [label="consumed"];
+    metric_contract -> materializing_semantic_api [style=dashed, color="#2F6FB0", label="instrument"];
+    ingestion_health -> materializing_semantic_api [style=dashed, color="#2F6FB0", label="instrument · freshness"];
+    materializing_semantic_api -> query_api [label="yields"];
+  }
+
+  // -------------------------------------------------------------------------
+  // OPD-1C: product interaction; protocol-to-wallet drilldown preserves context.
+  // -------------------------------------------------------------------------
+  subgraph cluster_experience_plane {
+    label="OPD-1C · Signal-First Product Experience";
+    color="#2F855A";
+    style="rounded,filled";
+    fillcolor="#EFFAF3";
+
+    exploration_workspace [
+      label="Exploration Workspace\n<<Object>>"
+    ];
+
+    protocol_state [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="protocol Risk Pulse view\n<<State>>\ntop 3 signals first · KPI + time-series + flows\nmarket/asset breakdown · freshness always visible"
+    ];
+
+    wallet_state [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="wallet deep-dive view\n<<State>>\ncanonical positions/ledger/performance\nNansen labels/context visually separated · evidence timeline"
+    ];
+
+    comparison_state [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="wallet comparison view\n<<State>>\nsaved addresses side-by-side · normalized statistics\ncohort percentiles · exposure overlap"
+    ];
+
+    event_state [
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="event evidence view\n<<State>>\nblock/tx/log · decoded inputs · lifecycle transition\nmetric/rule version · source links"
+    ];
+
+    serving_protocol [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Serving Protocol View\n<<Process>>"
+    ];
+
+    searching_wallet [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Searching Global Address\n<<Process>>"
+    ];
+
+    drilling_navigation [
+      shape=ellipse,
+      style="filled,bold",
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Drilling Down and Rolling Up\n<<Process>>\npreserve time range · market · filters"
+    ];
+
+    comparing_wallets [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Saving and Comparing Wallets\n<<Process>>"
+    ];
+
+    opening_evidence [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Opening Event-Level Evidence\n<<Process>>"
+    ];
+
+    alerting [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Publishing Near-Real-Time Alerts\n<<Process>>"
+    ];
+
+    alert_object [
+      fillcolor="#FFECEC",
+      color="#B54747",
+      label="Actionable Alert\n<<Object>>\nwhat changed · why now · why it matters · confidence\ndata status · supporting facts · rule hash · deep link"
+    ];
+
+    navigation_context [
+      label="Navigation Context\n<<Object>>\nas-of block/time · window · market/asset · wallet\nselected comparison set · stable shareable URL"
+    ];
+
+    exploration_workspace -> protocol_state [style=dotted, arrowhead=none, label="state of", constraint=false];
+    exploration_workspace -> wallet_state [style=dotted, arrowhead=none, label="state of", constraint=false];
+    exploration_workspace -> comparison_state [style=dotted, arrowhead=none, label="state of", constraint=false];
+    exploration_workspace -> event_state [style=dotted, arrowhead=none, label="state of", constraint=false];
+
+    query_api -> serving_protocol [style=dashed, color="#2F6FB0", label="instrument"];
+    serving_protocol -> protocol_state [label="yields"];
+
+    user_agent -> searching_wallet [style=bold, color="#6B46A1", label="agent"];
+    query_api -> searching_wallet [style=dashed, color="#2F6FB0", label="instrument"];
+    searching_wallet -> wallet_state [label="yields"];
+
+    user_agent -> drilling_navigation [style=bold, color="#6B46A1", label="agent"];
+    protocol_state -> drilling_navigation [label="source state"];
+    wallet_state -> drilling_navigation [label="source state"];
+    event_state -> drilling_navigation [label="source state"];
+    navigation_context -> drilling_navigation [style=dashed, color="#2F6FB0", label="instrument"];
+    drilling_navigation -> protocol_state [label="result state"];
+    drilling_navigation -> wallet_state [label="result state"];
+    drilling_navigation -> event_state [label="result state"];
+    drilling_navigation -> navigation_context [label="updates"];
+
+    user_agent -> comparing_wallets [style=bold, color="#6B46A1", label="agent"];
+    wallet_state -> comparing_wallets [label="consumed selection"];
+    navigation_context -> comparing_wallets [style=dashed, color="#2F6FB0", label="instrument"];
+    comparing_wallets -> comparison_state [label="yields"];
+
+    user_agent -> opening_evidence [style=bold, color="#6B46A1", label="agent"];
+    verified_signal_set -> opening_evidence [style=dashed, color="#2F6FB0", label="instrument · evidence refs"];
+    position_ledger -> opening_evidence [style=dashed, color="#2F6FB0", label="instrument"];
+    navigation_context -> opening_evidence [style=dashed, color="#2F6FB0", label="instrument"];
+    opening_evidence -> event_state [label="yields"];
+
+    prioritized_feed -> alerting [label="consumed"];
+    ingestion_health -> alerting [style=dashed, color="#2F6FB0", label="instrument · data status"];
+    navigation_context -> alerting [style=dashed, color="#2F6FB0", label="instrument · deep link"];
+    alerting -> alert_object [label="yields"];
+  }
+
+  // -------------------------------------------------------------------------
+  // OPD-1D: verification and judge-facing evidence using official Rules v2.
+  // -------------------------------------------------------------------------
+  subgraph cluster_evidence {
+    label="OPD-1D · Verification and Judge-Facing Evidence (Metropolis Rules v2)";
+    color="#A44A3F";
+    style="rounded,filled";
+    fillcolor="#FFF4F2";
+
+    judge_criteria [
+      fillcolor="#FFF7E6",
+      color="#A86E00",
+      label="Official Scoring + Bounty Fit\n<<Object>>\nall tracks: quality 20 · technical 20 · Monad 20\ntrack fit 20 · innovation/impact 20\nsponsors: requirements 40 · implementation 30\nMonad 20 · innovation 10\nplus critical-time freshness · drilldown · signal-first UX"
+    ];
+
+    submission_requirements [
+      fillcolor="#FFF7E6",
+      color="#A86E00",
+      label="Mandatory Submission Contract\n<<Object>>\nworking Monad-mainnet product · public GitHub + OSI license\ncomplete source · setup README · attribution + AI disclosure\ncommit history in build window · docs · addresses/tx hashes\npublic ≤3-minute operating demo"
+    ];
+
+    measuring_freshness [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Measuring End-to-End Freshness\n<<Process>>"
+    ];
+
+    validating_correctness [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Validating Metrics, Accounting, and Point-in-Time Safety\n<<Process>>\nunique/non-null/invariant/finite checks · no future data"
+    ];
+
+    proving_navigation [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Demonstrating Insight Navigation\n<<Process>>"
+    ];
+
+    tracing_integrations [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Tracing and Ablating Sponsor Integrations\n<<Process>>\nshow degradation without Envio or Nansen"
+    ];
+
+    golden_fixtures [
+      label="Golden Fixture Set\n<<Object>>\nknown wallets + full position lifecycles\nliquidation/funding/partial-close cases · missing/reorg cases\nPerpl dex-sdk snapshot/trace expectations"
+    ];
+
+    recording_runs [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Recording Reproducible Evidence Runs\n<<Process>>"
+    ];
+
+    evidence_manifest [
+      label="Append-Only Run Manifest\n<<Object>>\nrequest/scenario fingerprint · as-of cutoff · input/output hashes\nsource/schema/rule versions · Git SHA · timestamps · status/errors"
+    ];
+
+    freshness_evidence [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="Freshness + Recovery Evidence\n<<Object>>\nevent → ingest → materialization → UI timestamps\nmeasured p50/p95 lag · heartbeat gaps · reorg/quarantine/replay\nstale-data and degraded-source indicators"
+    ];
+
+    correctness_evidence [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="Correctness Evidence\n<<Object>>\nsource + dex-sdk reconciliation · invariant and fixture results\nPnL/flow formulas · finality · missing blocks · deterministic replay\nstrict as-of proof · visible failures, never silent zeroes"
+    ];
+
+    ux_evidence [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="Product Evidence\n<<Object>>\nprotocol anomaly → market → wallet → event proof\nas-of filters preserved · top signals before raw tables\ncanonical facts visibly distinct from Nansen context"
+    ];
+
+    sponsor_evidence [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="Integration + Ablation Evidence\n<<Object>>\nPerpl-specific risk outcome + snapshot/trace match\nEnvio powers backfill/reorg-aware live core pipeline\nNansen changes context/ranking, not canonical facts\ngracious degraded mode with explicit limitations"
+    ];
+
+    packaging_submission [
+      shape=ellipse,
+      style="filled,bold",
+      fillcolor="#FFE0B2",
+      color="#B65F00",
+      label="Packaging Reproducible Submission\n<<Process>>"
+    ];
+
+    submission_package [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      penwidth=1.5,
+      label="Judge-Ready PerpPulse Submission\n<<Object>>\nMonad-mainnet app · seeded demo path · public licensed repository\narchitecture/data dictionary · tests · latency/correctness dashboard\n≤3-minute video + sponsor-specific evidence"
+    ];
+
+    evaluating_submission [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Evaluating Submission\n<<External Process>>"
+    ];
+
+    evaluation_outcome [
+      fillcolor="#EFE6FF",
+      color="#6B46A1",
+      label="Evaluation Outcome\n<<Object>>"
+    ];
+
+    dataset_final -> measuring_freshness [style=dashed, color="#2F6FB0", label="instrument"];
+    prioritized_feed -> measuring_freshness [style=dashed, color="#2F6FB0", label="instrument"];
+    ingestion_health -> measuring_freshness [style=dashed, color="#2F6FB0", label="instrument"];
+    measuring_freshness -> freshness_evidence [label="yields"];
+
+    metric_contract -> validating_correctness [style=dashed, color="#2F6FB0", label="instrument"];
+    protocol_mart -> validating_correctness [style=dashed, color="#2F6FB0", label="instrument"];
+    wallet_mart -> validating_correctness [style=dashed, color="#2F6FB0", label="instrument"];
+    scenario_contract -> validating_correctness [style=dashed, color="#2F6FB0", label="instrument"];
+    golden_fixtures -> validating_correctness [style=dashed, color="#2F6FB0", label="instrument"];
+    perpl_sdk -> validating_correctness [style=dashed, color="#2F6FB0", label="instrument"];
+    validating_correctness -> correctness_evidence [label="yields"];
+
+    protocol_state -> proving_navigation [style=dashed, color="#2F6FB0", label="instrument"];
+    wallet_state -> proving_navigation [style=dashed, color="#2F6FB0", label="instrument"];
+    comparison_state -> proving_navigation [style=dashed, color="#2F6FB0", label="instrument"];
+    proving_navigation -> ux_evidence [label="yields"];
+
+    perpl_instrument -> tracing_integrations [style=dashed, color="#2F6FB0", label="instrument"];
+    envio_instrument -> tracing_integrations [style=dashed, color="#2F6FB0", label="instrument"];
+    nansen_instrument -> tracing_integrations [style=dashed, color="#2F6FB0", label="instrument"];
+    source_truth_contract -> tracing_integrations [style=dashed, color="#2F6FB0", label="instrument"];
+    tracing_integrations -> sponsor_evidence [label="yields"];
+
+    freshness_evidence -> recording_runs [label="consumed"];
+    correctness_evidence -> recording_runs [label="consumed"];
+    sponsor_evidence -> recording_runs [label="consumed"];
+    recording_runs -> evidence_manifest [label="yields"];
+
+    freshness_evidence -> packaging_submission [label="consumed"];
+    correctness_evidence -> packaging_submission [label="consumed"];
+    ux_evidence -> packaging_submission [label="consumed"];
+    sponsor_evidence -> packaging_submission [label="consumed"];
+    evidence_manifest -> packaging_submission [label="consumed"];
+    submission_requirements -> packaging_submission [style=dashed, color="#2F6FB0", label="instrument · compliance"];
+    intelligence_product -> packaging_submission [style=dashed, color="#2F6FB0", label="instrument · deployed product"];
+    packaging_submission -> submission_package [label="yields"];
+
+    judge_agent -> evaluating_submission [style=bold, color="#6B46A1", label="agent"];
+    judge_criteria -> evaluating_submission [style=dashed, color="#2F6FB0", label="instrument"];
+    submission_package -> evaluating_submission [label="consumed for review"];
+    evaluating_submission -> evaluation_outcome [label="yields"];
+  }
+
+  // -------------------------------------------------------------------------
+  // OPD-1E: planned GCP deployment and FinOps. No resources are provisioned.
+  // -------------------------------------------------------------------------
+  subgraph cluster_gcp_plane {
+    label="OPD-1E · Planned GCP Deployment and FinOps (not yet provisioned)";
+    color="#4285F4";
+    style="rounded,filled";
+    fillcolor="#F2F7FF";
+
+    deployment_blueprint [
+      label="GCP Deployment Blueprint\n<<Object>>\nsingle European region · separate dev runtime identity\nleast-purpose IAM · reproducible containers · no embedded secrets"
+    ];
+
+    cloud_run_worker [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Cloud Run Worker Pool\n<<Planned Infrastructure Object>>\n1 vCPU / 512 MiB baseline · one always-on instance\nEnvio indexer + Perpl market stream consumers"
+    ];
+
+    cloud_sql [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Cloud SQL for PostgreSQL\n<<Planned Infrastructure Object>>\ndb-g1-small starting point · 20 GiB\ncanonical facts + checkpoints + serving marts"
+    ];
+
+    cloud_run_service [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Cloud Run API + Web\n<<Planned Infrastructure Object>>\nmin 0 · max 3 · read-only public surface"
+    ];
+
+    cloud_jobs [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Cloud Run Jobs + Scheduler\n<<Planned Infrastructure Object>>\nbounded backfill · reconciliation · fixture replay · quality checks"
+    ];
+
+    gcs_archive [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Cloud Storage Evidence Archive\n<<Planned Infrastructure Object>>\nraw snapshots · golden fixtures · run manifests\n30-day lifecycle for disposable artifacts"
+    ];
+
+    bigquery_optional [
+      style="dashed,filled",
+      fillcolor="#F5F5F5",
+      color="#8A8A8A",
+      label="BigQuery Hourly Mart + Billing Export\n<<Optional Infrastructure Object>>\nbenchmark analytical scans only after Postgres baseline"
+    ];
+
+    secret_manager [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Secret Manager\n<<Planned Infrastructure Object>>\nNansen credentials and internal tokens · runtime-only access"
+    ];
+
+    cloud_observability [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Cloud Logging + Monitoring\n<<Planned Infrastructure Object>>\ntrace/run IDs · lag/SLO · error/retry/reorg alerts · billing export"
+    ];
+
+    artifact_pipeline [
+      style="dashed,filled",
+      fillcolor="#F8FAFC",
+      label="Cloud Build + Artifact Registry\n<<Planned Infrastructure Object>>\nimmutable image digest · Git SHA provenance"
+    ];
+
+    provisioning_runtime [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Provisioning Reproducible Runtime\n<<Planned Process>>"
+    ];
+
+    operating_runtime [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Operating Live Data and Serving Planes\n<<Planned Process>>"
+    ];
+
+    running_credit_campaign [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Running September Evidence Campaign\n<<Planned Process>>\nhistorical backfill · deterministic replay · gap/reorg drill\n7–14 day soak · query load test · sponsor ablation"
+    ];
+
+    gcp_budget [
+      fillcolor="#FFF7E6",
+      color="#A86E00",
+      label="Owner-Authorized GCP Envelope\n<<Object>>\nproject-5e761e8c-65aa-4033-8cb · ceiling USD 400\nworking target USD 180–220 · remainder is reserve\nworker/soak 20–35 · SQL/storage/backups 35–55\nbackfill/replay/load tests 50–80 · API/logging/network 20–35\noptional BigQuery 10–25 · Vertex evals capped at 10\nbilling account and region not yet confirmed · not provisioned"
+    ];
+
+    guarding_cost [
+      shape=ellipse,
+      fillcolor="#FFF0C2",
+      color="#A86E00",
+      label="Guarding Cost and Capacity\n<<Process>>\nlabels · min/max instances · job caps · log retention\nalerts at USD 100/200/300/360/400 · automated stop trigger"
+    ];
+
+    budget_status [
+      fillcolor="#E8F8EE",
+      color="#25855A",
+      label="Cost + Capacity Status\n<<Object>>\nactual vs forecast · credits included/excluded · daily burn\nremaining runway · service-level breakdown\nwarning: billing budgets alert; they are not hard caps"
+    ];
+
+    deployment_blueprint -> provisioning_runtime [label="consumed"];
+    artifact_pipeline -> provisioning_runtime [style=dashed, color="#2F6FB0", label="instrument"];
+    secret_manager -> provisioning_runtime [style=dashed, color="#2F6FB0", label="instrument"];
+    provisioning_runtime -> cloud_run_worker [label="configures"];
+    provisioning_runtime -> cloud_sql [label="configures"];
+    provisioning_runtime -> cloud_run_service [label="configures"];
+    provisioning_runtime -> cloud_jobs [label="configures"];
+
+    cloud_run_worker -> operating_runtime [style=dashed, color="#2F6FB0", label="instrument"];
+    cloud_sql -> operating_runtime [style=dashed, color="#2F6FB0", label="instrument"];
+    cloud_run_service -> operating_runtime [style=dashed, color="#2F6FB0", label="instrument"];
+    cloud_jobs -> operating_runtime [style=dashed, color="#2F6FB0", label="instrument"];
+    gcs_archive -> operating_runtime [style=dashed, color="#2F6FB0", label="instrument"];
+    cloud_observability -> operating_runtime [style=dashed, color="#2F6FB0", label="instrument"];
+    dataset_final -> operating_runtime [label="consumed by deployed data plane"];
+    query_api -> operating_runtime [label="consumed by deployed serving plane"];
+
+    cloud_jobs -> running_credit_campaign [style=dashed, color="#2F6FB0", label="instrument"];
+    cloud_sql -> running_credit_campaign [style=dashed, color="#2F6FB0", label="instrument"];
+    gcs_archive -> running_credit_campaign [style=dashed, color="#2F6FB0", label="instrument"];
+    bigquery_optional -> running_credit_campaign [style=dashed, color="#8A8A8A", label="optional instrument"];
+    golden_fixtures -> running_credit_campaign [style=dashed, color="#2F6FB0", label="instrument"];
+    running_credit_campaign -> evidence_manifest [label="adds benchmark runs"];
+
+    gcp_budget -> guarding_cost [label="consumed"];
+    cloud_observability -> guarding_cost [style=dashed, color="#2F6FB0", label="instrument"];
+    cloud_run_worker -> guarding_cost [style=dashed, color="#2F6FB0", label="instrument"];
+    cloud_sql -> guarding_cost [style=dashed, color="#2F6FB0", label="instrument"];
+    cloud_jobs -> guarding_cost [style=dashed, color="#2F6FB0", label="instrument"];
+    guarding_cost -> budget_status [label="yields"];
+  }
+
+  // In-zooming trace from the system process to its first concrete subprocess.
+  delivering_intelligence -> historical_backfill [
+    style=dotted,
+    color="#7B61A8",
+    fontcolor="#7B61A8",
+    label="in-zoomed as",
+    ltail=cluster_opd0,
+    lhead=cluster_data_plane,
+    constraint=false
+  ];
+
+  // -------------------------------------------------------------------------
+  // Legend: keeps the DOT rendering self-describing.
+  // -------------------------------------------------------------------------
+  subgraph cluster_legend {
+    label="OPM-to-DOT Legend";
+    color="#9AA5B1";
+    style="rounded,dashed";
+
+    legend_object [label="Object", fillcolor="#EAF3FF"];
+    legend_process [shape=ellipse, label="Transforming Object\nProcess", fillcolor="#FFF0C2", color="#A86E00"];
+    legend_state [shape=box, style="rounded,filled", label="object state", fillcolor="#F4F7FA"];
+    legend_agent [shape=box, style="rounded,filled,bold", label="Agent", fillcolor="#EFE6FF", color="#6B46A1"];
+
+    legend_object -> legend_process [label="consumption / input"];
+    legend_process -> legend_state [label="result"];
+    legend_agent -> legend_process [style=bold, color="#6B46A1", label="agent"];
+    legend_object -> legend_process [style=dashed, color="#2F6FB0", label="instrument", constraint=false];
+  }
+}

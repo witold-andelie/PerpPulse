@@ -6,13 +6,26 @@
   "description": "Envio HyperIndex indexer that materializes canonical Perpl lifecycle events",
   "scripts": {
     "codegen": "envio codegen",
-    "dev": "envio dev",
-    "start": "envio start"
+    "codegen:quick": "pnpm quick:prepare && envio codegen --config config.quick.yaml",
+    "coverage:check": "tsx scripts/check-coverage.ts",
+    "dev": "pnpm dev:quick",
+    "dev:quick": "pnpm quick:prepare && envio dev --config config.quick.yaml",
+    "dev:full": "envio dev --config config.yaml",
+    "quick:prepare": "tsx scripts/prepare-quick-config.ts",
+    "quick:refresh": "PERPPULSE_QUICK_REFRESH=1 tsx scripts/prepare-quick-config.ts",
+    "start": "envio start",
+    "test": "tsx --test --test-force-exit test/*.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "envio": "2.32.6"
   },
+  "optionalDependencies": {
+    "generated": "./generated"
+  },
   "devDependencies": {
+    "@types/node": "20.8.8",
+    "tsx": "4.20.5",
     "typescript": "^5.6.3"
   }
 }

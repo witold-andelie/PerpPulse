@@ -6,8 +6,6 @@ field_selection:
   transaction_fields:
     - hash
   block_fields:
-    - hash
-    - timestamp
     - parentHash
 contracts:
   - name: Exchange
@@ -34,13 +32,9 @@ contracts:
       - event: FundingEventCompleted
       - event: MakerOrderFilled
       - event: MakerOrderFilledV2
-      - event: TakerOrderFilled
-      - event: TakerOrderFilledV2
-      - event: OrderRequest
-      - event: OrderRequestV2
       - event: ContractAdded
       - event: ContractAddedV2
-chains:
+networks:
   - id: 143
     start_block: 54773010
     contracts:

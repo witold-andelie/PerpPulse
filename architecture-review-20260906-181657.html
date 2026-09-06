@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture review — PerpPulse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      body { background-image: radial-gradient(#d6d3d1 0.6px, transparent 0.6px); background-size: 18px 18px; }
+      .deep { background: linear-gradient(135deg, #0f172a, #1e293b); }
+      .seam { border-style: dashed; }
+      .mass-interface { height: 24%; }
+      .mass-implementation { height: 76%; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-6xl mx-auto px-6 py-12 space-y-12">
+      <header class="border-b border-stone-300 pb-8">
+        <p class="text-xs uppercase tracking-[0.25em] text-emerald-700">Pendulum-pattern review</p>
+        <h1 class="mt-2 text-4xl font-semibold tracking-tight">PerpPulse architecture review</h1>
+        <div class="mt-4 flex flex-wrap gap-4 text-xs text-slate-600">
+          <span>2026-09-06</span><span>solid box = module</span><span>dashed = seam</span><span>dark = deep module</span><span class="text-red-700">red = leaked knowledge</span>
+        </div>
+      </header>
+
+      <section id="candidates" class="space-y-10">
+        <article id="freshness" class="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-4"><h2 class="text-2xl font-semibold">1. Deepen freshness into a Coverage Ledger</h2><span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Strong · ports &amp; adapters</span></div>
+          <p class="mt-2 font-mono text-xs text-slate-500">envio/schema.graphql · envio/src/EventHandlers.ts · crates/perppulse/src/quality.rs · docs/data-dictionary.md</p>
+          <div class="mt-6 grid gap-5 md:grid-cols-2">
+            <div><p class="mb-2 text-xs uppercase tracking-wider text-red-700">Before · quiet equals stalled</p><pre class="mermaid rounded-xl border border-red-200 bg-red-50 p-3">flowchart TB
+E[Last Exchange event] --> C[IndexerCheckpoint]
+C --> Q[Quality gate]
+S[Indexer stopped] -. same old block .-> C
+Z[No Exchange events] -. same old block .-> C
+classDef leak stroke:#dc2626,stroke-width:2px;
+class C,Q leak</pre></div>
+            <div><p class="mb-2 text-xs uppercase tracking-wider text-emerald-700">After · explicit operational truth</p><pre class="mermaid rounded-xl border border-emerald-200 bg-emerald-50 p-3">flowchart TB
+H[HyperSync head adapter] --> L[Coverage Ledger]
+M[Envio meta adapter] --> L
+P[Perpl heartbeat adapter] --> L
+L --> S[caught_up_quiet / lagging / quarantined]
+L --> U[Risk Pulse freshness]</pre></div>
+          </div>
+          <div class="mt-5 grid gap-3 md:grid-cols-3 text-sm"><p><b>Problem.</b> The checkpoint interface exposes the last business event, not indexer liveness.</p><p><b>Solution.</b> One deep module owns head observations, empty ranges, finality, lag, and status classification.</p><ul class="list-disc pl-5"><li>locality: liveness rules concentrate</li><li>leverage: one status everywhere</li><li>tests hit one interface</li></ul></div>
+        </article>
+
+        <article id="envelope" class="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-4"><h2 class="text-2xl font-semibold">2. Version the Canonical Event Envelope</h2><span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Strong · in-process</span></div>
+          <p class="mt-2 font-mono text-xs text-slate-500">envio/schema.graphql · envio/src/EventHandlers.ts · crates/perppulse/src/events.rs</p>
+          <div class="mt-6 grid gap-5 md:grid-cols-2">
+            <div class="rounded-xl border border-red-200 bg-red-50 p-5"><p class="text-xs uppercase tracking-wider text-red-700">Shallow history</p><div class="mt-4 rounded border border-red-400 bg-white p-3 text-sm">Event: identity + block time + JSON</div><div class="mt-2 rounded border border-red-400 bg-white p-3 text-sm">Singleton checkpoint: latest versions</div><p class="mt-4 text-xs text-red-700">Historical decoder knowledge leaks away.</p></div>
+            <div class="deep rounded-xl p-5 text-white"><p class="text-xs uppercase tracking-wider text-emerald-300">Deep envelope</p><div class="mt-4 rounded border border-slate-500 p-3 text-sm">Identity · block time · ABI event</div><div class="mt-2 rounded border border-slate-500 p-3 text-sm">schema · handler · ABI epoch · payload digest</div><div class="mt-2 rounded border border-slate-500 p-3 text-sm">finality and observation references</div></div>
+          </div>
+          <div class="mt-5 grid gap-3 md:grid-cols-3 text-sm"><p><b>Problem.</b> Per-event history cannot identify the decoder and registry epoch that produced it.</p><p><b>Solution.</b> The envelope module absorbs provenance; timing observations stay deterministic outside event handlers.</p><ul class="list-disc pl-5"><li>queryable quality eras</li><li>replay provenance survives upgrades</li><li>payload corruption becomes visible</li></ul></div>
+        </article>
+
+        <article id="manifest" class="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-4"><h2 class="text-2xl font-semibold">3. Materialize the Evidence Manifest</h2><span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Strong · local-substitutable</span></div>
+          <p class="mt-2 font-mono text-xs text-slate-500">perppulse_opm.dot · docs/gcp-deployment-plan.md · README.md</p>
+          <div class="mt-6 grid gap-5 md:grid-cols-2">
+            <div class="rounded-xl border border-red-200 bg-white p-5"><p class="text-xs uppercase tracking-wider text-red-700">Before</p><div class="mt-4 space-y-2 text-sm"><div class="rounded border p-2">OPM promise</div><div class="rounded border p-2">GCS plan</div><div class="rounded border p-2">test output</div></div><p class="mt-4 text-xs text-red-700">Three shallow interfaces; no artifact joins them.</p></div>
+            <div class="deep rounded-xl p-5 text-white"><p class="text-xs uppercase tracking-wider text-emerald-300">After</p><div class="mt-4 rounded-lg border border-slate-500 p-4 text-sm">RangeManifest<br><span class="text-slate-300">chain + block range + end hash<br>counts/digests by lifecycle kind<br>schema/handler/rule/Git versions<br>coverage + quarantine + replay result</span></div></div>
+          </div>
+          <div class="mt-5 grid gap-3 md:grid-cols-3 text-sm"><p><b>Problem.</b> Evidence exists as design intent but lacks one testable interface.</p><p><b>Solution.</b> A manifest module emits immutable range evidence to GCS while Postgres remains canonical.</p><ul class="list-disc pl-5"><li>Envio value becomes demonstrable</li><li>replay equality is reproducible</li><li>GCP spend yields evidence</li></ul></div>
+        </article>
+
+        <article id="scorecard" class="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-4"><h2 class="text-2xl font-semibold">4. Add a Role-Aware Reconciliation Scorecard</h2><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Worth exploring · ports &amp; adapters</span></div>
+          <p class="mt-2 font-mono text-xs text-slate-500">perppulse_opm.dot · docs/architecture-research.md · docs/protocol-registry.md</p>
+          <div class="mt-6 rounded-xl border border-stone-200 p-4"><pre class="mermaid">flowchart LR
+E[Envio canonical] --> R[Reconciliation Scorecard]
+D[Direct RPC audit] --> R
+P[Perpl snapshot / trace] --> R
+N[Nansen context] -. coverage only .-> R
+R --> V[coverage · delta · freshness · mismatch]
+R -. never mutates .-> L[Canonical Ledger]</pre></div>
+          <div class="mt-5 grid gap-3 md:grid-cols-3 text-sm"><p><b>Problem.</b> Source roles are documented but agreement evidence has no shared interface.</p><p><b>Solution.</b> One deep scorecard module compares each adapter only within its authorized role.</p><ul class="list-disc pl-5"><li>locality: reconciliation rules concentrate</li><li>Nansen cannot alter facts</li><li>mismatches stay inspectable</li></ul></div>
+        </article>
+
+        <article id="methodology" class="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-4"><h2 class="text-2xl font-semibold">5. Make limitations a Methodology Contract</h2><span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Strong · in-process</span></div>
+          <p class="mt-2 font-mono text-xs text-slate-500">docs/data-dictionary.md · README.md · perppulse_opm.dot</p>
+          <div class="mt-6 grid gap-5 md:grid-cols-2">
+            <div class="rounded-xl border border-red-200 bg-red-50 p-5"><p class="text-xs uppercase tracking-wider text-red-700">Before</p><p class="mt-3 text-sm">Limitations repeat in prose, quality code, UI plans, and future AI prompts.</p><div class="mt-4 h-2 w-full rounded bg-red-300"></div><p class="mt-1 text-xs">wide interface · shallow implementation</p></div>
+            <div class="deep rounded-xl p-5 text-white"><p class="text-xs uppercase tracking-wider text-emerald-300">After</p><p class="mt-3 text-sm">One contract returns metric definition, source, as-of rule, unsupported claims, and visible failure codes.</p><div class="mt-4 h-2 w-1/4 rounded bg-emerald-300"></div><p class="mt-1 text-xs text-slate-300">small interface · deep implementation</p></div>
+          </div>
+          <div class="mt-5 grid gap-3 md:grid-cols-3 text-sm"><p><b>Problem.</b> Callers can drift on what a metric means or cannot support.</p><p><b>Solution.</b> A machine-readable module drives UI tooltips, query metadata, docs, and AI constraints.</p><ul class="list-disc pl-5"><li>one definition, four callers</li><li>unsupported claims fail visibly</li><li>AI inherits deterministic limits</li></ul></div>
+        </article>
+
+        <article id="liquidity" class="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-4"><h2 class="text-2xl font-semibold">6. Separate Protocol Mark from Executable Liquidity Risk</h2><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Worth exploring · ports &amp; adapters</span></div>
+          <p class="mt-2 font-mono text-xs text-slate-500">perppulse_opm.dot · docs/data-dictionary.md · docs/architecture-research.md</p>
+          <div class="mt-6 rounded-xl border border-stone-200 p-4"><pre class="mermaid">flowchart LR
+M[Protocol mark] --> P[Canonical PnL / liquidation]
+B[Bid / ask / depth adapter] --> X[Executable Risk module]
+X --> O[exit value · sized slippage · liquidation/depth ratio]
+P --> U[Wallet view]
+O --> U</pre></div>
+          <div class="mt-5 grid gap-3 md:grid-cols-3 text-sm"><p><b>Problem.</b> Mark-based risk and executable exit risk can be mistaken for one fact.</p><p><b>Solution.</b> Two explicit interfaces preserve protocol math while adding order-book stress leverage.</p><ul class="list-disc pl-5"><li>no mark/PnL corruption</li><li>trading relevance increases</li><li>depth powers cascade signals</li></ul></div>
+        </article>
+      </section>
+
+      <section id="sources" class="rounded-2xl border border-stone-200 bg-white p-6">
+        <h2 class="text-xl font-semibold">Pendulum patterns inspected</h2>
+        <div class="mt-3 grid gap-2 text-sm text-indigo-700 md:grid-cols-2">
+          <a href="https://archive.pendulumflow.com/">Freshness and archive index</a>
+          <a href="https://archive.pendulumflow.com/formats/v3">Manifest, clocks, layout, checksums</a>
+          <a href="https://archive.pendulumflow.com/audit">Coverage audit and independent denominator</a>
+          <a href="https://archive.pendulumflow.com/witnesses">Witness contribution scorecard</a>
+          <a href="https://archive.pendulumflow.com/data-notes">Ordering and silent-zero limitations</a>
+          <a href="https://archive.pendulumflow.com/uses">Executable depth and honest marks</a>
+          <a href="https://archive.pendulumflow.com/start">Runnable remote-data recipes</a>
+          <a href="https://archive.pendulumflow.com/llms.txt">Machine-readable cannot-answer catalog</a>
+        </div>
+      </section>
+
+      <section id="top-recommendation" class="deep rounded-2xl p-8 text-white shadow-xl">
+        <p class="text-xs uppercase tracking-[0.25em] text-emerald-300">Top recommendation</p>
+        <h2 class="mt-2 text-3xl font-semibold"><a class="underline decoration-emerald-400 underline-offset-4" href="#freshness">Deepen freshness into a Coverage Ledger</a></h2>
+        <p class="mt-3 text-slate-300">It fixes a correctness ambiguity, turns existing OPM intent into a real interface, and makes every judge-facing signal more trustworthy.</p>
+      </section>
+    </main>
+  </body>
+</html>

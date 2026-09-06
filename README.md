@@ -4,7 +4,12 @@ Real-time protocol-to-wallet risk intelligence for perpetual markets on Monad.
 
 PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wallet context into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
 
-> Status: first implementation slice. The canonical ledger, golden fixtures, and protocol-to-wallet-to-event demo run locally from fixtures. Licensed Apache-2.0. GCP foundation is live in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350. No Cloud Run worker is deployed yet. Public repository: `https://github.com/witold-andelie/PerpPulse`.
+> Status: canonical ledger and golden-fixture demo implemented; the Envio
+> `risk-hotpath-v1` indexer has been verified against live Monad data with a
+> coverage-aware judge quick start. Licensed Apache-2.0. GCP foundation is live
+> in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350.
+> No Cloud Run worker is deployed yet. Public repository:
+> `https://github.com/witold-andelie/PerpPulse`.
 
 ## Competition fit
 
@@ -35,6 +40,9 @@ PerpPulse has explicit source-of-truth boundaries:
 - AI may explain a deterministic signal, but it may not calculate or replace prices, PnL, liquidation levels, or risk facts.
 
 The event identity is `(chain_id, block_hash, tx_hash, log_index)`. Derived records retain source, schema, metric, model, and rule versions plus an as-of cutoff.
+HyperIndex `_meta.progressBlock` is the processed-chain watermark; the latest
+canonical event is only the latest matched Exchange log. Keeping those facts
+separate distinguishes a healthy quiet market from a stalled indexer.
 
 ## Implementation
 
@@ -43,6 +51,11 @@ The first vertical slice is a fixture-driven protocol-to-wallet-to-event path:
 - **Rust** (`crates/perppulse`) is the canonical ledger, point-in-time accounting, protocol metrics, quality gates, and demo CLI. It matches the official Perpl dex-sdk language, keeps financial math in explicit decimal scales, and is fast enough for deterministic replay.
 - **TypeScript** (`envio/`) is the Envio HyperIndex indexer. HyperIndex handlers must be TypeScript; they write canonical events only and never compute PnL.
 - **SQLite** stands in for PostgreSQL locally. The event table shape is the same logical contract Envio will materialize.
+
+Envio's default `risk-hotpath-v1` profile still scans from Exchange deployment,
+but omits intent-only order requests and subjectless duplicate taker-fill logs.
+That keeps judge startup and the serving database small without dropping any
+input used by the implemented risk, position, PnL, or protocol metrics.
 
 Verified Perpl mainnet facts live in [`docs/protocol-registry.md`](docs/protocol-registry.md) and [`fixtures/protocol/mainnet-registry.json`](fixtures/protocol/mainnet-registry.json). Exchange proxy: `0x34B6552d57a35a1D042CcAe1951BD1C370112a6F` on Monad chain 143, start block `54773010`.
 
@@ -67,14 +80,29 @@ Owner-authorized project `project-5e761e8c-65aa-4033-8cb` in `europe-west3` (Fra
 
 The database password is stored in Secret Manager as `perppulse-db-password` and is not printed.
 
-Envio local indexer (optional, needs Docker and an Envio API token that must not be committed):
+Envio local indexer (optional, needs Docker Desktop, WSL integration, and an
+Envio API token that must not be committed):
 
 ```powershell
-cd envio
-pnpm install
+wsl -d Ubuntu-20.04
+cd /mnt/d/AI_Models/hackson/monad/envio
+pnpm install --frozen-lockfile
 pnpm codegen
+read -rsp "Envio API token: " ENVIO_API_TOKEN; echo
+export ENVIO_API_TOKEN
 pnpm dev
 ```
+
+`pnpm dev` generates and then reuses a judge-safe 50,000-block smoke window.
+Use `pnpm dev:full` for deployment-block history. Refreshing the smoke start
+block is explicit (`pnpm quick:refresh`) because changing it rebuilds Envio's
+local persisted state. The public judging deployment must be pre-indexed rather
+than performing historical backfill on page startup.
+
+From a second WSL shell, `pnpm coverage:check` compares transactional processed
+coverage with the current HyperSync head and reports active, quiet, lagging,
+quarantined, or unknown state. See [`envio/README.md`](envio/README.md) for the
+full run contract.
 
 ### Demo path
 

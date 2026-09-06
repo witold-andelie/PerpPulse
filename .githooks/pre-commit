@@ -1,12 +1,16 @@
 #!/bin/sh
 set -eu
 
-if command -v python >/dev/null 2>&1; then
-  exec python scripts/check_repository_policy.py --staged
-fi
-
 if command -v py >/dev/null 2>&1; then
   exec py -3 scripts/check_repository_policy.py --staged
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  exec python3 scripts/check_repository_policy.py --staged
+fi
+
+if command -v python >/dev/null 2>&1; then
+  exec python scripts/check_repository_policy.py --staged
 fi
 
 echo "Python 3 is required to run the repository publication policy." >&2

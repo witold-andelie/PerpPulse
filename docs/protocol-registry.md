@@ -74,10 +74,16 @@ Position reconstruction uses Exchange logs, not authenticated account history:
 `PositionClosed`, `PositionLiquidated`, `PositionDeleveraged`/`V2`,
 `PositionInverted`, `PositionUnwound`/`V2`, `IncreasePositionCollateral`,
 `PositionCollateralDecreased`, `FundingEventCompleted`, `MakerOrderFilled`/`V2`,
-`TakerOrderFilled`/`V2`, `OrderRequest`/`V2`.
+and `ContractAdded`/`V2`.
 
-`TakerOrderFilled` has no `perpId`. Per-market volume uses `MakerOrderFilled`,
-which does, so taker volume is not double-counted.
+The default risk hot path intentionally excludes `OrderRequest`/`V2`, which are
+execution intents rather than position or balance mutations. It also excludes
+`TakerOrderFilled`/`V2`: those logs have neither `accountId` nor `perpId`, while
+the corresponding maker fill supplies both and is counted once for per-market
+volume. Executed wallet state remains traceable through the position lifecycle
+events. Raw request and duplicate taker-fill evidence may be archived in a
+separate bounded pipeline, but they must not inflate or become a second
+canonical position ledger.
 
 The official dex-sdk still does not process funding into its in-memory cache.
 PerpPulse records `FundingEventCompleted` and realized `fundingCNS` on

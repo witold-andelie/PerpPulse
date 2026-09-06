@@ -8,6 +8,39 @@ computed by the Rust ledger from those events plus an as-of market mark.
 `(chain_id, block_hash, tx_hash, log_index)`
 
 Replay order is `(block_number, log_index)`. Duplicate identities fail closed.
+The parent hash is retained for continuity checks, and HyperIndex rollback on
+reorg is enabled.
+
+## Canonical event provenance
+
+| Field | Meaning |
+| --- | --- |
+| `blockNumber`, `blockHash`, `parentHash` | Point-in-time chain location and continuity evidence |
+| `txHash`, `logIndex`, `srcAddress` | Exact source-log locator |
+| `timestampMs` | Chain block timestamp converted from seconds to milliseconds; never ingestion wall time |
+| `abiEventName` | Exact decoded Exchange ABI event name |
+| `kind` | Fail-closed PerpPulse lifecycle classification |
+| `accountId`, `perpetualId`, `positionType` | Subjects present in that ABI event; absent subjects remain null |
+| `payloadJson` | Stable, sorted-key, bigint-safe serialization of decoded event parameters |
+| `schemaVersion`, `handlerVersion`, `classifierVersion` | Version provenance for deterministic replay and migration |
+| `abiFingerprint` | SHA-256 fingerprint of the indexed ABI subset |
+
+The latest canonical event is only the last matched Exchange log. It must never
+be interpreted as the indexer's processed-chain watermark.
+
+## Coverage observations
+
+HyperIndex `_meta.progressBlock` is the transactional processed-coverage
+watermark, including scanned blocks with no matching logs. PerpPulse compares it
+with the current HyperSync height and records the latest matched event separately.
+This yields five explicit states: `caught_up_active`, `caught_up_quiet`,
+`lagging`, `quarantined`, and `unknown`. Missing, uninitialized, inconsistent, or
+suspect observations fail visibly rather than becoming an empty successful
+dataset.
+
+Every API time-range response must be bounded by the `_meta.startBlock`
+coverage observation. A quick-start database may answer only ranges that it
+fully covers; longer range selectors must be disabled or marked incomplete.
 
 ## Lifecycle kinds
 
@@ -25,7 +58,6 @@ Replay order is `(block_number, log_index)`. Duplicate identities fail closed.
 | `position_unwound` | `PositionUnwound` / `V2` | Market unwind |
 | `collateral_increased` / `decreased` | collateral logs | Isolated deposit only; entry size unchanged on increase |
 | `maker_fill` | `MakerOrderFilled` / `V2` | Protocol volume and fill fees; does not mutate positions |
-| `taker_fill` | `TakerOrderFilled` / `V2` | Evidence only until joined to `OrderRequest` in the same transaction |
 | `market_funding` | `FundingEventCompleted` | Market-level funding evidence |
 
 Realized PnL, funding, and fees are **event integers**, not recomputed by
@@ -59,3 +91,20 @@ is not included; that limitation is attached to the snapshot.
 | Liquidations | Count and notional from `PositionLiquidated` |
 
 Windowed metrics fail if the window contains no events.
+
+## Risk hot-path scope
+
+The default Envio ingestion profile is `risk-hotpath-v1`. It scans from the
+Exchange deployment block but persists only state-changing lifecycle facts,
+maker fills, funding completions, and market additions. `OrderRequest`/`V2` is
+not persisted because an order intent does not prove execution or mutate the
+position ledger. `TakerOrderFilled`/`V2` is not persisted because it lacks both
+account and perpetual identifiers and duplicates the execution represented by
+the corresponding maker fill.
+
+This scope preserves every implemented protocol metric, wallet position, PnL
+fact, liquidation fact, and replay transition. A future raw-intent archive must
+remain outside the hot serving database and may enrich evidence only; it cannot
+overwrite canonical lifecycle facts. Live validation on 2026-09-06 found that
+the four excluded event variants accounted for approximately 99% of matched
+rows in the observed historical prefix.

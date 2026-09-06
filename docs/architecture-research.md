@@ -44,7 +44,7 @@ Verified mainnet facts used by the first implementation slice:
 - AUSD collateral `0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a`, 6 decimals.
 - Fee rates are per 100,000 (0.1 bps). Margin fractions are hundredths used as `IMR = N / IMF`.
 - Live markets on 2026-09-02 include BTC, MON, ETH, SOL 31, HYPE, ZEC, plus LIT 60 and PUMP 90, which the static docs table omitted. Legacy SOL 30 remains excluded.
-- Position lifecycle is reconstructed from Exchange logs (`PositionOpened` through close/liquidation). `TakerOrderFilled` has no `perpId`; per-market volume uses `MakerOrderFilled`.
+- Position lifecycle is reconstructed from Exchange logs (`PositionOpened` through close/liquidation). The risk hot path excludes intent-only `OrderRequest` and subjectless duplicate `TakerOrderFilled` logs; per-market volume counts `MakerOrderFilled` once.
 - Envio HyperSync supports Monad chain 143 at https://143.hypersync.xyz.
 
 ### Nansen

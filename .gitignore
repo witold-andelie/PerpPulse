@@ -1,5 +1,6 @@
 # Local-only project state
 PROGRESS.md
+.codegraph/
 
 # Secrets and local configuration
 .env
@@ -29,6 +30,7 @@ target/
 
 # Envio generated indexer code
 envio/generated/
+envio/config.quick.yaml
 
 # Local data and generated runtime state
 .scratch/

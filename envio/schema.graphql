@@ -14,8 +14,6 @@ enum LifecycleKind {
   COLLATERAL_DECREASED
   MARKET_FUNDING
   MAKER_FILL
-  TAKER_FILL
-  ORDER_REQUEST
   CONTRACT_ADDED
 }
 
@@ -29,9 +27,10 @@ type CanonicalEvent {
   chainId: Int!
   blockNumber: BigInt!
   blockHash: String!
+  parentHash: String!
   txHash: String!
   logIndex: Int!
-  timestamp: Timestamp!
+  timestampMs: BigInt!
   srcAddress: String!
   abiEventName: String!
   kind: LifecycleKind!
@@ -39,12 +38,9 @@ type CanonicalEvent {
   perpetualId: Int
   positionType: Int
   payloadJson: String!
-}
-
-type IndexerCheckpoint {
-  id: ID!
-  processedBlock: BigInt!
-  processedBlockHash: String!
   schemaVersion: String!
   handlerVersion: String!
+  classifierVersion: String!
+  ingestionProfile: String!
+  abiFingerprint: String!
 }

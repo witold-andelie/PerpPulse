@@ -5,7 +5,7 @@ use crate::events::MarketMark;
 use crate::identity::AsOf;
 use crate::ledger::{Ledger, PositionState};
 use crate::money::{from_native, margin_fraction, margin_rate, notional};
-use crate::registry::{SIDE_LONG, SIDE_SHORT, MarketSpec, ProtocolRegistry};
+use crate::registry::{MarketSpec, ProtocolRegistry, SIDE_LONG, SIDE_SHORT};
 
 #[derive(Clone, Debug)]
 pub struct PositionSnapshot {
@@ -52,10 +52,11 @@ pub fn account_wallet(
     marks: &[MarketMark],
     require_marks: bool,
 ) -> Result<WalletSnapshot> {
-    let account = ledger
-        .accounts
-        .get(&account_id)
-        .ok_or_else(|| DataQualityError::msg(format!("account {account_id} is not present in the canonical ledger")))?;
+    let account = ledger.accounts.get(&account_id).ok_or_else(|| {
+        DataQualityError::msg(format!(
+            "account {account_id} is not present in the canonical ledger"
+        ))
+    })?;
     let decimals = ledger.registry.collateral.decimals;
     let mut snapshots = Vec::new();
     let mut warnings = Vec::new();
@@ -108,13 +109,25 @@ pub fn position_snapshot(
     let size = from_native(position.lot_lns, market.size_decimals, "size")?;
     let entry = from_native(position.entry_pns, market.price_decimals, "entry")?;
     let deposit = from_native(position.deposit_cns, collateral_decimals, "deposit")?;
-    let realized = from_native(position.realized_pnl_cns, collateral_decimals, "realized_pnl")?;
-    let funding = from_native(position.realized_funding_cns, collateral_decimals, "realized_funding")?;
+    let realized = from_native(
+        position.realized_pnl_cns,
+        collateral_decimals,
+        "realized_pnl",
+    )?;
+    let funding = from_native(
+        position.realized_funding_cns,
+        collateral_decimals,
+        "realized_funding",
+    )?;
     let fees = from_native(position.fees_cns, collateral_decimals, "fees")?;
     let leverage = if position.leverage_hdths == 0 {
         None
     } else {
-        Some(from_native(i128::from(position.leverage_hdths), 2, "leverage")?)
+        Some(from_native(
+            i128::from(position.leverage_hdths),
+            2,
+            "leverage",
+        )?)
     };
 
     let mut warnings = Vec::new();
@@ -127,7 +140,10 @@ pub fn position_snapshot(
     let mut buffer = None;
 
     if position.is_open() {
-        match marks.iter().find(|mark| mark.perpetual_id == position.position_id.perpetual_id) {
+        match marks
+            .iter()
+            .find(|mark| mark.perpetual_id == position.position_id.perpetual_id)
+        {
             None => {
                 let message = format!(
                     "missing as-of mark for perpetual {} at block {}",
@@ -230,13 +246,17 @@ fn liquidation_price(
     let price = if side == SIDE_LONG {
         let denominator = size * (Decimal::ONE - mm_rate);
         if denominator.is_zero() {
-            return Err(DataQualityError::msg("long liquidation denominator is zero"));
+            return Err(DataQualityError::msg(
+                "long liquidation denominator is zero",
+            ));
         }
         (entry * size - deposit) / denominator
     } else {
         let denominator = size * (Decimal::ONE + mm_rate);
         if denominator.is_zero() {
-            return Err(DataQualityError::msg("short liquidation denominator is zero"));
+            return Err(DataQualityError::msg(
+                "short liquidation denominator is zero",
+            ));
         }
         (entry * size + deposit) / denominator
     };
@@ -251,6 +271,8 @@ fn side_name(side: u8) -> Result<String> {
     match side {
         SIDE_LONG => Ok("long".to_string()),
         SIDE_SHORT => Ok("short".to_string()),
-        other => Err(DataQualityError::msg(format!("invalid position side {other}"))),
+        other => Err(DataQualityError::msg(format!(
+            "invalid position side {other}"
+        ))),
     }
 }

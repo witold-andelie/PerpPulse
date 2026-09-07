@@ -78,15 +78,25 @@ pnpm test
 is `(chainId, blockHash, txHash, logIndex)`. Each row retains the parent block
 hash, block timestamp, raw deterministic payload, schema version, handler
 version, classifier version, and indexed ABI fingerprint.
-The `ingestionProfile` field is `risk-hotpath-v1`.
+The `ingestionProfile` field is `risk-hotpath-v2`.
 
 The default profile scans from the Exchange deployment block while excluding
 `OrderRequest`/`V2` and `TakerOrderFilled`/`V2`. Requests are intents rather than
 state changes; taker fills lack account and perpetual identifiers and duplicate
-the execution counted from the corresponding maker fill. Position lifecycle,
-PnL, liquidation, funding, flow, open-interest, TVL, skew, active-user, fee, and
-per-market volume inputs remain indexed. In a live historical prefix sampled on
-2026-09-06, these exclusions removed approximately 99% of matched rows.
+the execution counted from the corresponding maker fill. The v2 profile adds
+the low-frequency account and position liquidation credits, account/protocol
+transfers, and both no-payment unwind variants. Position lifecycle, PnL,
+liquidation, funding, flow, open-interest, TVL, skew, active-user, fee, and
+per-market volume inputs remain indexed. In a live historical prefix sampled
+on 2026-09-06, the high-volume exclusions removed approximately 99% of matched
+rows.
+
+The hot profile is sufficient for deterministic position replay, subject to
+the advertised coverage start. It does not claim an exact arbitrary-wallet
+free balance: a subjectless taker-fill log can carry a resulting balance but
+cannot be attributed without retaining and correlating the excluded request
+stream. Consumers must expose this field as degraded or reconcile it from a
+separately verified baseline.
 
 The latest `CanonicalEvent` is the last **matched event**, not proof of processed
 chain coverage. HyperIndex's transactional `_meta.progressBlock` is the

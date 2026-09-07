@@ -9,17 +9,30 @@ pub struct EventId {
 }
 
 impl EventId {
-    pub fn new(chain_id: u64, block_hash: impl Into<String>, tx_hash: impl Into<String>, log_index: u32) -> Result<Self> {
+    pub fn new(
+        chain_id: u64,
+        block_hash: impl Into<String>,
+        tx_hash: impl Into<String>,
+        log_index: u32,
+    ) -> Result<Self> {
         if chain_id == 0 {
             return Err(DataQualityError::msg("chain_id must be positive"));
         }
         let block_hash = require_text(block_hash.into(), "block_hash")?;
         let tx_hash = require_text(tx_hash.into(), "tx_hash")?;
-        Ok(Self { chain_id, block_hash, tx_hash, log_index })
+        Ok(Self {
+            chain_id,
+            block_hash,
+            tx_hash,
+            log_index,
+        })
     }
 
     pub fn key(&self) -> String {
-        format!("{}:{}:{}:{}", self.chain_id, self.block_hash, self.tx_hash, self.log_index)
+        format!(
+            "{}:{}:{}:{}",
+            self.chain_id, self.block_hash, self.tx_hash, self.log_index
+        )
     }
 }
 
@@ -35,11 +48,18 @@ impl PositionId {
         if chain_id == 0 {
             return Err(DataQualityError::msg("chain_id must be positive"));
         }
-        Ok(Self { chain_id, account_id, perpetual_id })
+        Ok(Self {
+            chain_id,
+            account_id,
+            perpetual_id,
+        })
     }
 
     pub fn key(&self) -> String {
-        format!("{}:{}:{}", self.chain_id, self.account_id, self.perpetual_id)
+        format!(
+            "{}:{}:{}",
+            self.chain_id, self.account_id, self.perpetual_id
+        )
     }
 }
 

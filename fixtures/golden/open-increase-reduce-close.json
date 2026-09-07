@@ -1,6 +1,11 @@
 {
   "name": "open-increase-reduce-close",
   "registry_file": "fixtures/protocol/mainnet-registry.json",
+  "coverage": {
+    "chain_id": 143,
+    "start_block": 54773010,
+    "processed_block": 54773080
+  },
   "as_of": {
     "chain_id": 143,
     "block_number": 54773080,

@@ -4,9 +4,11 @@ Real-time protocol-to-wallet risk intelligence for perpetual markets on Monad.
 
 PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wallet context into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
 
-> Status: canonical ledger and golden-fixture demo implemented; the Envio
-> `risk-hotpath-v1` indexer has been verified against live Monad data with a
-> coverage-aware judge quick start. Licensed Apache-2.0. GCP foundation is live
+> Status: canonical ledger, coverage-bounded Envio-to-Rust adapter, and
+> golden-fixture demo implemented. The Envio `risk-hotpath-v1` index was
+> verified against live Monad data with a coverage-aware judge quick start;
+> the expanded `risk-hotpath-v2` profile is code-generated and tested but still
+> requires a fresh live reindex. Licensed Apache-2.0. GCP foundation is live
 > in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350.
 > No Cloud Run worker is deployed yet. Public repository:
 > `https://github.com/witold-andelie/PerpPulse`.
@@ -52,10 +54,14 @@ The first vertical slice is a fixture-driven protocol-to-wallet-to-event path:
 - **TypeScript** (`envio/`) is the Envio HyperIndex indexer. HyperIndex handlers must be TypeScript; they write canonical events only and never compute PnL.
 - **SQLite** stands in for PostgreSQL locally. The event table shape is the same logical contract Envio will materialize.
 
-Envio's default `risk-hotpath-v1` profile still scans from Exchange deployment,
-but omits intent-only order requests and subjectless duplicate taker-fill logs.
-That keeps judge startup and the serving database small without dropping any
-input used by the implemented risk, position, PnL, or protocol metrics.
+Envio's default `risk-hotpath-v2` profile scans from Exchange deployment and
+includes the low-frequency credit, transfer, and no-payment unwind transitions
+required for position reconstruction. It omits intent-only order requests and
+subjectless duplicate taker-fill logs. This keeps judge startup and the serving
+database small without dropping inputs used by position, PnL, or protocol
+metrics. Because a taker-fill balance cannot be attributed to an account from
+that log alone, arbitrary-wallet free-balance history remains explicitly
+degraded rather than being presented as complete.
 
 Verified Perpl mainnet facts live in [`docs/protocol-registry.md`](docs/protocol-registry.md) and [`fixtures/protocol/mainnet-registry.json`](fixtures/protocol/mainnet-registry.json). Exchange proxy: `0x34B6552d57a35a1D042CcAe1951BD1C370112a6F` on Monad chain 143, start block `54773010`.
 
@@ -66,6 +72,7 @@ Rust 1.85+ and Python 3.12+ are required for the ledger tests and the publicatio
 ```powershell
 cargo test
 cargo run -p perppulse -- demo fixtures/golden/open-increase-reduce-close.json
+cargo run -p perppulse -- envio-account 5238 --inspect-only
 python scripts/check_repository_policy.py --tracked
 ```
 
@@ -113,6 +120,12 @@ full run contract.
 3. Event evidence for the last canonical log (block, transaction, log index)
 
 Golden fixtures cover open → increase → partial reduce → close, an open position with mark, liquidation, and a stale as-of failure.
+
+`envio-account` keyset-pages one account through Envio GraphQL, binds the result
+to `_meta` coverage, verifies every payload subject and provenance tuple, and
+rechecks the stable as-of event after paging. A v1 database is inspection-only;
+financial position replay is enabled only for v2 coverage that starts at
+deployment or includes the account-creation event.
 
 ## Architecture
 

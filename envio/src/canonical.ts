@@ -1,12 +1,14 @@
-export const SCHEMA_VERSION = "canonical-event-v3";
-export const HANDLER_VERSION = "envio-handlers-v3";
-export const CLASSIFIER_VERSION = "exchange-classifier-v2";
-export const INGESTION_PROFILE = "risk-hotpath-v1";
+export const SCHEMA_VERSION = "canonical-event-v4";
+export const HANDLER_VERSION = "envio-handlers-v4";
+export const CLASSIFIER_VERSION = "exchange-classifier-v3";
+export const INGESTION_PROFILE = "risk-hotpath-v2";
 export const ABI_FINGERPRINT =
-  "sha256:43f05c149262dbc7627530cb2e24d7ff56ff932c625b2e3fde4161558b86d267";
+  "sha256:16b3a4812e63fd11d543879117f21c48976f8a4ea8c9aa487d7c2ac3fc397482";
 
 export type LifecycleKind =
   | "ACCOUNT_CREATED"
+  | "ACCOUNT_LIQUIDATION_CREDIT"
+  | "ACCOUNT_TO_PROTOCOL_TRANSFER"
   | "COLLATERAL_DEPOSIT"
   | "COLLATERAL_WITHDRAWAL"
   | "POSITION_OPENED"
@@ -14,6 +16,7 @@ export type LifecycleKind =
   | "POSITION_DECREASED"
   | "POSITION_CLOSED"
   | "POSITION_LIQUIDATED"
+  | "POSITION_LIQUIDATION_CREDIT"
   | "POSITION_DELEVERAGED"
   | "POSITION_INVERTED"
   | "POSITION_UNWOUND"
@@ -21,7 +24,8 @@ export type LifecycleKind =
   | "COLLATERAL_DECREASED"
   | "MARKET_FUNDING"
   | "MAKER_FILL"
-  | "CONTRACT_ADDED";
+  | "CONTRACT_ADDED"
+  | "PROTOCOL_TO_ACCOUNT_TRANSFER";
 
 type SubjectRule = {
   kind: LifecycleKind;
@@ -36,10 +40,12 @@ const POSITION = { ...ACCOUNT, ...MARKET, positionTypeField: "positionType" } as
 
 const EVENT_RULES = {
   AccountCreated: { kind: "ACCOUNT_CREATED", accountIdField: "id" },
+  AccountLiquidationCredit: { kind: "ACCOUNT_LIQUIDATION_CREDIT", ...ACCOUNT, ...MARKET },
   CollateralDeposit: { kind: "COLLATERAL_DEPOSIT", ...ACCOUNT },
   CollateralWithdrawal: { kind: "COLLATERAL_WITHDRAWAL", ...ACCOUNT },
   IncreasePositionCollateral: { kind: "COLLATERAL_INCREASED", ...ACCOUNT, ...MARKET },
   PositionCollateralDecreased: { kind: "COLLATERAL_DECREASED", ...POSITION },
+  PositionLiquidationCredit: { kind: "POSITION_LIQUIDATION_CREDIT", ...ACCOUNT, ...MARKET },
   PositionOpened: { kind: "POSITION_OPENED", ...POSITION },
   PositionOpenedV2: { kind: "POSITION_OPENED", ...POSITION },
   PositionIncreased: { kind: "POSITION_INCREASED", ...POSITION },
@@ -57,11 +63,15 @@ const EVENT_RULES = {
   PositionInverted: { kind: "POSITION_INVERTED", ...POSITION },
   PositionUnwound: { kind: "POSITION_UNWOUND", ...POSITION },
   PositionUnwoundV2: { kind: "POSITION_UNWOUND", ...POSITION },
+  PositionUnwoundWithoutPayment: { kind: "POSITION_UNWOUND", ...POSITION },
+  PositionUnwoundWithoutPaymentV2: { kind: "POSITION_UNWOUND", ...POSITION },
   FundingEventCompleted: { kind: "MARKET_FUNDING", ...MARKET },
   MakerOrderFilled: { kind: "MAKER_FILL", ...ACCOUNT, ...MARKET },
   MakerOrderFilledV2: { kind: "MAKER_FILL", ...ACCOUNT, ...MARKET },
   ContractAdded: { kind: "CONTRACT_ADDED", ...MARKET },
   ContractAddedV2: { kind: "CONTRACT_ADDED", ...MARKET },
+  TransferAccountToProtocol: { kind: "ACCOUNT_TO_PROTOCOL_TRANSFER", ...ACCOUNT },
+  TransferProtocolToAccount: { kind: "PROTOCOL_TO_ACCOUNT_TRANSFER", ...ACCOUNT },
 } as const satisfies Record<string, SubjectRule>;
 
 export type ExchangeAbiEventName = keyof typeof EVENT_RULES;
@@ -75,6 +85,36 @@ export type ClassifiedSubjects = {
   accountId?: bigint;
   perpetualId?: number;
   positionType?: number;
+};
+
+export type CanonicalProjection = {
+  owner?: string;
+  leverageHdths?: bigint;
+  lotLns?: bigint;
+  startLotLns?: bigint;
+  endLotLns?: bigint;
+  liqLotLns?: bigint;
+  pricePns?: bigint;
+  markPricePns?: bigint;
+  liqPricePns?: bigint;
+  amountCns?: bigint;
+  balanceCns?: bigint;
+  startBalanceCns?: bigint;
+  depositCns?: bigint;
+  startDepositCns?: bigint;
+  endDepositCns?: bigint;
+  deltaPnlCns?: bigint;
+  fundingCns?: bigint;
+  insFeeCns?: bigint;
+  protFeeCns?: bigint;
+  feeCns?: bigint;
+  fundingRatePct100k?: bigint;
+  fundingPricePns?: bigint;
+  fundingPaymentPns?: bigint;
+  fundingSumPns?: bigint;
+  positionFmvCns?: bigint;
+  paymentCns?: bigint;
+  amountOwedCns?: bigint;
 };
 
 export type CanonicalEventIdentity = {
@@ -106,6 +146,36 @@ function requireUnsignedBigInt(
     throw new Error(`${abiEventName}.${field} must be non-negative`);
   }
   return parsed;
+}
+
+function requireSignedBigInt(
+  params: Readonly<Record<string, unknown>>,
+  field: string,
+  abiEventName: string,
+): bigint {
+  const value = params[field];
+  if (typeof value === "bigint") {
+    return value;
+  }
+  if (typeof value === "number" && Number.isSafeInteger(value)) {
+    return BigInt(value);
+  }
+  if (typeof value === "string" && /^-?\d+$/.test(value)) {
+    return BigInt(value);
+  }
+  throw new Error(`${abiEventName}.${field} must be an integer`);
+}
+
+function requireAddress(
+  params: Readonly<Record<string, unknown>>,
+  field: string,
+  abiEventName: string,
+): string {
+  const value = params[field];
+  if (typeof value !== "string" || !/^0x[0-9a-fA-F]{40}$/.test(value)) {
+    throw new Error(`${abiEventName}.${field} must be a 20-byte address`);
+  }
+  return value;
 }
 
 function requireGraphqlInt(
@@ -141,6 +211,166 @@ export function classifyExchangeEvent(
       ? requireGraphqlInt(params, rule.positionTypeField, abiEventName)
       : undefined,
   };
+}
+
+export function projectExchangeEvent(
+  abiEventName: ExchangeAbiEventName,
+  params: Readonly<Record<string, unknown>>,
+): CanonicalProjection {
+  const unsigned = (field: string): bigint =>
+    requireUnsignedBigInt(params, field, abiEventName);
+  const signed = (field: string): bigint => requireSignedBigInt(params, field, abiEventName);
+
+  switch (abiEventName) {
+    case "AccountCreated":
+      return { owner: requireAddress(params, "account", abiEventName) };
+    case "AccountLiquidationCredit":
+      return {
+        startBalanceCns: unsigned("startBalanceCNS"),
+        balanceCns: unsigned("endBalanceCNS"),
+      };
+    case "CollateralDeposit":
+    case "CollateralWithdrawal":
+    case "TransferAccountToProtocol":
+    case "TransferProtocolToAccount":
+      return {
+        amountCns: unsigned("amountCNS"),
+        balanceCns: unsigned("balanceCNS"),
+      };
+    case "IncreasePositionCollateral":
+      return {
+        depositCns: unsigned("positionDepositCNS"),
+        amountCns: unsigned("amountCNS"),
+        balanceCns: unsigned("balanceCNS"),
+      };
+    case "PositionCollateralDecreased":
+      return {
+        markPricePns: unsigned("markPricePNS"),
+        pricePns: unsigned("endEntryPricePNS"),
+        startDepositCns: unsigned("startDepositCNS"),
+        endDepositCns: unsigned("endDepositCNS"),
+        balanceCns: unsigned("balanceCNS"),
+      };
+    case "PositionLiquidationCredit":
+      return {
+        startDepositCns: unsigned("startDepositCNS"),
+        endDepositCns: unsigned("endDepositCNS"),
+      };
+    case "PositionOpened":
+    case "PositionOpenedV2":
+      return {
+        leverageHdths: unsigned("leverageHdths"),
+        depositCns: unsigned("depositCNS"),
+        pricePns: unsigned("pricePNS"),
+        lotLns: unsigned("lotLNS"),
+        insFeeCns: unsigned("insFeeCNS"),
+        protFeeCns: unsigned("protFeeCNS"),
+      };
+    case "PositionIncreased":
+    case "PositionIncreasedV2":
+      return {
+        leverageHdths: unsigned("leverageHdths"),
+        startDepositCns: unsigned("startDepositCNS"),
+        endDepositCns: unsigned("endDepositCNS"),
+        pricePns: unsigned("pricePNS"),
+        startLotLns: unsigned("startLotLNS"),
+        endLotLns: unsigned("endLotLNS"),
+        insFeeCns: unsigned("insFeeCNS"),
+        protFeeCns: unsigned("protFeeCNS"),
+      };
+    case "PositionDecreased":
+      return {
+        startDepositCns: unsigned("startDepositCNS"),
+        endDepositCns: unsigned("endDepositCNS"),
+        startLotLns: unsigned("startLotLNS"),
+        endLotLns: unsigned("endLotLNS"),
+        deltaPnlCns: signed("deltaPnlCNS"),
+        fundingCns: signed("fundingCNS"),
+      };
+    case "PositionClosed":
+      return {
+        pricePns: unsigned("pricePNS"),
+        deltaPnlCns: signed("deltaPnlCNS"),
+        fundingCns: signed("fundingCNS"),
+      };
+    case "PositionLiquidated":
+      return {
+        markPricePns: unsigned("markPricePNS"),
+        liqPricePns: unsigned("liqPricePNS"),
+        liqLotLns: unsigned("liqLotLNS"),
+        endLotLns: unsigned("posLotLNS"),
+        depositCns: unsigned("posDepositCNS"),
+        deltaPnlCns: signed("deltaPnlCNS"),
+        fundingCns: signed("fundingCNS"),
+        balanceCns: unsigned("accBalanceCNS"),
+      };
+    case "PositionDeleveraged":
+    case "PositionDeleveragedV2":
+      return {
+        markPricePns: unsigned("markPricePNS"),
+        pricePns: unsigned("deleveragePricePNS"),
+        startDepositCns: unsigned("startDepositCNS"),
+        endDepositCns: unsigned("endDepositCNS"),
+        startLotLns: unsigned("startLotLNS"),
+        endLotLns: unsigned("endLotLNS"),
+        deltaPnlCns: signed("deltaPnlCNS"),
+        fundingCns: signed("fundingCNS"),
+        balanceCns: unsigned("balanceCNS"),
+      };
+    case "PositionInverted":
+      return {
+        leverageHdths: unsigned("leverageHdths"),
+        startDepositCns: unsigned("startDepositCNS"),
+        endDepositCns: unsigned("endDepositCNS"),
+        pricePns: unsigned("pricePNS"),
+        startLotLns: unsigned("startLotLNS"),
+        endLotLns: unsigned("endLotLNS"),
+        deltaPnlCns: signed("deltaPnlCNS"),
+        fundingCns: signed("fundingCNS"),
+        insFeeCns: unsigned("insFeeCNS"),
+        protFeeCns: unsigned("protFeeCNS"),
+      };
+    case "PositionUnwound":
+    case "PositionUnwoundV2":
+      return {
+        markPricePns: unsigned("markPricePNS"),
+        pricePns: unsigned("pricePNS"),
+        lotLns: unsigned("lotLNS"),
+        depositCns: unsigned("depositCNS"),
+        positionFmvCns: signed("positionFmvCNS"),
+        paymentCns: unsigned("paymentCNS"),
+        balanceCns: unsigned("balanceCNS"),
+      };
+    case "PositionUnwoundWithoutPayment":
+    case "PositionUnwoundWithoutPaymentV2":
+      return {
+        markPricePns: unsigned("markPricePNS"),
+        pricePns: unsigned("pricePNS"),
+        lotLns: unsigned("lotLNS"),
+        depositCns: unsigned("depositCNS"),
+        positionFmvCns: signed("positionFmvCNS"),
+        amountOwedCns: unsigned("amountOwedCNS"),
+      };
+    case "FundingEventCompleted":
+      return {
+        fundingRatePct100k: signed("actualRatePct100k"),
+        fundingPricePns: unsigned("fundingPricePNS"),
+        fundingPaymentPns: signed("fundingPaymentPNS"),
+        fundingSumPns: signed("fundingSumPNS"),
+      };
+    case "MakerOrderFilled":
+    case "MakerOrderFilledV2":
+      return {
+        pricePns: unsigned("pricePNS"),
+        lotLns: unsigned("lotLNS"),
+        feeCns: unsigned("feeCNS"),
+        amountCns: signed("amountCNS"),
+        balanceCns: unsigned("balanceCNS"),
+      };
+    case "ContractAdded":
+    case "ContractAddedV2":
+      return {};
+  }
 }
 
 export function canonicalEventId(identity: CanonicalEventIdentity): string {

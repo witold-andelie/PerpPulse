@@ -63,7 +63,9 @@ pub fn protocol_metrics(
 ) -> Result<ProtocolMetrics> {
     if let Some(start) = window_start_ms {
         if start > as_of.timestamp_ms {
-            return Err(DataQualityError::msg("metric window starts after the as-of timestamp"));
+            return Err(DataQualityError::msg(
+                "metric window starts after the as-of timestamp",
+            ));
         }
     }
     let window_events: Vec<&CanonicalEvent> = events
@@ -74,7 +76,9 @@ pub fn protocol_metrics(
         })
         .collect();
     if window_events.is_empty() {
-        return Err(DataQualityError::msg("metric window contains no canonical events"));
+        return Err(DataQualityError::msg(
+            "metric window contains no canonical events",
+        ));
     }
 
     let mut by_market: BTreeMap<u32, Bucket> = BTreeMap::new();
@@ -88,15 +92,26 @@ pub fn protocol_metrics(
                 })?;
                 let market = ledger.registry.market(perpetual_id)?;
                 let bucket = by_market.entry(perpetual_id).or_default();
-                let size = from_native(event.lot_lns.unwrap_or(0), market.size_decimals, "fill.size")?;
-                let price = from_native(event.price_pns.unwrap_or(0), market.price_decimals, "fill.price")?;
+                let size = from_native(
+                    event.lot_lns.unwrap_or(0),
+                    market.size_decimals,
+                    "fill.size",
+                )?;
+                let price = from_native(
+                    event.price_pns.unwrap_or(0),
+                    market.price_decimals,
+                    "fill.price",
+                )?;
                 bucket.volume += notional(price, size, "fill.volume")?;
-                bucket.fill_fees += from_native(event.fee_cns.unwrap_or(0), collateral_decimals, "fill.fee")?;
+                bucket.fill_fees +=
+                    from_native(event.fee_cns.unwrap_or(0), collateral_decimals, "fill.fee")?;
                 if let Some(account_id) = event.account_id {
                     bucket.accounts.insert(account_id);
                 }
             }
-            LifecycleKind::PositionOpened | LifecycleKind::PositionIncreased | LifecycleKind::PositionInverted => {
+            LifecycleKind::PositionOpened
+            | LifecycleKind::PositionIncreased
+            | LifecycleKind::PositionInverted => {
                 let perpetual_id = market_id(event)?;
                 let bucket = by_market.entry(perpetual_id).or_default();
                 bucket.protocol_fees += from_native(
@@ -104,8 +119,11 @@ pub fn protocol_metrics(
                     collateral_decimals,
                     "protocol_fees",
                 )?;
-                bucket.insurance_fees +=
-                    from_native(event.ins_fee_cns.unwrap_or(0), collateral_decimals, "insurance_fees")?;
+                bucket.insurance_fees += from_native(
+                    event.ins_fee_cns.unwrap_or(0),
+                    collateral_decimals,
+                    "insurance_fees",
+                )?;
                 if let Some(account_id) = event.account_id {
                     bucket.accounts.insert(account_id);
                 }
@@ -115,16 +133,30 @@ pub fn protocol_metrics(
                 let market = ledger.registry.market(perpetual_id)?;
                 let bucket = by_market.entry(perpetual_id).or_default();
                 bucket.liquidations += 1;
-                let size = from_native(event.liq_lot_lns.unwrap_or(0), market.size_decimals, "liq.size")?;
-                let price = from_native(event.liq_price_pns.unwrap_or(0), market.price_decimals, "liq.price")?;
+                let size = from_native(
+                    event.liq_lot_lns.unwrap_or(0),
+                    market.size_decimals,
+                    "liq.size",
+                )?;
+                let price = from_native(
+                    event.liq_price_pns.unwrap_or(0),
+                    market.price_decimals,
+                    "liq.price",
+                )?;
                 bucket.liquidation_notional += notional(price, size, "liq.notional")?;
                 if let Some(account_id) = event.account_id {
                     bucket.accounts.insert(account_id);
                 }
             }
             _ => {
-                if let (Some(account_id), Some(perpetual_id)) = (event.account_id, event.perpetual_id) {
-                    by_market.entry(perpetual_id).or_default().accounts.insert(account_id);
+                if let (Some(account_id), Some(perpetual_id)) =
+                    (event.account_id, event.perpetual_id)
+                {
+                    by_market
+                        .entry(perpetual_id)
+                        .or_default()
+                        .accounts
+                        .insert(account_id);
                 }
             }
         }
@@ -132,9 +164,12 @@ pub fn protocol_metrics(
 
     for position in ledger.open_positions() {
         let snap = position_snapshot(position, &ledger.registry, as_of, marks, true)?;
-        let notional_value = snap
-            .notional_value
-            .ok_or_else(|| DataQualityError::msg(format!("open interest for {} is missing mark-derived notional", snap.symbol)))?;
+        let notional_value = snap.notional_value.ok_or_else(|| {
+            DataQualityError::msg(format!(
+                "open interest for {} is missing mark-derived notional",
+                snap.symbol
+            ))
+        })?;
         let bucket = by_market.entry(snap.perpetual_id).or_default();
         bucket.open_interest += notional_value;
         bucket.tvl += snap.deposit;

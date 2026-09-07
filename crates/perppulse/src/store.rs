@@ -29,19 +29,21 @@ pub struct EventStore {
 
 impl EventStore {
     pub fn memory() -> Result<Self> {
-        let connection = Connection::open_in_memory()
-            .map_err(|err| DataQualityError::msg(format!("cannot open in-memory event store: {err}")))?;
-        connection
-            .execute_batch(SCHEMA)
-            .map_err(|err| DataQualityError::msg(format!("cannot create event store schema: {err}")))?;
+        let connection = Connection::open_in_memory().map_err(|err| {
+            DataQualityError::msg(format!("cannot open in-memory event store: {err}"))
+        })?;
+        connection.execute_batch(SCHEMA).map_err(|err| {
+            DataQualityError::msg(format!("cannot create event store schema: {err}"))
+        })?;
         Ok(Self { connection })
     }
 
     pub fn insert(&self, event: &CanonicalEvent) -> Result<()> {
         let event_id = event.event_id()?.key();
         let kind = format!("{:?}", event.kind);
-        let payload = serde_json::to_string(event)
-            .map_err(|err| DataQualityError::msg(format!("cannot serialize event {event_id}: {err}")))?;
+        let payload = serde_json::to_string(event).map_err(|err| {
+            DataQualityError::msg(format!("cannot serialize event {event_id}: {err}"))
+        })?;
         self.connection
             .execute(
                 "INSERT INTO canonical_event (
@@ -65,7 +67,9 @@ impl EventStore {
                     payload,
                 ],
             )
-            .map_err(|err| DataQualityError::msg(format!("cannot insert event {event_id}: {err}")))?;
+            .map_err(|err| {
+                DataQualityError::msg(format!("cannot insert event {event_id}: {err}"))
+            })?;
         Ok(())
     }
 
@@ -86,14 +90,18 @@ impl EventStore {
             .map_err(|err| DataQualityError::msg(format!("cannot read event store: {err}")))?;
         let mut events = Vec::new();
         for row in rows {
-            let payload = row.map_err(|err| DataQualityError::msg(format!("event store row failed: {err}")))?;
-            let event: CanonicalEvent = serde_json::from_str(&payload)
-                .map_err(|err| DataQualityError::msg(format!("stored event is not valid JSON: {err}")))?;
+            let payload =
+                row.map_err(|err| DataQualityError::msg(format!("event store row failed: {err}")))?;
+            let event: CanonicalEvent = serde_json::from_str(&payload).map_err(|err| {
+                DataQualityError::msg(format!("stored event is not valid JSON: {err}"))
+            })?;
             event.validate()?;
             events.push(event);
         }
         if events.is_empty() {
-            return Err(DataQualityError::msg("event store contains no canonical events"));
+            return Err(DataQualityError::msg(
+                "event store contains no canonical events",
+            ));
         }
         Ok(events)
     }
@@ -107,10 +115,15 @@ impl EventStore {
                 |row| row.get(0),
             )
             .optional()
-            .map_err(|err| DataQualityError::msg(format!("cannot fetch event {event_id}: {err}")))?;
-        let payload = payload.ok_or_else(|| DataQualityError::msg(format!("event {event_id} is not in the store")))?;
-        let event: CanonicalEvent = serde_json::from_str(&payload)
-            .map_err(|err| DataQualityError::msg(format!("stored event {event_id} is not valid JSON: {err}")))?;
+            .map_err(|err| {
+                DataQualityError::msg(format!("cannot fetch event {event_id}: {err}"))
+            })?;
+        let payload = payload.ok_or_else(|| {
+            DataQualityError::msg(format!("event {event_id} is not in the store"))
+        })?;
+        let event: CanonicalEvent = serde_json::from_str(&payload).map_err(|err| {
+            DataQualityError::msg(format!("stored event {event_id} is not valid JSON: {err}"))
+        })?;
         event.validate()?;
         Ok(event)
     }

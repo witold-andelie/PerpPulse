@@ -8,6 +8,7 @@ import {
   SCHEMA_VERSION,
   canonicalEventId,
   classifyExchangeEvent,
+  projectExchangeEvent,
   serializeCanonicalPayload,
   type ExchangeAbiEventName,
 } from "./canonical";
@@ -39,6 +40,7 @@ function writeCanonical(
   abiEventName: ExchangeAbiEventName,
 ): void {
   const classified = classifyExchangeEvent(abiEventName, event.params);
+  const projection = projectExchangeEvent(abiEventName, event.params);
   context.CanonicalEvent.set({
     id: canonicalEventId({
       chainId: event.chainId,
@@ -59,6 +61,33 @@ function writeCanonical(
     accountId: classified.accountId,
     perpetualId: classified.perpetualId,
     positionType: classified.positionType,
+    owner: projection.owner,
+    leverageHdths: projection.leverageHdths,
+    lotLns: projection.lotLns,
+    startLotLns: projection.startLotLns,
+    endLotLns: projection.endLotLns,
+    liqLotLns: projection.liqLotLns,
+    pricePns: projection.pricePns,
+    markPricePns: projection.markPricePns,
+    liqPricePns: projection.liqPricePns,
+    amountCns: projection.amountCns,
+    balanceCns: projection.balanceCns,
+    startBalanceCns: projection.startBalanceCns,
+    depositCns: projection.depositCns,
+    startDepositCns: projection.startDepositCns,
+    endDepositCns: projection.endDepositCns,
+    deltaPnlCns: projection.deltaPnlCns,
+    fundingCns: projection.fundingCns,
+    insFeeCns: projection.insFeeCns,
+    protFeeCns: projection.protFeeCns,
+    feeCns: projection.feeCns,
+    fundingRatePct100k: projection.fundingRatePct100k,
+    fundingPricePns: projection.fundingPricePns,
+    fundingPaymentPns: projection.fundingPaymentPns,
+    fundingSumPns: projection.fundingSumPns,
+    positionFmvCns: projection.positionFmvCns,
+    paymentCns: projection.paymentCns,
+    amountOwedCns: projection.amountOwedCns,
     payloadJson: serializeCanonicalPayload(event.params),
     schemaVersion: SCHEMA_VERSION,
     handlerVersion: HANDLER_VERSION,
@@ -70,6 +99,10 @@ function writeCanonical(
 
 Exchange.AccountCreated.handler(async ({ event, context }) => {
   writeCanonical(context, event, "AccountCreated");
+});
+
+Exchange.AccountLiquidationCredit.handler(async ({ event, context }) => {
+  writeCanonical(context, event, "AccountLiquidationCredit");
 });
 
 Exchange.CollateralDeposit.handler(async ({ event, context }) => {
@@ -86,6 +119,10 @@ Exchange.IncreasePositionCollateral.handler(async ({ event, context }) => {
 
 Exchange.PositionCollateralDecreased.handler(async ({ event, context }) => {
   writeCanonical(context, event, "PositionCollateralDecreased");
+});
+
+Exchange.PositionLiquidationCredit.handler(async ({ event, context }) => {
+  writeCanonical(context, event, "PositionLiquidationCredit");
 });
 
 Exchange.PositionOpened.handler(async ({ event, context }) => {
@@ -136,6 +173,14 @@ Exchange.PositionUnwoundV2.handler(async ({ event, context }) => {
   writeCanonical(context, event, "PositionUnwoundV2");
 });
 
+Exchange.PositionUnwoundWithoutPayment.handler(async ({ event, context }) => {
+  writeCanonical(context, event, "PositionUnwoundWithoutPayment");
+});
+
+Exchange.PositionUnwoundWithoutPaymentV2.handler(async ({ event, context }) => {
+  writeCanonical(context, event, "PositionUnwoundWithoutPaymentV2");
+});
+
 Exchange.FundingEventCompleted.handler(async ({ event, context }) => {
   writeCanonical(context, event, "FundingEventCompleted");
 });
@@ -154,4 +199,12 @@ Exchange.ContractAdded.handler(async ({ event, context }) => {
 
 Exchange.ContractAddedV2.handler(async ({ event, context }) => {
   writeCanonical(context, event, "ContractAddedV2");
+});
+
+Exchange.TransferAccountToProtocol.handler(async ({ event, context }) => {
+  writeCanonical(context, event, "TransferAccountToProtocol");
+});
+
+Exchange.TransferProtocolToAccount.handler(async ({ event, context }) => {
+  writeCanonical(context, event, "TransferProtocolToAccount");
 });

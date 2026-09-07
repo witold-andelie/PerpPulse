@@ -70,10 +70,12 @@ pub struct ProtocolRegistry {
 
 impl ProtocolRegistry {
     pub fn market(&self, perpetual_id: u32) -> Result<&MarketSpec> {
-        let spec = self
-            .markets
-            .get(&perpetual_id)
-            .ok_or_else(|| DataQualityError::msg(format!("unknown perpetual_id {perpetual_id} on {}", self.network)))?;
+        let spec = self.markets.get(&perpetual_id).ok_or_else(|| {
+            DataQualityError::msg(format!(
+                "unknown perpetual_id {perpetual_id} on {}",
+                self.network
+            ))
+        })?;
         if !spec.listed {
             return Err(DataQualityError::msg(format!(
                 "perpetual_id {perpetual_id} ({}) is excluded from the active registry",
@@ -96,10 +98,15 @@ impl ProtocolRegistry {
 
 pub fn load_registry(path: impl AsRef<Path>) -> Result<ProtocolRegistry> {
     let path = path.as_ref();
-    let text = fs::read_to_string(path)
-        .map_err(|err| DataQualityError::msg(format!("cannot read registry {}: {err}", path.display())))?;
-    let parsed: RegistryFile = serde_json::from_str(&text)
-        .map_err(|err| DataQualityError::msg(format!("registry {} is not valid JSON: {err}", path.display())))?;
+    let text = fs::read_to_string(path).map_err(|err| {
+        DataQualityError::msg(format!("cannot read registry {}: {err}", path.display()))
+    })?;
+    let parsed: RegistryFile = serde_json::from_str(&text).map_err(|err| {
+        DataQualityError::msg(format!(
+            "registry {} is not valid JSON: {err}",
+            path.display()
+        ))
+    })?;
     parse_registry_file(parsed, &path.display().to_string())
 }
 
@@ -111,12 +118,16 @@ pub fn parse_registry_value(value: &serde_json::Value, source: &str) -> Result<P
 
 fn parse_registry_file(parsed: RegistryFile, source: &str) -> Result<ProtocolRegistry> {
     if parsed.markets.is_empty() {
-        return Err(DataQualityError::msg(format!("protocol registry {source} has no markets")));
+        return Err(DataQualityError::msg(format!(
+            "protocol registry {source} has no markets"
+        )));
     }
     let mut markets = BTreeMap::new();
     for market in parsed.markets {
         if markets.insert(market.perpetual_id, market).is_some() {
-            return Err(DataQualityError::msg(format!("duplicate perpetual_id in {source}")));
+            return Err(DataQualityError::msg(format!(
+                "duplicate perpetual_id in {source}"
+            )));
         }
     }
     Ok(ProtocolRegistry {

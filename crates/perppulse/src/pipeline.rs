@@ -1,11 +1,11 @@
 use std::path::Path;
 
-use crate::accounting::{WalletSnapshot, account_wallet};
+use crate::accounting::{account_wallet, WalletSnapshot};
 use crate::error::Result;
-use crate::events::{Fixture, load_fixture};
-use crate::ledger::{Ledger, replay};
-use crate::metrics::{ProtocolMetrics, protocol_metrics};
-use crate::quality::{QualityReport, gate_ledger, gate_metrics};
+use crate::events::{load_fixture, Fixture};
+use crate::ledger::{replay, Ledger};
+use crate::metrics::{protocol_metrics, ProtocolMetrics};
+use crate::quality::{gate_ledger, gate_metrics, QualityReport};
 use crate::store::EventStore;
 
 pub struct Pulse {
@@ -39,7 +39,7 @@ pub fn run_fixture(path: impl AsRef<Path>, max_lag_blocks: Option<u64>) -> Resul
     store.insert_many(&fixture.events)?;
     let stored = store.load_all()?;
     let ledger = replay(&stored, &fixture.registry, &fixture.as_of)?;
-    let quality = gate_ledger(&ledger, &fixture.as_of, max_lag_blocks)?;
+    let quality = gate_ledger(&ledger, &fixture.as_of, &fixture.coverage, max_lag_blocks)?;
     let metrics = protocol_metrics(
         &ledger,
         &fixture.as_of,

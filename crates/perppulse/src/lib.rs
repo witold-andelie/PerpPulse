@@ -1,4 +1,6 @@
 pub mod accounting;
+pub mod coverage;
+pub mod envio;
 pub mod error;
 pub mod events;
 pub mod identity;
@@ -10,9 +12,10 @@ pub mod quality;
 pub mod registry;
 pub mod store;
 
+pub use coverage::CoverageEvidence;
 pub use error::{DataQualityError, Result};
-pub use events::{CanonicalEvent, Fixture, LifecycleKind, load_fixture};
+pub use events::{load_fixture, CanonicalEvent, Fixture, LifecycleKind};
 pub use identity::{AsOf, EventId, PositionId};
-pub use ledger::{Ledger, replay};
-pub use pipeline::{Pulse, run_fixture};
-pub use registry::{ProtocolRegistry, load_registry};
+pub use ledger::{replay, Ledger};
+pub use pipeline::{run_fixture, Pulse};
+pub use registry::{load_registry, ProtocolRegistry};

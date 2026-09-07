@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::error::{DataQualityError, Result};
 use crate::events::{CanonicalEvent, LifecycleKind};
 use crate::identity::{AsOf, EventId, PositionId};
-use crate::registry::{SIDE_LONG, SIDE_SHORT, ProtocolRegistry};
+use crate::registry::{ProtocolRegistry, SIDE_LONG, SIDE_SHORT};
 
 #[derive(Clone, Debug)]
 pub struct AccountState {
@@ -60,11 +60,18 @@ pub struct Ledger {
 
 impl Ledger {
     pub fn open_positions(&self) -> Vec<&PositionState> {
-        self.positions.values().filter(|position| position.is_open()).collect()
+        self.positions
+            .values()
+            .filter(|position| position.is_open())
+            .collect()
     }
 }
 
-pub fn replay(events: &[CanonicalEvent], registry: &ProtocolRegistry, as_of: &AsOf) -> Result<Ledger> {
+pub fn replay(
+    events: &[CanonicalEvent],
+    registry: &ProtocolRegistry,
+    as_of: &AsOf,
+) -> Result<Ledger> {
     registry.require_chain(as_of.chain_id)?;
     let mut ordered = events.to_vec();
     ordered.sort_by_key(|event| (event.block_number, event.log_index, event.tx_hash.clone()));
@@ -94,11 +101,17 @@ pub fn replay(events: &[CanonicalEvent], registry: &ProtocolRegistry, as_of: &As
             continue;
         }
         if !seen.insert(event_id.key()) {
-            return Err(DataQualityError::msg(format!("duplicate event identity {}", event_id.key())));
+            return Err(DataQualityError::msg(format!(
+                "duplicate event identity {}",
+                event_id.key()
+            )));
         }
         let current = (event.block_number, event.log_index);
         if previous.is_some_and(|prior| current < prior) {
-            return Err(DataQualityError::msg(format!("event {} is out of order", event_id.key())));
+            return Err(DataQualityError::msg(format!(
+                "event {} is out of order",
+                event_id.key()
+            )));
         }
         if event.block_number < registry.deployed_at_block {
             return Err(DataQualityError::msg(format!(
@@ -113,7 +126,9 @@ pub fn replay(events: &[CanonicalEvent], registry: &ProtocolRegistry, as_of: &As
         previous = Some(current);
     }
     if ledger.events.is_empty() {
-        return Err(DataQualityError::msg("no canonical events are included at the requested as-of cutoff"));
+        return Err(DataQualityError::msg(
+            "no canonical events are included at the requested as-of cutoff",
+        ));
     }
     Ok(ledger)
 }
@@ -138,6 +153,7 @@ fn apply(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
         LifecycleKind::PositionDecreased => decrease(ledger, event)?,
         LifecycleKind::PositionClosed => close(ledger, event, "closed")?,
         LifecycleKind::PositionLiquidated => liquidate(ledger, event)?,
+        LifecycleKind::PositionLiquidationCredit => liquidation_credit(ledger, event)?,
         LifecycleKind::PositionDeleveraged => delever(ledger, event)?,
         LifecycleKind::PositionInverted => invert(ledger, event)?,
         LifecycleKind::PositionUnwound => close(ledger, event, "unwound")?,
@@ -146,29 +162,69 @@ fn apply(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
             position.deposit_cns = required(event.deposit_cns, "deposit_cns")?;
         }
         LifecycleKind::CollateralDecreased => {
+            let start_deposit = required(event.start_deposit_cns, "start_deposit_cns")?;
+            let end_deposit = required(event.end_deposit_cns, "end_deposit_cns")?;
             let position = require_open(ledger, event)?;
-            position.deposit_cns = required(event.end_deposit_cns, "end_deposit_cns")?;
+            if position.deposit_cns != start_deposit {
+                return Err(DataQualityError::msg(format!(
+                    "collateral decrease {} start deposit {start_deposit} != ledger deposit {}",
+                    event.event_id()?.key(),
+                    position.deposit_cns
+                )));
+            }
+            position.deposit_cns = end_deposit;
+            if let Some(price_pns) = event.price_pns {
+                position.entry_pns = price_pns;
+            }
         }
         LifecycleKind::MakerFill => ledger.fills.push(fill(event, "maker")?),
         LifecycleKind::TakerFill => ledger.fills.push(fill(event, "taker")?),
-        LifecycleKind::MarketFunding | LifecycleKind::OrderRequest | LifecycleKind::ContractAdded => {}
+        LifecycleKind::AccountLiquidationCredit
+        | LifecycleKind::AccountToProtocolTransfer
+        | LifecycleKind::ProtocolToAccountTransfer
+        | LifecycleKind::MarketFunding
+        | LifecycleKind::OrderRequest
+        | LifecycleKind::ContractAdded => {}
     }
     if event.account_id.is_some() {
-        account(ledger, event)?.last_event_id = Some(event.event_id()?);
+        let account = account(ledger, event)?;
+        if let Some(balance_cns) = event.balance_cns {
+            account.balance_cns = balance_cns;
+        }
+        account.last_event_id = Some(event.event_id()?);
     }
     Ok(())
+}
+
+fn liquidation_credit(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
+    let start_deposit = required(event.start_deposit_cns, "start_deposit_cns")?;
+    let end_deposit = required(event.end_deposit_cns, "end_deposit_cns")?;
+    let position = require_open(ledger, event)?;
+    if position.deposit_cns != start_deposit {
+        return Err(DataQualityError::msg(format!(
+            "liquidation credit {} start deposit {start_deposit} != ledger deposit {}",
+            event.event_id()?.key(),
+            position.deposit_cns
+        )));
+    }
+    position.deposit_cns = end_deposit;
+    position.last_event_id = Some(event.event_id()?);
+    require_open_invariants(position, event)
 }
 
 fn account<'a>(ledger: &'a mut Ledger, event: &CanonicalEvent) -> Result<&'a mut AccountState> {
     let account_id = event
         .account_id
         .ok_or_else(|| DataQualityError::msg("account_id is required"))?;
-    Ok(ledger.accounts.entry(account_id).or_insert_with(|| AccountState {
-        account_id,
-        owner: None,
-        balance_cns: 0,
-        last_event_id: None,
-    }))
+    Ok(ledger
+        .accounts
+        .entry(account_id)
+        .or_insert_with(|| AccountState {
+            account_id,
+            owner: None,
+            balance_cns: 0,
+            last_event_id: None,
+        }))
 }
 
 fn open_position(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
@@ -359,16 +415,22 @@ fn fill(event: &CanonicalEvent, liquidity: &str) -> Result<FillRecord> {
 
 fn require_position_id(event: &CanonicalEvent) -> Result<PositionId> {
     let event_id = event.event_id()?.key();
-    event
-        .position_id()?
-        .ok_or_else(|| DataQualityError::msg(format!("event {event_id} is missing position identity")))
+    event.position_id()?.ok_or_else(|| {
+        DataQualityError::msg(format!("event {event_id} is missing position identity"))
+    })
 }
 
-fn require_open<'a>(ledger: &'a mut Ledger, event: &CanonicalEvent) -> Result<&'a mut PositionState> {
+fn require_open<'a>(
+    ledger: &'a mut Ledger,
+    event: &CanonicalEvent,
+) -> Result<&'a mut PositionState> {
     let position_id = require_position_id(event)?;
     let key = position_id.key();
     let position = ledger.positions.get_mut(&key).ok_or_else(|| {
-        DataQualityError::msg(format!("event {} targets a missing open position", event.event_id().unwrap().key()))
+        DataQualityError::msg(format!(
+            "event {} targets a missing open position",
+            event.event_id().unwrap().key()
+        ))
     })?;
     if !position.is_open() {
         return Err(DataQualityError::msg(format!(
@@ -377,7 +439,7 @@ fn require_open<'a>(ledger: &'a mut Ledger, event: &CanonicalEvent) -> Result<&'
         )));
     }
     if let Some(side) = event.position_type {
-        if side != position.side {
+        if side != 0 && side != position.side {
             return Err(DataQualityError::msg(format!(
                 "event {} side {side} != position side {}",
                 event.event_id()?.key(),
@@ -388,7 +450,12 @@ fn require_open<'a>(ledger: &'a mut Ledger, event: &CanonicalEvent) -> Result<&'
     Ok(position)
 }
 
-fn assert_transition(position: &PositionState, event: &CanonicalEvent, start_lot: i128, start_deposit: i128) -> Result<()> {
+fn assert_transition(
+    position: &PositionState,
+    event: &CanonicalEvent,
+    start_lot: i128,
+    start_deposit: i128,
+) -> Result<()> {
     if start_lot != position.lot_lns {
         return Err(DataQualityError::msg(format!(
             "event {} start lot {start_lot} != ledger lot {}",

@@ -9,6 +9,7 @@ import {
   SUPPORTED_ABI_EVENTS,
   canonicalEventId,
   classifyExchangeEvent,
+  projectExchangeEvent,
   serializeCanonicalPayload,
   type LifecycleKind,
 } from "../src/canonical";
@@ -31,10 +32,12 @@ const params = {
 
 const cases: ClassificationCase[] = [
   { abiEventName: "AccountCreated", kind: "ACCOUNT_CREATED", accountId: 11n },
+  { abiEventName: "AccountLiquidationCredit", kind: "ACCOUNT_LIQUIDATION_CREDIT", accountId: 12n, perpetualId: 14 },
   { abiEventName: "CollateralDeposit", kind: "COLLATERAL_DEPOSIT", accountId: 12n },
   { abiEventName: "CollateralWithdrawal", kind: "COLLATERAL_WITHDRAWAL", accountId: 12n },
   { abiEventName: "IncreasePositionCollateral", kind: "COLLATERAL_INCREASED", accountId: 12n, perpetualId: 14 },
   { abiEventName: "PositionCollateralDecreased", kind: "COLLATERAL_DECREASED", accountId: 12n, perpetualId: 14, positionType: 1 },
+  { abiEventName: "PositionLiquidationCredit", kind: "POSITION_LIQUIDATION_CREDIT", accountId: 12n, perpetualId: 14 },
   { abiEventName: "PositionOpened", kind: "POSITION_OPENED", accountId: 12n, perpetualId: 14, positionType: 1 },
   { abiEventName: "PositionOpenedV2", kind: "POSITION_OPENED", accountId: 12n, perpetualId: 14, positionType: 1 },
   { abiEventName: "PositionIncreased", kind: "POSITION_INCREASED", accountId: 12n, perpetualId: 14, positionType: 1 },
@@ -47,11 +50,15 @@ const cases: ClassificationCase[] = [
   { abiEventName: "PositionInverted", kind: "POSITION_INVERTED", accountId: 12n, perpetualId: 14, positionType: 1 },
   { abiEventName: "PositionUnwound", kind: "POSITION_UNWOUND", accountId: 12n, perpetualId: 14, positionType: 1 },
   { abiEventName: "PositionUnwoundV2", kind: "POSITION_UNWOUND", accountId: 12n, perpetualId: 14, positionType: 1 },
+  { abiEventName: "PositionUnwoundWithoutPayment", kind: "POSITION_UNWOUND", accountId: 12n, perpetualId: 14, positionType: 1 },
+  { abiEventName: "PositionUnwoundWithoutPaymentV2", kind: "POSITION_UNWOUND", accountId: 12n, perpetualId: 14, positionType: 1 },
   { abiEventName: "FundingEventCompleted", kind: "MARKET_FUNDING", perpetualId: 14 },
   { abiEventName: "MakerOrderFilled", kind: "MAKER_FILL", accountId: 12n, perpetualId: 14 },
   { abiEventName: "MakerOrderFilledV2", kind: "MAKER_FILL", accountId: 12n, perpetualId: 14 },
   { abiEventName: "ContractAdded", kind: "CONTRACT_ADDED", perpetualId: 14 },
   { abiEventName: "ContractAddedV2", kind: "CONTRACT_ADDED", perpetualId: 14 },
+  { abiEventName: "TransferAccountToProtocol", kind: "ACCOUNT_TO_PROTOCOL_TRANSFER", accountId: 12n },
+  { abiEventName: "TransferProtocolToAccount", kind: "PROTOCOL_TO_ACCOUNT_TRANSFER", accountId: 12n },
 ];
 
 test("classifies every configured Exchange event without a fallback", () => {
@@ -71,8 +78,53 @@ test("the risk hot path excludes intent-only and duplicate fill evidence", async
     (match) => match[1],
   );
   assert.deepEqual(new Set(configuredEvents), new Set(SUPPORTED_ABI_EVENTS));
-  assert.equal(INGESTION_PROFILE, "risk-hotpath-v1");
+  assert.equal(INGESTION_PROFILE, "risk-hotpath-v2");
   assert.doesNotMatch(config, /(?:OrderRequest|TakerOrderFilled)/);
+});
+
+test("projects exact state fields and preserves signed financial values", () => {
+  assert.deepEqual(
+    projectExchangeEvent("PositionLiquidated", {
+      markPricePNS: 700_000n,
+      liqPricePNS: 625_000n,
+      liqLotLNS: 50_000n,
+      posLotLNS: 25_000n,
+      posDepositCNS: 2_500_000_000n,
+      deltaPnlCNS: -7_500_000_000n,
+      fundingCNS: -2_000_000n,
+      accBalanceCNS: 9_000_000_000n,
+    }),
+    {
+      markPricePns: 700_000n,
+      liqPricePns: 625_000n,
+      liqLotLns: 50_000n,
+      endLotLns: 25_000n,
+      depositCns: 2_500_000_000n,
+      deltaPnlCns: -7_500_000_000n,
+      fundingCns: -2_000_000n,
+      balanceCns: 9_000_000_000n,
+    },
+  );
+  assert.deepEqual(
+    projectExchangeEvent("PositionCollateralDecreased", {
+      markPricePNS: 710_000n,
+      endEntryPricePNS: 705_000n,
+      startDepositCNS: 10n,
+      endDepositCNS: 8n,
+      balanceCNS: 2n,
+    }),
+    {
+      markPricePns: 710_000n,
+      pricePns: 705_000n,
+      startDepositCns: 10n,
+      endDepositCns: 8n,
+      balanceCns: 2n,
+    },
+  );
+  assert.throws(
+    () => projectExchangeEvent("PositionClosed", { pricePNS: 1n, deltaPnlCNS: "NaN", fundingCNS: 0n }),
+    /must be an integer/,
+  );
 });
 
 test("fails closed for unknown events and invalid subject values", () => {

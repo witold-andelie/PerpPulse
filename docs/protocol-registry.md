@@ -70,20 +70,27 @@ from `ContractAdded` / `ContractAddedV2` logs. Unknown markets fail closed.
 Position reconstruction uses Exchange logs, not authenticated account history:
 
 `AccountCreated`, `CollateralDeposit`, `CollateralWithdrawal`,
+`AccountLiquidationCredit`, `TransferAccountToProtocol`,
+`TransferProtocolToAccount`,
 `PositionOpened`/`V2`, `PositionIncreased`/`V2`, `PositionDecreased`,
 `PositionClosed`, `PositionLiquidated`, `PositionDeleveraged`/`V2`,
-`PositionInverted`, `PositionUnwound`/`V2`, `IncreasePositionCollateral`,
-`PositionCollateralDecreased`, `FundingEventCompleted`, `MakerOrderFilled`/`V2`,
-and `ContractAdded`/`V2`.
+`PositionInverted`, payment and no-payment `PositionUnwound` variants,
+`IncreasePositionCollateral`, `PositionCollateralDecreased`,
+`PositionLiquidationCredit`, `FundingEventCompleted`, `MakerOrderFilled`/`V2`,
+and `ContractAdded`/`V2`. Event-field semantics were checked against official
+dex-sdk state processing at commit
+`dbb37c59f6aef03e38d0787eb9c968f59f652617`.
 
 The default risk hot path intentionally excludes `OrderRequest`/`V2`, which are
 execution intents rather than position or balance mutations. It also excludes
 `TakerOrderFilled`/`V2`: those logs have neither `accountId` nor `perpId`, while
 the corresponding maker fill supplies both and is counted once for per-market
-volume. Executed wallet state remains traceable through the position lifecycle
-events. Raw request and duplicate taker-fill evidence may be archived in a
-separate bounded pipeline, but they must not inflate or become a second
-canonical position ledger.
+volume. Executed position state remains traceable through the lifecycle events.
+An exact arbitrary-wallet free balance is not claimed because a subjectless
+taker fill can carry a resulting balance that cannot be attributed without
+correlating the excluded request stream. Raw request and duplicate taker-fill
+evidence may be archived in a separate bounded pipeline, but they must not
+inflate or become a second canonical position ledger.
 
 The official dex-sdk still does not process funding into its in-memory cache.
 PerpPulse records `FundingEventCompleted` and realized `fundingCNS` on

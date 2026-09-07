@@ -1,5 +1,7 @@
 enum LifecycleKind {
   ACCOUNT_CREATED
+  ACCOUNT_LIQUIDATION_CREDIT
+  ACCOUNT_TO_PROTOCOL_TRANSFER
   COLLATERAL_DEPOSIT
   COLLATERAL_WITHDRAWAL
   POSITION_OPENED
@@ -7,6 +9,7 @@ enum LifecycleKind {
   POSITION_DECREASED
   POSITION_CLOSED
   POSITION_LIQUIDATED
+  POSITION_LIQUIDATION_CREDIT
   POSITION_DELEVERAGED
   POSITION_INVERTED
   POSITION_UNWOUND
@@ -15,6 +18,7 @@ enum LifecycleKind {
   MARKET_FUNDING
   MAKER_FILL
   CONTRACT_ADDED
+  PROTOCOL_TO_ACCOUNT_TRANSFER
 }
 
 """
@@ -37,6 +41,33 @@ type CanonicalEvent {
   accountId: BigInt
   perpetualId: Int
   positionType: Int
+  owner: String
+  leverageHdths: BigInt
+  lotLns: BigInt
+  startLotLns: BigInt
+  endLotLns: BigInt
+  liqLotLns: BigInt
+  pricePns: BigInt
+  markPricePns: BigInt
+  liqPricePns: BigInt
+  amountCns: BigInt
+  balanceCns: BigInt
+  startBalanceCns: BigInt
+  depositCns: BigInt
+  startDepositCns: BigInt
+  endDepositCns: BigInt
+  deltaPnlCns: BigInt
+  fundingCns: BigInt
+  insFeeCns: BigInt
+  protFeeCns: BigInt
+  feeCns: BigInt
+  fundingRatePct100k: BigInt
+  fundingPricePns: BigInt
+  fundingPaymentPns: BigInt
+  fundingSumPns: BigInt
+  positionFmvCns: BigInt
+  paymentCns: BigInt
+  amountOwedCns: BigInt
   payloadJson: String!
   schemaVersion: String!
   handlerVersion: String!

@@ -13,10 +13,12 @@ contracts:
     handler: src/EventHandlers.ts
     events:
       - event: AccountCreated
+      - event: AccountLiquidationCredit
       - event: CollateralDeposit
       - event: CollateralWithdrawal
       - event: IncreasePositionCollateral
       - event: PositionCollateralDecreased
+      - event: PositionLiquidationCredit
       - event: PositionOpened
       - event: PositionOpenedV2
       - event: PositionIncreased
@@ -29,11 +31,15 @@ contracts:
       - event: PositionInverted
       - event: PositionUnwound
       - event: PositionUnwoundV2
+      - event: PositionUnwoundWithoutPayment
+      - event: PositionUnwoundWithoutPaymentV2
       - event: FundingEventCompleted
       - event: MakerOrderFilled
       - event: MakerOrderFilledV2
       - event: ContractAdded
       - event: ContractAddedV2
+      - event: TransferAccountToProtocol
+      - event: TransferProtocolToAccount
 networks:
   - id: 143
     start_block: 54773010

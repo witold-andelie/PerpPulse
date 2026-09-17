@@ -10,6 +10,7 @@ use perppulse::ledger::replay;
 use perppulse::pipeline::run_fixture;
 use perppulse::quality::gate_ledger;
 use perppulse::registry::load_registry;
+use perppulse::serve::{build_snapshot, run_server};
 
 #[derive(Parser)]
 #[command(
@@ -27,6 +28,15 @@ enum Command {
     Demo {
         #[arg(value_name = "FIXTURE")]
         fixture: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        max_lag_blocks: u64,
+    },
+    /// Serve a read-only JSON API over one deterministic fixture pulse.
+    Serve {
+        #[arg(value_name = "FIXTURE")]
+        fixture: PathBuf,
+        #[arg(long, default_value = "127.0.0.1:8081")]
+        bind: String,
         #[arg(long, default_value_t = 0)]
         max_lag_blocks: u64,
     },
@@ -81,6 +91,28 @@ fn run() -> Result<(), DataQualityError> {
             };
             let pulse = run_fixture(&path, Some(max_lag_blocks))?;
             print_demo(&pulse)?;
+        }
+        Command::Serve {
+            fixture,
+            bind,
+            max_lag_blocks,
+        } => {
+            let path = if fixture.is_absolute() {
+                fixture
+            } else {
+                let from_cwd = fixture.clone();
+                if from_cwd.exists() {
+                    from_cwd
+                } else {
+                    repo_root().join(fixture)
+                }
+            };
+            let pulse = run_fixture(&path, Some(max_lag_blocks))?;
+            let snapshot = build_snapshot(&pulse)?;
+            let addr: std::net::SocketAddr = bind.parse().map_err(|err| {
+                DataQualityError::msg(format!("invalid bind address {bind}: {err}"))
+            })?;
+            run_server(&snapshot, addr)?;
         }
         Command::EnvioAccount {
             account_id,

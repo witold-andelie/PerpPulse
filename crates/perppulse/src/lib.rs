@@ -10,6 +10,7 @@ pub mod money;
 pub mod pipeline;
 pub mod quality;
 pub mod registry;
+pub mod serve;
 pub mod store;
 
 pub use coverage::CoverageEvidence;

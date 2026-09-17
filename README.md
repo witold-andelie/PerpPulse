@@ -4,8 +4,8 @@ Real-time protocol-to-wallet risk intelligence for perpetual markets on Monad.
 
 PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wallet context into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
 
-> Status: canonical ledger, coverage-bounded Envio-to-Rust adapter, and
-> golden-fixture demo implemented. The Envio `risk-hotpath-v1` index was
+> Status: canonical ledger, coverage-bounded Envio-to-Rust adapter,
+> golden-fixture demo, and read-only fixture API implemented. The Envio `risk-hotpath-v1` index was
 > verified against live Monad data with a coverage-aware judge quick start;
 > the expanded `risk-hotpath-v2` profile is code-generated and tested but still
 > requires a fresh live reindex. Licensed Apache-2.0. GCP foundation is live
@@ -72,6 +72,7 @@ Rust 1.85+ and Python 3.12+ are required for the ledger tests and the publicatio
 ```powershell
 cargo test
 cargo run -p perppulse -- demo fixtures/golden/open-increase-reduce-close.json
+cargo run -p perppulse -- serve fixtures/golden/open-increase-reduce-close.json --bind 127.0.0.1:8081
 cargo run -p perppulse -- envio-account 5238 --inspect-only
 python scripts/check_repository_policy.py --tracked
 ```
@@ -126,6 +127,13 @@ to `_meta` coverage, verifies every payload subject and provenance tuple, and
 rechecks the stable as-of event after paging. A v1 database is inspection-only;
 financial position replay is enabled only for v2 coverage that starts at
 deployment or includes the account-creation event.
+
+`serve` exposes the same fixture pulse as a read-only JSON API over std-only
+HTTP with no new dependencies. It serves `GET /health`, `/api/protocol`,
+`/api/wallets`, `/api/wallet/<accountId>`, `/api/events`,
+`/api/event/<eventId>`, and `/api/coverage`. Unknown paths return 404,
+non-GET methods return 405, and every range remains bounded by the fixture
+`startBlock`.
 
 ## Architecture
 

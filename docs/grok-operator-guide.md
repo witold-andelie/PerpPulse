@@ -2,6 +2,8 @@
 
 This guide defines how to use the local Grok CLI for PerpPulse without allowing a fast sub-agent to bypass repository, security, cost, or review boundaries.
 
+Grok is optional. The primary agent may read, implement, and review the project directly; no Grok review is required.
+
 ## Division of responsibility
 
 - Grok handles token-intensive reading, comparison, research, scaffolding, and implementation in a bounded context.

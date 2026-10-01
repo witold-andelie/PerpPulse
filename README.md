@@ -5,7 +5,8 @@ Real-time protocol-to-wallet risk intelligence for perpetual markets on Monad.
 PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wallet context into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
 
 > Status: canonical ledger, coverage-bounded Envio-to-Rust adapter,
-> golden-fixture demo, and read-only fixture API implemented. The Envio `risk-hotpath-v1` index was
+> golden-fixture web demo, read-only fixture and live-account APIs, compact PostgreSQL serving,
+> hashed evidence, reconciliation scorecards, and optional Nansen label context implemented. The Envio `risk-hotpath-v1` index was
 > verified against live Monad data with a coverage-aware judge quick start;
 > the expanded `risk-hotpath-v2` profile is code-generated and tested but still
 > requires a fresh live reindex. Licensed Apache-2.0. GCP foundation is live
@@ -20,9 +21,14 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 - Envio bounty: Best Use of Envio
 - Nansen bounty: Best Use of Nansen
 
-The planned product is read-only. It does not place orders, request private keys, or present AI-generated numbers as financial facts.
+The product is read-only. It does not place orders, request private keys, or present AI-generated numbers as financial facts.
 
-## Judge-facing product path
+## Target judge-facing product path
+
+The following is the intended full product scope. The current web application
+implements fixture metrics, account drill-down, and event evidence. Live serving
+implements bounded account watchlists; global historical analytics, comparison,
+and alerts remain pending.
 
 1. Start on a signal-first protocol Risk Pulse with the top three changes and visible freshness.
 2. Inspect volume, open interest, TVL, fees and revenue, active users, flows, skew, liquidations, and funding over 24-hour, 7-day, 30-day, and historical windows.
@@ -67,7 +73,7 @@ Verified Perpl mainnet facts live in [`docs/protocol-registry.md`](docs/protocol
 
 ### Setup
 
-Rust 1.85+ and Python 3.12+ are required for the ledger tests and the publication policy check. Node.js 22+ and pnpm are required only to generate and run the Envio indexer.
+Rust 1.95 and Python 3.12+ are used for the ledger tests and publication policy check. Node.js 22+ and pinned pnpm 10.5.2 are required only to generate and run the Envio indexer.
 
 ```powershell
 cargo test
@@ -128,12 +134,102 @@ rechecks the stable as-of event after paging. A v1 database is inspection-only;
 financial position replay is enabled only for v2 coverage that starts at
 deployment or includes the account-creation event.
 
-`serve` exposes the same fixture pulse as a read-only JSON API over std-only
-HTTP with no new dependencies. It serves `GET /health`, `/api/protocol`,
+`serve` exposes the same fixture pulse as a read-only web and JSON surface. The
+HTTP transport uses the standard library. It serves `GET /health`, `/api/protocol`,
 `/api/wallets`, `/api/wallet/<accountId>`, `/api/events`,
 `/api/event/<eventId>`, and `/api/coverage`. Unknown paths return 404,
 non-GET methods return 405, and every range remains bounded by the fixture
 `startBlock`.
+
+Open `http://127.0.0.1:8081` for the embedded web application. It shows the
+fixture badge, processed coverage, protocol metrics, account positions, event
+evidence, and a downloadable range manifest. Financial values are decimal
+strings; the browser does not calculate PnL. Wallet, market, and block filters
+operate on one immutable snapshot obtained through `/api/snapshot`.
+
+### Live serving and compact PostgreSQL
+
+```powershell
+cargo run -p perppulse -- serve-envio --accounts 5238
+cargo run -p perppulse -- evidence fixtures/golden/open-position-as-of.json
+```
+
+Live serving reads the same Envio adapter on a bounded watchlist (1 to 20
+accounts, at most 100,000 combined events). It checks an independent Monad RPC
+chain identity and head, shares one event cutoff across accounts, and replaces
+the entire snapshot atomically. Source failures return 503; an observation older
+than 90 seconds or processed coverage stalled for 120 seconds is unavailable.
+Coverage regression or changed facts at the same cutoff quarantine the process.
+Restart only after the source has been reconciled.
+
+A watchlist cannot prove global protocol totals, so the live protocol endpoint
+returns 503. Each account exposes its replay eligibility. Eligible accounts have
+deterministic realized facts and position state; incomplete history blocks
+position replay. Free balance and open-position mark-derived facts remain null
+until their missing inputs are proven. An old v1 index is inspection-only.
+
+The compact PostgreSQL publisher stores one snapshot per source, capped at 1 MB,
+with input and content hashes. It does not copy the raw event stream. Set
+`PERPPULSE_DATABASE_URL` as process environment using a local PostgreSQL or
+loopback [Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/postgres/sql-proxy)
+connection; credentials must never be passed as CLI arguments or committed.
+
+```powershell
+cargo run -p perppulse -- publish fixtures/golden/open-position-as-of.json --source fixture-demo
+cargo run -p perppulse -- serve-database --source fixture-demo --max-age-seconds 90
+cargo run -p perppulse -- serve-envio --accounts 5238 --publish-database
+```
+
+Database reads reject absent, stale, or hash-inconsistent snapshots. Event bodies
+are explicitly unavailable in compact serving mode; resolve manifest and
+position event IDs against Envio. The Cloud SQL migration and cloud deployment
+have not been executed by this implementation session.
+
+### Evidence, reconciliation, and optional context
+
+`/api/manifest` provides stable hashes of ordered event IDs, canonical inputs,
+and the versioned [`methodology.json`](docs/methodology.json). CLI evidence export
+can write a new file with `--output`; existing evidence is never overwritten.
+`--reference <json>` compares a normalized `perpl-dex-sdk` account reference only
+when chain, block hash, log cutoff, and timestamp exactly match. Decimal-string
+account totals report matched, mismatch, or unverified per field; missing values
+do not count as matches. Position state and executable liquidity are outside this
+scorecard's scope. A mismatch exits with an error. See the reference contract in
+[`docs/serving-and-evidence.md`](docs/serving-and-evidence.md).
+
+Optional Nansen common labels use the official
+[Address Labels endpoint](https://docs.nansen.ai/api/profiler/address-labels),
+with five-minute caching, no retries or premium calls, and an explicit allowance
+of 1 to 10 requests per process. By default no requests are made. After owner
+approval of the billable calls, supply `NANSEN_API_KEY` as process environment
+and `--nansen-max-requests <count>` to `serve-envio`. Restarts reset this local
+allowance; it is not an account-wide spending cap. Errors and exhausted allowance
+degrade context while canonical facts stay available. Label observation time and
+point-in-time eligibility are separate from the ledger cutoff. No live Nansen
+request was used as verification evidence for this release.
+
+### Container and checks
+
+```powershell
+docker build -t perppulse:local .
+docker run --rm -p 127.0.0.1:8081:8080 perppulse:local
+cargo fmt --check
+cargo test --locked
+cargo clippy --locked --all-targets --all-features -- -D warnings
+python scripts/check_repository_policy.py --working-tree
+```
+
+The container runs as an unprivileged user and defaults to an explicitly
+synthetic fixture demo. [`deploy/application.ps1`](deploy/application.ps1)
+prepares an immutable-image Cloud Run smoke deployment in the confirmed project
+and region, with zero minimum and one maximum instance. Its default is a dry run;
+execution requires explicit owner approval for the billable deployment. It keeps
+the service authenticated. It is not a mainnet deployment proof.
+
+GitHub Actions runs Rust, PostgreSQL, Graphviz, publication policy, Envio code
+generation, typechecking, and handler tests. Local reproducible evidence is
+recorded in [`docs/verification-2026-10-01.md`](docs/verification-2026-10-01.md).
+The [`two-minute demo script`](docs/demo-script.md) is ready for recording.
 
 ## Architecture
 

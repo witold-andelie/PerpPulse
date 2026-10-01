@@ -380,7 +380,7 @@ impl CanonicalProvenance {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MarketMark {
     pub perpetual_id: u32,
     pub mark_pns: i128,
@@ -493,17 +493,29 @@ pub fn load_fixture(path: impl AsRef<Path>) -> Result<Fixture> {
 }
 
 fn resolve_relative(fixture: &Path, relative: &str) -> PathBuf {
-    let candidate = fixture.parent().unwrap_or(Path::new(".")).join(relative);
-    if candidate.exists() {
-        candidate
-    } else {
-        repo_root().join(relative)
+    for parent in fixture.ancestors().skip(1) {
+        let candidate = parent.join(relative);
+        if candidate.exists() {
+            return candidate;
+        }
     }
+    repo_root().join(relative)
 }
 
 pub fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
+    if let Ok(directory) = std::env::current_dir() {
+        if directory
+            .join("fixtures/protocol/mainnet-registry.json")
+            .exists()
+        {
+            return directory;
+        }
+    }
+    // Lexical ancestors work in packaged images that omit the build-time
+    // crates directory; filesystem traversal through /app/crates/../.. does not.
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(2)
+        .expect("crate is nested under the workspace crates directory")
+        .to_path_buf()
 }

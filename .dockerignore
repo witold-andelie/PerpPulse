@@ -1,0 +1,14 @@
+*
+!Cargo.toml
+!Cargo.lock
+!crates/
+!crates/**
+!docs/
+!docs/methodology.json
+!deploy/
+!deploy/serving-schema.sql
+!web/
+!web/**
+!fixtures/
+!fixtures/**
+!Dockerfile

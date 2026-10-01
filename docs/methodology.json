@@ -1,0 +1,31 @@
+{
+  "version": "perppulse-methodology-v1",
+  "safety": "read-only",
+  "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
+  "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
+  "contextSource": "Nansen; optional context cannot alter canonical numbers",
+  "accounting": {
+    "amounts": "Finite decimal strings derived from integer native scales",
+    "realizedPnl": "Sum of lifecycle delta_pnl_cns; fees and settled funding are reported separately",
+    "unrealizedPnl": "Side-adjusted (mark minus entry) times size; unavailable without an eligible point-in-time mark",
+    "freeBalance": "Unavailable under risk-hotpath-v2 because subjectless taker balances are excluded",
+    "openInterest": "Sum of mark-derived absolute notionals for proven open positions",
+    "tvl": "Isolated position collateral only; not total protocol collateral",
+    "volume": "Maker fill price times size, counted once",
+    "protocolFees": "Insurance plus protocol fees from supported lifecycle transitions",
+    "liquidationPrice": "Isolated margin formula using registry maintenance parameters; excludes unsettled funding",
+    "executableLiquidityRisk": "Unavailable until point-in-time order book depth and execution costs are independently captured"
+  },
+  "eligibility": {
+    "positionReplay": "Exact risk-hotpath-v2 provenance and coverage from deployment or account creation",
+    "cutoff": "One immutable event cutoff shared across all selected accounts",
+    "freshness": "Indexer source lag, observation age, and live processed-watermark advancement are checked separately",
+    "missingData": "Explicit null, degraded status, or HTTP 503; never a fabricated zero",
+    "ranges": "Block selectors must lie within processed coverage and the selected as-of cutoff"
+  },
+  "outputVersions": {
+    "manifest": "range-manifest-v1",
+    "reconciliation": "reconciliation-scorecard-v1",
+    "snapshot": "api-snapshot-v1"
+  }
+}

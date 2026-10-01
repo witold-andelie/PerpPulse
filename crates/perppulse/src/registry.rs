@@ -2,21 +2,21 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::error::{DataQualityError, Result};
 
 pub const SIDE_LONG: u8 = 1;
 pub const SIDE_SHORT: u8 = 2;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CollateralSpec {
     pub symbol: String,
     pub address: String,
     pub decimals: u32,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MarketSpec {
     pub perpetual_id: u32,
     pub symbol: String,
@@ -52,7 +52,7 @@ struct RegistryFile {
     markets: Vec<MarketSpec>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ProtocolRegistry {
     pub network: String,
     pub chain_id: u64,

@@ -1,13 +1,17 @@
 pub mod accounting;
+pub mod context;
 pub mod coverage;
 pub mod envio;
 pub mod error;
 pub mod events;
+pub mod evidence;
 pub mod identity;
 pub mod ledger;
+pub mod live;
 pub mod metrics;
 pub mod money;
 pub mod pipeline;
+pub mod publication;
 pub mod quality;
 pub mod registry;
 pub mod serve;

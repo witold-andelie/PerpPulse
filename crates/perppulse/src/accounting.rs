@@ -155,7 +155,8 @@ pub fn position_snapshot(
                 warnings.push(message);
             }
             Some(mark) => {
-                if mark.block_number > as_of.block_number {
+                if mark.block_number > as_of.block_number || mark.timestamp_ms > as_of.timestamp_ms
+                {
                     return Err(DataQualityError::msg(format!(
                         "mark for perpetual {} uses future block {}",
                         mark.perpetual_id, mark.block_number

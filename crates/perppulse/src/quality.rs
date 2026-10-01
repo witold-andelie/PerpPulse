@@ -43,6 +43,15 @@ pub fn gate_ledger(
             last.block_number, coverage.processed_block
         )));
     }
+    if ledger
+        .events
+        .iter()
+        .any(|event| event.block_number < coverage.start_block)
+    {
+        return Err(DataQualityError::msg(
+            "ledger contains events before processed coverage begins",
+        ));
+    }
     let coverage_lag = as_of.block_number.saturating_sub(coverage.processed_block);
     if let Some(max_lag) = max_lag_blocks {
         if coverage_lag > max_lag {

@@ -2,6 +2,8 @@
   "name": "perppulse-indexer",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@10.5.2",
+  "pnpm": { "onlyBuiltDependencies": ["esbuild", "rescript"] },
   "license": "Apache-2.0",
   "description": "Envio HyperIndex indexer that materializes canonical Perpl lifecycle events",
   "scripts": {

@@ -40,6 +40,56 @@ enum Command {
         #[arg(long, default_value_t = 0)]
         max_lag_blocks: u64,
     },
+    /// Serve the live Envio watchlist with explicit incomplete-data states.
+    ServeEnvio {
+        #[arg(long, value_delimiter = ',', required = true)]
+        accounts: Vec<u64>,
+        #[arg(long, default_value = "http://localhost:8080/v1/graphql")]
+        graphql_url: String,
+        #[arg(long, default_value = "https://rpc.monad.xyz")]
+        rpc_url: String,
+        #[arg(long, default_value = "fixtures/protocol/mainnet-registry.json")]
+        registry: PathBuf,
+        #[arg(long, default_value = "127.0.0.1:8081")]
+        bind: String,
+        #[arg(long, default_value_t = 10)]
+        refresh_seconds: u64,
+        #[arg(long, default_value_t = 100)]
+        max_lag_blocks: u64,
+        #[arg(long, default_value_t = 500)]
+        page_size: u32,
+        #[arg(long, default_value_t = 10_000)]
+        max_events: usize,
+        /// Publish compact state using PERPPULSE_DATABASE_URL through a local proxy.
+        #[arg(long)]
+        publish_database: bool,
+        /// Explicit owner-approved allowance for optional billable Nansen requests.
+        #[arg(long, default_value_t = 0)]
+        nansen_max_requests: u32,
+    },
+    /// Export a reproducible fixture manifest, optionally comparing a Perpl reference.
+    Evidence {
+        fixture: PathBuf,
+        #[arg(long)]
+        reference: Option<PathBuf>,
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
+    /// Publish a fixture snapshot to local PostgreSQL or a Cloud SQL Auth Proxy.
+    Publish {
+        fixture: PathBuf,
+        #[arg(long, default_value = "fixture-demo")]
+        source: String,
+    },
+    /// Serve compact database state, rejecting missing or stale observations.
+    ServeDatabase {
+        #[arg(long, default_value = "live-watchlist")]
+        source: String,
+        #[arg(long, default_value = "127.0.0.1:8081")]
+        bind: String,
+        #[arg(long, default_value_t = 90)]
+        max_age_seconds: u64,
+    },
     /// Read a coverage-bounded account slice from Envio GraphQL.
     EnvioAccount {
         #[arg(value_name = "ACCOUNT_ID")]
@@ -150,8 +200,106 @@ fn run() -> Result<(), DataQualityError> {
                 );
             }
         }
+        Command::ServeEnvio {
+            accounts,
+            graphql_url,
+            rpc_url,
+            registry,
+            bind,
+            refresh_seconds,
+            max_lag_blocks,
+            page_size,
+            max_events,
+            publish_database,
+            nansen_max_requests,
+        } => {
+            let config = perppulse::live::LiveConfig {
+                client: EnvioClient::new(
+                    graphql_url,
+                    std::env::var("HASURA_GRAPHQL_ADMIN_SECRET").ok(),
+                    page_size,
+                    max_events,
+                )?,
+                registry: load_registry(resolve_repo_path(registry))?,
+                accounts,
+                rpc_url,
+                refresh_seconds,
+                max_lag_blocks,
+                nansen: if nansen_max_requests > 0 {
+                    Some(perppulse::context::NansenClient::new(
+                    std::env::var("NANSEN_API_KEY").map_err(|_|DataQualityError::msg("NANSEN_API_KEY is required for the explicit Nansen request allowance"))?,nansen_max_requests)?)
+                } else {
+                    None
+                },
+                database_url: if publish_database {
+                    Some(database_url()?)
+                } else {
+                    None
+                },
+            };
+            perppulse::live::run_live(config, parse_bind(&bind)?)?;
+        }
+        Command::Evidence {
+            fixture,
+            reference,
+            output,
+        } => {
+            let pulse = run_fixture(resolve_repo_path(fixture), Some(0))?;
+            let snapshot = build_snapshot(&pulse)?;
+            let mut manifest = snapshot.manifest.clone();
+            manifest["snapshotHash"] = serde_json::json!(perppulse::evidence::digest(&snapshot)?);
+            if let Some(path) = reference {
+                let bytes = std::fs::read(path)
+                    .map_err(|_| DataQualityError::msg("cannot read Perpl reference"))?;
+                let reference = serde_json::from_slice(&bytes)
+                    .map_err(|_| DataQualityError::msg("invalid Perpl reference JSON"))?;
+                manifest["reconciliation"] = perppulse::evidence::reconcile(&snapshot, &reference)?;
+            }
+            let text = serde_json::to_string_pretty(&manifest)
+                .map_err(|_| DataQualityError::msg("cannot serialize evidence manifest"))?;
+            if let Some(path) = output {
+                use std::io::Write;
+                let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(path)
+                    .map_err(|_| DataQualityError::msg("evidence output must be a new writable path; existing evidence is never overwritten"))?;
+                file.write_all(text.as_bytes())
+                    .map_err(|_| DataQualityError::msg("cannot write evidence manifest"))?;
+            } else {
+                println!("{text}");
+            }
+            if manifest["reconciliation"]["status"] == "mismatch" {
+                return Err(DataQualityError::msg(
+                    "Perpl reconciliation found a mismatch",
+                ));
+            }
+        }
+        Command::Publish { fixture, source } => {
+            let pulse = run_fixture(resolve_repo_path(fixture), Some(0))?;
+            perppulse::publication::publish(&database_url()?, &source, &build_snapshot(&pulse)?)?;
+            println!("Compact fixture snapshot published; this is synthetic evidence.");
+        }
+        Command::ServeDatabase {
+            source,
+            bind,
+            max_age_seconds,
+        } => {
+            let url = database_url()?;
+            perppulse::publication::load(&url, &source, max_age_seconds)?;
+            perppulse::serve::run_service(
+                move || perppulse::publication::load(&url, &source, max_age_seconds),
+                parse_bind(&bind)?,
+            )?;
+        }
     }
     Ok(())
+}
+
+fn database_url() -> Result<String, DataQualityError> {
+    std::env::var("PERPPULSE_DATABASE_URL").map_err(|_| DataQualityError::msg("PERPPULSE_DATABASE_URL is required; supply it as process environment, never as a CLI argument"))
+}
+
+fn parse_bind(bind: &str) -> Result<std::net::SocketAddr, DataQualityError> {
+    bind.parse()
+        .map_err(|_| DataQualityError::msg("invalid API bind address"))
 }
 
 fn resolve_repo_path(path: PathBuf) -> PathBuf {

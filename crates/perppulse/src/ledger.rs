@@ -100,6 +100,19 @@ pub fn replay(
         if !as_of.includes(event.block_number, event.log_index) {
             continue;
         }
+        if event.timestamp_ms > as_of.timestamp_ms {
+            return Err(DataQualityError::msg(
+                "event timestamp is after the as-of cutoff",
+            ));
+        }
+        if !event
+            .contract_address
+            .eq_ignore_ascii_case(&registry.exchange_address)
+        {
+            return Err(DataQualityError::msg(
+                "event contract does not match the Exchange registry",
+            ));
+        }
         if !seen.insert(event_id.key()) {
             return Err(DataQualityError::msg(format!(
                 "duplicate event identity {}",
@@ -239,6 +252,7 @@ fn open_position(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
             position_id.key()
         )));
     }
+    let previous = ledger.positions.get(&position_id.key());
     let position = PositionState {
         position_id: position_id.clone(),
         side: side(event)?,
@@ -247,9 +261,12 @@ fn open_position(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
         entry_pns: required(event.price_pns, "price_pns")?,
         deposit_cns: required(event.deposit_cns, "deposit_cns")?,
         leverage_hdths: event.leverage_hdths.unwrap_or(0),
-        realized_pnl_cns: 0,
-        realized_funding_cns: 0,
-        fees_cns: fees(event),
+        realized_pnl_cns: previous.map_or(0, |position| position.realized_pnl_cns),
+        realized_funding_cns: previous.map_or(0, |position| position.realized_funding_cns),
+        fees_cns: previous
+            .map_or(0, |position| position.fees_cns)
+            .checked_add(fees(event)?)
+            .ok_or_else(|| DataQualityError::msg("cumulative position fees overflow"))?,
         opened_block: event.block_number,
         closed_block: None,
         last_event_id: Some(event.event_id()?),
@@ -277,9 +294,9 @@ fn increase(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
     if let Some(leverage) = event.leverage_hdths {
         position.leverage_hdths = leverage;
     }
-    position.fees_cns += fees(event);
+    position.fees_cns = accumulate(position.fees_cns, fees(event)?)?;
     if let Some(funding) = event.funding_cns {
-        position.realized_funding_cns += funding;
+        position.realized_funding_cns = accumulate(position.realized_funding_cns, funding)?;
     }
     position.last_event_id = Some(event.event_id()?);
     require_open_invariants(position, event)
@@ -302,8 +319,8 @@ fn decrease(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
     }
     position.lot_lns = end_lot;
     position.deposit_cns = end_deposit;
-    position.realized_pnl_cns += delta;
-    position.realized_funding_cns += funding;
+    position.realized_pnl_cns = accumulate(position.realized_pnl_cns, delta)?;
+    position.realized_funding_cns = accumulate(position.realized_funding_cns, funding)?;
     position.last_event_id = Some(event.event_id()?);
     if end_lot == 0 {
         position.status = "closed".to_string();
@@ -318,10 +335,10 @@ fn decrease(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
 fn close(ledger: &mut Ledger, event: &CanonicalEvent, status: &str) -> Result<()> {
     let position = require_open(ledger, event)?;
     if let Some(delta) = event.delta_pnl_cns {
-        position.realized_pnl_cns += delta;
+        position.realized_pnl_cns = accumulate(position.realized_pnl_cns, delta)?;
     }
     if let Some(funding) = event.funding_cns {
-        position.realized_funding_cns += funding;
+        position.realized_funding_cns = accumulate(position.realized_funding_cns, funding)?;
     }
     position.lot_lns = 0;
     position.deposit_cns = 0;
@@ -337,8 +354,8 @@ fn liquidate(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
     let funding = required(event.funding_cns, "funding_cns")?;
     let deposit = required(event.deposit_cns, "deposit_cns")?;
     let position = require_open(ledger, event)?;
-    position.realized_pnl_cns += delta;
-    position.realized_funding_cns += funding;
+    position.realized_pnl_cns = accumulate(position.realized_pnl_cns, delta)?;
+    position.realized_funding_cns = accumulate(position.realized_funding_cns, funding)?;
     position.lot_lns = remaining;
     position.deposit_cns = if remaining > 0 { deposit } else { 0 };
     position.last_event_id = Some(event.event_id()?);
@@ -361,8 +378,8 @@ fn delever(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
     let end_deposit = required(event.end_deposit_cns, "end_deposit_cns")?;
     let position = require_open(ledger, event)?;
     assert_transition(position, event, start_lot, start_deposit)?;
-    position.realized_pnl_cns += delta;
-    position.realized_funding_cns += funding;
+    position.realized_pnl_cns = accumulate(position.realized_pnl_cns, delta)?;
+    position.realized_funding_cns = accumulate(position.realized_funding_cns, funding)?;
     position.lot_lns = remaining;
     position.deposit_cns = if remaining > 0 { end_deposit } else { 0 };
     position.last_event_id = Some(event.event_id()?);
@@ -382,16 +399,16 @@ fn invert(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
     let delta = required(event.delta_pnl_cns, "delta_pnl_cns")?;
     let funding = required(event.funding_cns, "funding_cns")?;
     let next_side = side(event)?;
-    let extra_fees = fees(event);
+    let extra_fees = fees(event)?;
     let leverage = event.leverage_hdths;
     let position = require_open(ledger, event)?;
     position.side = next_side;
     position.lot_lns = end_lot;
     position.entry_pns = price;
     position.deposit_cns = end_deposit;
-    position.realized_pnl_cns += delta;
-    position.realized_funding_cns += funding;
-    position.fees_cns += extra_fees;
+    position.realized_pnl_cns = accumulate(position.realized_pnl_cns, delta)?;
+    position.realized_funding_cns = accumulate(position.realized_funding_cns, funding)?;
+    position.fees_cns = accumulate(position.fees_cns, extra_fees)?;
     if let Some(value) = leverage {
         position.leverage_hdths = value;
     }
@@ -511,8 +528,16 @@ fn side(event: &CanonicalEvent) -> Result<u8> {
     Ok(side)
 }
 
-fn fees(event: &CanonicalEvent) -> i128 {
-    event.ins_fee_cns.unwrap_or(0) + event.prot_fee_cns.unwrap_or(0)
+fn fees(event: &CanonicalEvent) -> Result<i128> {
+    accumulate(
+        event.ins_fee_cns.unwrap_or(0),
+        event.prot_fee_cns.unwrap_or(0),
+    )
+}
+
+fn accumulate(left: i128, right: i128) -> Result<i128> {
+    left.checked_add(right)
+        .ok_or_else(|| DataQualityError::msg("native-scale accounting overflow"))
 }
 
 fn required(value: Option<i128>, name: &str) -> Result<i128> {

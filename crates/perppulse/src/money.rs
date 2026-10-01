@@ -33,5 +33,7 @@ pub fn margin_rate(hdths: u32, name: &str) -> Result<Decimal> {
 }
 
 pub fn notional(price: Decimal, size: Decimal, name: &str) -> Result<Decimal> {
-    require_finite(price * size, name)
+    price
+        .checked_mul(size)
+        .ok_or_else(|| DataQualityError::msg(format!("{name} notional overflow")))
 }

@@ -1,4 +1,4 @@
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{SocketAddr, TcpListener};
 
 use serde_json::{json, Value};
@@ -6,12 +6,13 @@ use serde_json::{json, Value};
 use crate::error::{DataQualityError, Result};
 use crate::pipeline::Pulse;
 
-const MAX_EVENTS_IN_SNAPSHOT: usize = 5_000;
+const MAX_EVENTS_IN_SNAPSHOT: usize = 100_000;
 
 /// Read-only API snapshot built once from a deterministic fixture pulse.
 /// The server never mutates ledger state and never computes new financial
 /// facts per request; it only serializes the pre-gated pulse.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiSnapshot {
     pub fixture_name: String,
     pub chain_id: u64,
@@ -25,6 +26,10 @@ pub struct ApiSnapshot {
     pub coverage: Value,
     pub wallets: Value,
     pub events: Value,
+    pub mode: String,
+    pub manifest: Value,
+    pub context: Value,
+    pub events_available: bool,
 }
 
 pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
@@ -143,6 +148,14 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
         }));
     }
 
+    let mut manifest = crate::evidence::manifest(
+        &pulse.ledger.events,
+        &pulse.fixture.as_of,
+        &pulse.fixture.coverage,
+        "synthetic fixture",
+    )?;
+    manifest["registryInputsHash"] = json!(crate::evidence::digest(&pulse.fixture.registry)?);
+    manifest["marketMarksHash"] = json!(crate::evidence::digest(&pulse.fixture.marks)?);
     Ok(ApiSnapshot {
         fixture_name: pulse.fixture.name.clone(),
         chain_id: pulse.fixture.registry.chain_id,
@@ -151,11 +164,17 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
         as_of_timestamp_ms: pulse.fixture.as_of.timestamp_ms,
         start_block: pulse.fixture.coverage.start_block,
         processed_block: pulse.fixture.coverage.processed_block,
-        source_note: "Envio canonical events; Perpl snapshot is a verifier; Nansen is not included.".to_string(),
+        source_note:
+            "Envio canonical events; Perpl snapshot is a verifier; Nansen is not included."
+                .to_string(),
         protocol,
         coverage: coverage.clone(),
         wallets: wallets_json,
         events: Value::Array(evidence),
+        mode: "fixture".to_string(),
+        manifest,
+        context: unavailable_context(),
+        events_available: true,
     })
 }
 
@@ -170,6 +189,26 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
     }
     let path = target.split('?').next().unwrap_or(target);
     let normalized = normalize_path(path);
+    let filters = match parse_query(target) {
+        Ok(value) => value,
+        Err(error) => return (400, json!({"error": error.to_string()})),
+    };
+    if let Some(block) = filters.get("asOfBlock") {
+        if *block != snapshot.as_of_block {
+            return (
+                409,
+                json!({"error": "snapshot cutoff changed; reload the snapshot"}),
+            );
+        }
+    }
+    for key in filters.keys() {
+        if key != "asOfBlock" && normalized != "/api/events" {
+            return (
+                400,
+                json!({"error": "filters are supported only by /api/events"}),
+            );
+        }
+    }
     if normalized == "/" || normalized == "/health" {
         return (
             200,
@@ -180,10 +219,35 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
                 "chainId": snapshot.chain_id,
                 "asOfBlock": snapshot.as_of_block,
                 "processedBlock": snapshot.processed_block,
+                "mode": snapshot.mode,
             }),
         );
     }
+    if normalized == "/api/snapshot" {
+        return (
+            200,
+            serde_json::to_value(snapshot).expect("serializable snapshot"),
+        );
+    }
+    if normalized == "/api/manifest" {
+        return (200, snapshot.manifest.clone());
+    }
+    if normalized == "/api/methodology" {
+        return (
+            200,
+            serde_json::from_str(crate::evidence::METHODOLOGY).expect("validated methodology"),
+        );
+    }
+    if normalized == "/api/context" {
+        return (200, snapshot.context.clone());
+    }
     if normalized == "/api/protocol" {
+        if snapshot.protocol["quality"] == "unavailable" {
+            return (
+                503,
+                json!({"error": "protocol totals are unavailable for an account-only source", "scope": snapshot.protocol}),
+            );
+        }
         return (200, snapshot.protocol.clone());
     }
     if normalized == "/api/coverage" {
@@ -208,6 +272,12 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
         let wallets = snapshot.wallets.as_array().cloned().unwrap_or_default();
         for wallet in wallets {
             if wallet.get("accountId").and_then(Value::as_u64) == Some(account_id) {
+                if wallet["replayEligible"] == false {
+                    return (
+                        503,
+                        json!({"error": "position replay requires complete account history", "evidence": wallet}),
+                    );
+                }
                 return (200, wallet);
             }
         }
@@ -217,9 +287,63 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
         );
     }
     if normalized == "/api/events" {
-        return (200, snapshot.events.clone());
+        if !snapshot.events_available {
+            return (
+                503,
+                json!({"error": "event bodies remain in Envio; this compact snapshot contains manifest references only"}),
+            );
+        }
+        let from = filters
+            .get("fromBlock")
+            .copied()
+            .unwrap_or(snapshot.start_block);
+        let to = filters
+            .get("toBlock")
+            .copied()
+            .unwrap_or(snapshot.as_of_block);
+        let limit = filters.get("limit").copied().unwrap_or(100);
+        let offset = filters.get("offset").copied().unwrap_or(0);
+        if from < snapshot.start_block
+            || to > snapshot.as_of_block
+            || from > to
+            || limit == 0
+            || limit > 1000
+            || offset > 100_000
+        {
+            return (
+                400,
+                json!({"error": "event range must stay inside coverage; limit must be 1..1000 and offset at most 100000"}),
+            );
+        }
+        let rows: Vec<_> = snapshot
+            .events
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter(|row| {
+                row["blockNumber"]
+                    .as_u64()
+                    .is_some_and(|block| block >= from && block <= to)
+                    && filters
+                        .get("accountId")
+                        .is_none_or(|id| row["accountId"].as_u64() == Some(*id))
+                    && filters
+                        .get("perpetualId")
+                        .is_none_or(|id| row["perpetualId"].as_u64() == Some(*id))
+            })
+            .skip(offset as usize)
+            .take(limit as usize)
+            .cloned()
+            .collect();
+        return (200, Value::Array(rows));
     }
     if let Some(rest) = normalized.strip_prefix("/api/event/") {
+        if !snapshot.events_available {
+            return (
+                503,
+                json!({"error": "event bodies are unavailable in compact serving mode"}),
+            );
+        }
         if rest.is_empty() {
             return (404, json!({"error": "unknown event path"}));
         }
@@ -239,6 +363,64 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
         404,
         json!({"error": "unknown path; see /health, /api/protocol, /api/wallets, /api/wallet/<id>, /api/events, /api/event/<id>, /api/coverage"}),
     )
+}
+
+fn parse_query(target: &str) -> Result<std::collections::BTreeMap<String, u64>> {
+    let mut values = std::collections::BTreeMap::new();
+    if let Some((_, query)) = target.split_once('?') {
+        for pair in query.split('&').filter(|pair| !pair.is_empty()) {
+            let (key, value) = pair
+                .split_once('=')
+                .ok_or_else(|| DataQualityError::msg("query filters require key=value"))?;
+            if ![
+                "asOfBlock",
+                "fromBlock",
+                "toBlock",
+                "accountId",
+                "perpetualId",
+                "limit",
+                "offset",
+            ]
+            .contains(&key)
+            {
+                return Err(DataQualityError::msg("unknown query filter"));
+            }
+            let value = value.parse().map_err(|_| {
+                DataQualityError::msg("query filters must be non-negative integers")
+            })?;
+            if values.insert(key.to_string(), value).is_some() {
+                return Err(DataQualityError::msg("duplicate query filter"));
+            }
+        }
+    }
+    Ok(values)
+}
+
+pub fn unavailable_context() -> Value {
+    json!({"source": "Nansen", "status": "unavailable", "labels": [], "reason": "Nansen credentials and verified coverage have not been configured.", "affectsCanonicalFacts": false})
+}
+
+pub fn wallet_value(wallet: &crate::accounting::WalletSnapshot, incomplete_balance: bool) -> Value {
+    let open_mark_missing = wallet
+        .positions
+        .iter()
+        .any(|p| p.status == "open" && p.mark.is_none());
+    json!({
+        "accountId": wallet.account_id, "owner": wallet.owner,
+        "freeBalance": if incomplete_balance { None } else { Some(wallet.free_balance.to_string()) },
+        "realizedPnl": wallet.realized_pnl.to_string(),
+        "unrealizedPnl": if open_mark_missing { None } else { Some(wallet.unrealized_pnl.to_string()) },
+        "fees": wallet.fees.to_string(), "realizedFunding": wallet.realized_funding.to_string(),
+        "warnings": wallet.warnings,
+        "positions": wallet.positions.iter().map(|p| json!({
+            "perpetualId": p.perpetual_id, "symbol": p.symbol, "side": p.side, "status": p.status,
+            "size": p.size.to_string(), "entry": p.entry.to_string(), "deposit": p.deposit.to_string(),
+            "realizedPnl": p.realized_pnl.to_string(), "realizedFunding": p.realized_funding.to_string(), "fees": p.fees.to_string(),
+            "mark": p.mark.map(|v| v.to_string()), "unrealizedPnl": p.unrealized_pnl.map(|v| v.to_string()),
+            "notionalValue": p.notional_value.map(|v| v.to_string()), "liquidationPrice": p.liquidation_price.map(|v| v.to_string()),
+            "liquidationBuffer": p.liquidation_buffer.map(|v| v.to_string()), "lastEventId": p.last_event_id, "warnings": p.warnings
+        })).collect::<Vec<_>>()
+    })
 }
 
 fn normalize_path(path: &str) -> String {
@@ -262,10 +444,9 @@ fn percent_decode(input: &str) -> String {
     let mut index = 0;
     while index < bytes.len() {
         if bytes[index] == b'%' && index + 2 < bytes.len() {
-            if let (Some(high), Some(low)) = (
-                hex_value(bytes[index + 1]),
-                hex_value(bytes[index + 2]),
-            ) {
+            if let (Some(high), Some(low)) =
+                (hex_value(bytes[index + 1]), hex_value(bytes[index + 2]))
+            {
                 out.push((high * 16 + low) as char);
                 index += 3;
                 continue;
@@ -292,6 +473,8 @@ fn reason(status: u16) -> &'static str {
         400 => "Bad Request",
         404 => "Not Found",
         405 => "Method Not Allowed",
+        409 => "Conflict",
+        503 => "Service Unavailable",
         _ => "Error",
     }
 }
@@ -299,17 +482,21 @@ fn reason(status: u16) -> &'static str {
 /// Blocking single-threaded HTTP/1.1 loop over the immutable snapshot.
 /// Each connection is answered and closed; request bodies are ignored.
 pub fn run_server(snapshot: &ApiSnapshot, bind: SocketAddr) -> Result<()> {
+    let snapshot = snapshot.clone();
+    run_service(move || Ok(snapshot.clone()), bind)
+}
+
+/// Bounded connections with timeouts; source failures never serve old facts.
+pub fn run_service(
+    provider: impl Fn() -> Result<ApiSnapshot> + Send + Sync + 'static,
+    bind: SocketAddr,
+) -> Result<()> {
     let listener = TcpListener::bind(bind).map_err(|err| {
         DataQualityError::msg(format!("cannot bind read-only API to {bind}: {err}"))
     })?;
-    println!(
-        "PerpPulse read-only API: fixture {} chain {} as-of block {} coverage {} through {} on http://{bind}",
-        snapshot.fixture_name,
-        snapshot.chain_id,
-        snapshot.as_of_block,
-        snapshot.start_block,
-        snapshot.processed_block
-    );
+    println!("PerpPulse read-only dashboard and API: http://{bind}");
+    let provider = std::sync::Arc::new(provider);
+    let active = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
     for stream in listener.incoming() {
         let mut stream = match stream {
             Ok(stream) => stream,
@@ -318,32 +505,92 @@ pub fn run_server(snapshot: &ApiSnapshot, bind: SocketAddr) -> Result<()> {
                 continue;
             }
         };
-        let (method, target) = match read_request_line(&stream) {
-            Ok(line) => line,
-            Err(err) => {
-                let body = serde_json::to_string(&json!({"error": err.to_string()}))
-                    .unwrap_or_else(|_| "{\"error\":\"bad request\"}".to_string());
-                let _ = write_response(&mut stream, 400, &body);
-                continue;
-            }
-        };
-        let (status, value) = route(snapshot, &method, &target);
-        let body = serde_json::to_string(&value)
-            .unwrap_or_else(|_| "{\"error\":\"serialization failed\"}".to_string());
-        if let Err(err) = write_response(&mut stream, status, &body) {
-            eprintln!("PerpPulse API write failed visibly: {err}");
+        if active.load(std::sync::atomic::Ordering::SeqCst) >= 32 {
+            let _ = write_response(
+                &mut stream,
+                503,
+                "application/json",
+                "{\"error\":\"connection limit reached\"}",
+            );
+            continue;
         }
+        active.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        let provider = provider.clone();
+        let active = active.clone();
+        std::thread::spawn(move || {
+            struct Release(std::sync::Arc<std::sync::atomic::AtomicUsize>);
+            impl Drop for Release {
+                fn drop(&mut self) {
+                    self.0.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                }
+            }
+            let _release = Release(active);
+            let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(5)));
+            let _ = stream.set_write_timeout(Some(std::time::Duration::from_secs(5)));
+            let (method, target) = match read_request_line(&stream) {
+                Ok(line) => line,
+                Err(err) => {
+                    let body = serde_json::to_string(&json!({"error": err.to_string()}))
+                        .unwrap_or_else(|_| "{\"error\":\"bad request\"}".to_string());
+                    let _ = write_response(&mut stream, 400, "application/json", &body);
+                    return;
+                }
+            };
+            if method == "GET" {
+                let asset = match target.as_str() {
+                    "/" => Some((
+                        "text/html; charset=utf-8",
+                        include_str!("../../../web/index.html"),
+                    )),
+                    "/app.js" => Some((
+                        "text/javascript; charset=utf-8",
+                        include_str!("../../../web/app.js"),
+                    )),
+                    "/style.css" => Some((
+                        "text/css; charset=utf-8",
+                        include_str!("../../../web/style.css"),
+                    )),
+                    _ => None,
+                };
+                if let Some((content_type, body)) = asset {
+                    let _ = write_response(&mut stream, 200, content_type, body);
+                    return;
+                }
+            }
+            let (status, value) = if method != "GET" {
+                (
+                    405,
+                    json!({"error": "only GET is supported; the API is read-only"}),
+                )
+            } else {
+                match provider() {
+                    Ok(snapshot) => route(&snapshot, &method, &target),
+                    Err(error) => (
+                        503,
+                        json!({"error": error.to_string(), "status": "unavailable"}),
+                    ),
+                }
+            };
+            let body = serde_json::to_string(&value)
+                .unwrap_or_else(|_| "{\"error\":\"serialization failed\"}".to_string());
+            if let Err(err) = write_response(&mut stream, status, "application/json", &body) {
+                eprintln!("PerpPulse API write failed visibly: {err}");
+            }
+        });
     }
     Ok(())
 }
 
 fn read_request_line(stream: &std::net::TcpStream) -> Result<(String, String)> {
-    let mut reader = BufReader::new(stream);
+    let mut reader = BufReader::new(stream.take(8193));
     let mut line = String::new();
-    reader.read_line(&mut line).map_err(|err| {
-        DataQualityError::msg(format!("cannot read HTTP request line: {err}"))
-    })?;
+    reader
+        .read_line(&mut line)
+        .map_err(|err| DataQualityError::msg(format!("cannot read HTTP request line: {err}")))?;
     let line = line.trim_end().to_string();
+    if line.len() > 8192 {
+        return Err(DataQualityError::msg("HTTP request exceeds 8192 bytes"));
+    }
     if line.is_empty() {
         return Err(DataQualityError::msg("empty HTTP request line"));
     }
@@ -354,12 +601,39 @@ fn read_request_line(stream: &std::net::TcpStream) -> Result<(String, String)> {
     let target = parts
         .next()
         .ok_or_else(|| DataQualityError::msg("HTTP request is missing a target"))?;
+    if !matches!(parts.next(), Some("HTTP/1.1" | "HTTP/1.0"))
+        || parts.next().is_some()
+        || !target.starts_with('/')
+    {
+        return Err(DataQualityError::msg("invalid HTTP request line"));
+    }
+    let mut total = line.len();
+    loop {
+        let mut header = String::new();
+        let count = reader
+            .read_line(&mut header)
+            .map_err(|_| DataQualityError::msg("cannot read HTTP headers"))?;
+        total += count;
+        if total > 8192 || count == 0 {
+            return Err(DataQualityError::msg(
+                "HTTP headers exceed limit or are incomplete",
+            ));
+        }
+        if header == "\r\n" || header == "\n" {
+            break;
+        }
+    }
     Ok((method.to_string(), target.to_string()))
 }
 
-fn write_response(stream: &mut std::net::TcpStream, status: u16, body: &str) -> std::io::Result<()> {
+fn write_response(
+    stream: &mut std::net::TcpStream,
+    status: u16,
+    content_type: &str,
+    body: &str,
+) -> std::io::Result<()> {
     let header = format!(
-        "HTTP/1.1 {status} {}\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\ncache-control: no-store\r\n\r\n",
+        "HTTP/1.1 {status} {}\r\ncontent-type: {content_type}\r\ncontent-length: {}\r\nconnection: close\r\ncache-control: no-store\r\nx-content-type-options: nosniff\r\ncontent-security-policy: default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\r\n\r\n",
         reason(status),
         body.len()
     );

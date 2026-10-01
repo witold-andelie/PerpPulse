@@ -42,12 +42,15 @@ def split_paths(raw: bytes) -> list[str]:
     return [part.decode("utf-8", errors="surrogateescape") for part in raw.split(b"\0") if part]
 
 
-def candidate_paths(staged: bool) -> list[str]:
+def candidate_paths(staged: bool, working_tree: bool = False) -> list[str]:
     if staged:
         raw = git_output("diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z")
     else:
         raw = git_output("ls-files", "-z")
-    return split_paths(raw)
+    paths = split_paths(raw)
+    if working_tree:
+        paths += split_paths(git_output("ls-files", "--others", "--exclude-standard", "-z"))
+    return sorted(set(paths))
 
 
 def staged_bytes(path: str) -> bytes:
@@ -66,9 +69,9 @@ def decode_text(raw: bytes) -> str | None:
     return raw.decode("utf-8", errors="replace")
 
 
-def check(staged: bool) -> int:
+def check(staged: bool, working_tree: bool = False) -> int:
     violations: list[str] = []
-    for path in candidate_paths(staged):
+    for path in candidate_paths(staged, working_tree):
         normalized = path.replace("\\", "/")
         if Path(normalized).name.lower() in LOCAL_ONLY_NAMES:
             violations.append(f"local-only file is included: {path}")
@@ -91,7 +94,7 @@ def check(staged: bool) -> int:
             print(f"- {violation}", file=sys.stderr)
         return 1
 
-    scope = "staged" if staged else "tracked"
+    scope = "staged" if staged else "working-tree" if working_tree else "tracked"
     print(f"Repository publication policy passed for {scope} files.")
     return 0
 
@@ -101,8 +104,9 @@ def main() -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--staged", action="store_true")
     group.add_argument("--tracked", action="store_true")
+    group.add_argument("--working-tree", action="store_true", help="Include new, non-ignored files before staging")
     args = parser.parse_args()
-    return check(staged=args.staged)
+    return check(staged=args.staged, working_tree=args.working_tree)
 
 
 if __name__ == "__main__":

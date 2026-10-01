@@ -256,7 +256,10 @@ impl EnvioClient {
             admin_secret: admin_secret.filter(|value| !value.is_empty()),
             page_size,
             max_events,
-            agent: ureq::Agent::new_with_defaults(),
+            agent: ureq::Agent::config_builder()
+                .timeout_global(Some(std::time::Duration::from_secs(15)))
+                .build()
+                .into(),
         })
     }
 
@@ -304,7 +307,9 @@ impl EnvioClient {
             )));
         }
         let latest_event = data.latest_events[0].to_indexed_point()?;
-        if latest_event.block_number > evidence.processed_block {
+        if latest_event.block_number > evidence.processed_block
+            || latest_event.block_number < evidence.start_block
+        {
             return Err(DataQualityError::msg(format!(
                 "latest event block {} exceeds processed coverage {}",
                 latest_event.block_number, evidence.processed_block
@@ -321,6 +326,16 @@ impl EnvioClient {
 
     pub fn fetch_account(&self, chain_id: u64, account_id: u64) -> Result<AccountEventSlice> {
         let coverage = self.fetch_coverage(chain_id)?;
+        self.fetch_account_at(account_id, &coverage)
+    }
+
+    /// Read every selected account against the same immutable cutoff.
+    pub fn fetch_account_at(
+        &self,
+        account_id: u64,
+        coverage: &EnvioCoverage,
+    ) -> Result<AccountEventSlice> {
+        let chain_id = coverage.evidence.chain_id;
         if !coverage.is_ready {
             return Err(DataQualityError::msg("Envio indexer is not ready"));
         }
@@ -383,9 +398,22 @@ impl EnvioClient {
             .into_iter()
             .map(parse_canonical_event)
             .collect::<Result<Vec<_>>>()?;
+        for event in &events {
+            if event.chain_id != chain_id
+                || event.account_id != Some(account_id)
+                || event.block_number < coverage.evidence.start_block
+                || !as_of.includes(event.block_number, event.log_index)
+                || event.timestamp_ms > as_of.timestamp_ms
+            {
+                return Err(DataQualityError::msg(
+                    "GraphQL returned an event outside the requested account, coverage, or cutoff",
+                ));
+            }
+        }
         self.verify_event(&coverage.latest_event)?;
         let final_coverage = self.fetch_coverage(chain_id)?;
-        if final_coverage.evidence.start_block != coverage.evidence.start_block
+        if !final_coverage.is_ready
+            || final_coverage.evidence.start_block != coverage.evidence.start_block
             || final_coverage.evidence.processed_block < coverage.evidence.processed_block
         {
             return Err(DataQualityError::msg(
@@ -394,7 +422,7 @@ impl EnvioClient {
         }
         Ok(AccountEventSlice {
             account_id,
-            coverage,
+            coverage: coverage.clone(),
             as_of,
             events,
         })
@@ -427,9 +455,9 @@ impl EnvioClient {
         if let Some(secret) = &self.admin_secret {
             request = request.header("x-hasura-admin-secret", secret);
         }
-        let mut response = request
-            .send_json(&body)
-            .map_err(|err| DataQualityError::msg(format!("Envio GraphQL request failed: {err}")))?;
+        let mut response = request.send_json(&body).map_err(|_| {
+            DataQualityError::msg("Envio GraphQL request failed; check endpoint and authentication")
+        })?;
         let envelope: GraphQlEnvelope<T> = response.body_mut().read_json().map_err(|err| {
             DataQualityError::msg(format!("Envio GraphQL response was not valid JSON: {err}"))
         })?;

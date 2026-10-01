@@ -52,6 +52,14 @@ digraph PerpPulseOPM {
   // -------------------------------------------------------------------------
   // OPD-0: system purpose, beneficiary, external instruments, and value.
   // -------------------------------------------------------------------------
+  implementation_status [
+    shape=note,
+    fillcolor="#E8F8EE",
+    label="Verified Local Implementation · 2026-10-01\nFixture web/API + bounded live Envio account serving\nCompact PostgreSQL snapshots + hashed range manifests\nExact-cutoff account-total reconciliation + optional Nansen labels\nPending: live v2 reindex, global state/marks, cloud deployment, public demo"
+  ];
+  implementation_status -> query_api [style=dashed, label="implemented local surface"];
+  implementation_status -> evidence_manifest [style=dashed, label="implemented range evidence"];
+
   subgraph cluster_opd0 {
     label="OPD-0 · System Function and Value";
     color="#7B61A8";

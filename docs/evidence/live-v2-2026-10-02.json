@@ -1,0 +1,60 @@
+{
+  "version": "mainnet-index-observation-v1",
+  "observedDate": "2026-10-02",
+  "chainId": 143,
+  "envioSourceCommit": "a8e5254095496e90b32b15cc331782d7cadc11ef",
+  "startBlock": 109944714,
+  "firstEventBlock": 109944715,
+  "readyAt": "2026-10-02T20:55:40.982Z",
+  "activeObservation": {
+    "observedAt": "2026-10-02T20:57:27.834960Z",
+    "processedBlock": 109995190,
+    "sourceBlock": 109995190,
+    "eventCount": 58539,
+    "independentRpcChainId": 143,
+    "independentRpcHeadBlock": 109995193,
+    "processedLagBlocks": 3
+  },
+  "retainedAfterBoundedRun": {
+    "observedAt": "2026-10-02T21:26:59.945571Z",
+    "processedBlock": 110000666,
+    "sourceBlock": 110000665,
+    "eventCount": 61636,
+    "liveReaderStatus": "unavailable"
+  },
+  "provenance": {
+    "schemaVersion": "canonical-event-v4",
+    "handlerVersion": "envio-handlers-v4",
+    "classifierVersion": "exchange-classifier-v3",
+    "ingestionProfile": "risk-hotpath-v2",
+    "abiFingerprint": "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1"
+  },
+  "observedAccountBirths": [
+    { "accountId": 5382, "blockNumber": 109947730, "logIndex": 34 },
+    { "accountId": 5383, "blockNumber": 109948809, "logIndex": 118 },
+    { "accountId": 5384, "blockNumber": 109973073, "logIndex": 173 },
+    { "accountId": 5385, "blockNumber": 109986621, "logIndex": 102 }
+  ],
+  "liveApiObservation": {
+    "mode": "live",
+    "asOfBlock": 110000196,
+    "processedBlock": 110000196,
+    "synchronizedExternalReconciliation": false
+  },
+  "stoppedSourceBrowserObservation": {
+    "observedAt": "2026-10-02T21:29:53.875136Z",
+    "httpStatus": 503,
+    "sourceErrorVisible": true,
+    "financialRowsCleared": true,
+    "manifestExportDisabled": true
+  },
+  "pending": [
+    "restart and resume verification",
+    "successful browser acceptance of the final reader",
+    "precise cold catch-up duration",
+    "independent SDK position and account reconciliation",
+    "point-in-time mark adoption",
+    "public live deployment and submission video"
+  ],
+  "scope": "Selected observations from a self-hosted read-only mainnet index; no raw provider responses or credentials"
+}

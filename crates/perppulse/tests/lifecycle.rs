@@ -75,6 +75,42 @@ fn open_position_uses_as_of_mark_without_lookahead() {
 }
 
 #[test]
+fn inversion_flips_side_and_verifies_the_previous_size_and_collateral() {
+    let mut input = load_fixture(fixture("open-position-as-of.json")).unwrap();
+    let registry = input.registry.clone();
+    let mut inverted = input.events[1].clone();
+    inverted.abi_event_name = "PositionInverted".into();
+    inverted.kind = perppulse::events::LifecycleKind::PositionInverted;
+    inverted.log_index = 2;
+    inverted.position_type = Some(2);
+    inverted.start_lot_lns = Some(100_000);
+    inverted.end_lot_lns = Some(50_000);
+    inverted.start_deposit_cns = Some(10_000_000_000);
+    inverted.end_deposit_cns = Some(5_000_000_000);
+    inverted.price_pns = Some(710_000);
+    inverted.delta_pnl_cns = Some(1_000_000_000);
+    inverted.funding_cns = Some(-1_000_000);
+    input.events.push(inverted);
+    let ledger = replay(&input.events, &registry, &input.as_of).unwrap();
+    let position = ledger.positions.values().next().unwrap();
+    assert_eq!(position.side, 2);
+    assert_eq!(position.lot_lns, 50_000);
+    assert_eq!(position.deposit_cns, 5_000_000_000);
+    assert_eq!(position.realized_pnl_cns, 1_000_000_000);
+    assert_eq!(position.realized_funding_cns, -1_000_000);
+
+    let last = input.events.last_mut().unwrap();
+    last.position_type = Some(1);
+    assert!(replay(&input.events, &registry, &input.as_of).is_err());
+    input.events.last_mut().unwrap().position_type = Some(2);
+    input.events.last_mut().unwrap().start_lot_lns = Some(99_999);
+    assert!(replay(&input.events, &registry, &input.as_of).is_err());
+    input.events.last_mut().unwrap().start_lot_lns = Some(100_000);
+    input.events.last_mut().unwrap().start_deposit_cns = Some(1);
+    assert!(replay(&input.events, &registry, &input.as_of).is_err());
+}
+
+#[test]
 fn liquidation_closes_position_from_source_event() {
     let pulse = run_fixture(fixture("liquidation.json"), Some(0)).expect("pulse");
     let position = pulse

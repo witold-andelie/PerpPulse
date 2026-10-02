@@ -1,11 +1,13 @@
 {
-  "version": "perppulse-methodology-v2",
+  "version": "perppulse-methodology-v3",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
   "contextSource": "Nansen; optional context cannot alter canonical numbers",
   "accounting": {
     "amounts": "Finite decimal strings derived from integer native scales",
+    "positionSide": "Perpl wire 0=long and 1=short are verified against source payloads and mapped to ledger 1=long and 2=short; other wire values fail closed",
+    "inversion": "Verify prior size and collateral; require the resulting side to differ before applying the post-event state",
     "realizedPnl": "Sum of lifecycle delta_pnl_cns; fees and settled funding are reported separately",
     "unrealizedPnl": "Side-adjusted (mark minus entry) times size; unavailable without an eligible point-in-time mark",
     "freeBalance": "Unavailable under risk-hotpath-v2 because subjectless taker balances are excluded",
@@ -20,6 +22,7 @@
     "positionReplay": "Exact risk-hotpath-v2 provenance and coverage from deployment or account creation",
     "cutoff": "One immutable event cutoff shared across all selected accounts",
     "freshness": "Indexer source lag, observation age, and live processed-watermark advancement are checked separately",
+    "sourceHeightWitness": "If the separately polled Envio source height trails committed progress, preserve the original cutoff and seek at most three later source observations 200 ms apart; changed coverage, regression, or failure to cover that cutoff is an error",
     "missingData": "Explicit null, degraded status, or HTTP 503; never a fabricated zero",
     "marks": "Positive finite native prices, one mark per market, age strictly below 60000 ms, no future block or timestamp; same-block log cutoffs require matching block hash and log index at or before the cutoff",
     "restContext": "Sanitized public metadata observation only; composite REST state does not prove mark freshness or an exact log cutoff and never enters canonical accounting",

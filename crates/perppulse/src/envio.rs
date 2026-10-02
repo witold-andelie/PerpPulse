@@ -299,7 +299,38 @@ impl EnvioClient {
             processed_block: metadata.progress_block.to_u64("_meta.progressBlock")?,
         };
         evidence.validate()?;
-        let source_block = metadata.source_block.to_u64("_meta.sourceBlock")?;
+        let mut source_block = metadata.source_block.to_u64("_meta.sourceBlock")?;
+        // Source height is polled separately from committed batch progress.
+        // Keep this immutable cutoff while seeking a later source observation
+        // that covers it; never chase the newer processed watermark.
+        for _ in 0..3 {
+            if evidence.processed_block <= source_block {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            let witness: RawCoverageData = self.post(
+                COVERAGE_QUERY,
+                &CoverageVariables {
+                    chain_id: chain_id as u32,
+                },
+            )?;
+            if witness.metadata.len() != 1 {
+                return Err(DataQualityError::msg(
+                    "source-height witness requires one metadata row",
+                ));
+            }
+            let next = &witness.metadata[0];
+            if u64::from(next.chain_id) != chain_id
+                || next.start_block.to_u64("_meta.startBlock")? != evidence.start_block
+                || next.progress_block.to_u64("_meta.progressBlock")? < evidence.processed_block
+                || !next.is_ready
+            {
+                return Err(DataQualityError::msg(
+                    "Envio coverage changed incompatibly during source-height verification",
+                ));
+            }
+            source_block = next.source_block.to_u64("_meta.sourceBlock")?;
+        }
         if evidence.processed_block > source_block {
             return Err(DataQualityError::msg(format!(
                 "processed block {} exceeds Envio source block {source_block}",
@@ -663,7 +694,19 @@ fn parse_canonical_event(row: RawCanonicalEvent) -> Result<CanonicalEvent> {
         kind,
         account_id,
         perpetual_id: row.perpetual_id,
-        position_type: row.position_type,
+        // Verify the raw wire value above, then project SDK Long=0 / Short=1
+        // into the ledger's Long=1 / Short=2 representation.
+        position_type: row
+            .position_type
+            .map(|side| match side {
+                0 => Ok(crate::registry::SIDE_LONG),
+                1 => Ok(crate::registry::SIDE_SHORT),
+                _ => Err(DataQualityError::msg(format!(
+                    "{} unsupported Perpl positionType {side}",
+                    row.id
+                ))),
+            })
+            .transpose()?,
         owner: None,
         leverage_hdths: None,
         lot_lns: None,
@@ -1166,7 +1209,10 @@ mod tests {
         assert_eq!(event.delta_pnl_cns, Some(-7_500_000_000));
         assert_eq!(event.balance_cns, Some(9_000_000_000));
         assert_eq!(event.mark_price_pns, Some(700_000));
-        assert_eq!(event.position_type, Some(0));
+        assert_eq!(event.position_type, Some(crate::registry::SIDE_LONG));
+        let provenance = event.provenance.expect("raw source evidence");
+        let payload: serde_json::Value = serde_json::from_str(&provenance.payload_json).unwrap();
+        assert_eq!(payload["positionType"], "0");
     }
 
     #[test]

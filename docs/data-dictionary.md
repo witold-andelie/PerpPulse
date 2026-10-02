@@ -67,9 +67,20 @@ fully covers; longer range selectors must be disabled or marked incomplete.
 Realized PnL, funding, and fees are **event integers**, not recomputed by
 PerpPulse. Unrealized PnL for open positions is derived:
 
-`positionType = 0` means unspecified on some transition events observed on
-mainnet. It preserves the existing side; only open and invert events must carry
-an explicit long or short value.
+Perpl's ABI and dex-sdk encode `positionType = 0` as long and `1` as short.
+The Envio adapter verifies the raw column against the raw payload before mapping
+these values to the internal ledger's `1` (long) and `2` (short). Other wire
+values are rejected. The original payload remains unchanged in event evidence.
+This applies to every event carrying `positionType`, including transitions;
+a wire zero never means an unspecified side.
+
+`PositionInverted.positionType` describes the resulting side. The ledger checks
+the previous size and collateral, requires the direction to change, then applies
+the resulting direction, entry, size, and collateral. Ordinary transitions still
+require the event direction to match the existing position.
+
+The reference is `crates/sdk/src/state/position.rs` in
+[Perpl dex-sdk at dbb37c5](https://github.com/PerplFoundation/dex-sdk/blob/dbb37c59f6aef03e38d0787eb9c968f59f652617/crates/sdk/src/state/position.rs).
 
 For `PositionLiquidated`, `liqLotLNS` is the liquidated size and `posLotLNS` is
 the remaining post-event size. The canonical adapter never aliases the latter

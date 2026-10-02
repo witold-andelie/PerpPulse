@@ -393,6 +393,8 @@ fn delever(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
 }
 
 fn invert(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
+    let start_lot = required(event.start_lot_lns, "start_lot_lns")?;
+    let start_deposit = required(event.start_deposit_cns, "start_deposit_cns")?;
     let end_lot = required(event.end_lot_lns, "end_lot_lns")?;
     let price = required(event.price_pns, "price_pns")?;
     let end_deposit = required(event.end_deposit_cns, "end_deposit_cns")?;
@@ -401,7 +403,14 @@ fn invert(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
     let next_side = side(event)?;
     let extra_fees = fees(event)?;
     let leverage = event.leverage_hdths;
-    let position = require_open(ledger, event)?;
+    let position = require_open_position(ledger, event)?;
+    assert_transition(position, event, start_lot, start_deposit)?;
+    if position.side == next_side {
+        return Err(DataQualityError::msg(format!(
+            "inversion {} does not change position side",
+            event.event_id()?.key()
+        )));
+    }
     position.side = next_side;
     position.lot_lns = end_lot;
     position.entry_pns = price;
@@ -441,6 +450,23 @@ fn require_open<'a>(
     ledger: &'a mut Ledger,
     event: &CanonicalEvent,
 ) -> Result<&'a mut PositionState> {
+    let position = require_open_position(ledger, event)?;
+    if let Some(side) = event.position_type {
+        if side != 0 && side != position.side {
+            return Err(DataQualityError::msg(format!(
+                "event {} side {side} != position side {}",
+                event.event_id()?.key(),
+                position.side
+            )));
+        }
+    }
+    Ok(position)
+}
+
+fn require_open_position<'a>(
+    ledger: &'a mut Ledger,
+    event: &CanonicalEvent,
+) -> Result<&'a mut PositionState> {
     let position_id = require_position_id(event)?;
     let key = position_id.key();
     let position = ledger.positions.get_mut(&key).ok_or_else(|| {
@@ -454,15 +480,6 @@ fn require_open<'a>(
             "event {} targets a missing open position",
             event.event_id()?.key()
         )));
-    }
-    if let Some(side) = event.position_type {
-        if side != 0 && side != position.side {
-            return Err(DataQualityError::msg(format!(
-                "event {} side {side} != position side {}",
-                event.event_id()?.key(),
-                position.side
-            )));
-        }
     }
     Ok(position)
 }

@@ -21,6 +21,17 @@ Envio supports Windows through WSL. Docker Desktop must be running with WSL
 integration enabled. Run the indexer from the Linux filesystem view rather than
 from native PowerShell:
 
+The commands below are for a new local index. For a retained v1 index, prepare
+the v2 source and generated code separately. Use a different Compose project,
+named database volume, explicit Docker network name, and loopback-bound
+PostgreSQL/Hasura ports. Set both `ENVIO_PG_PORT` and
+`HASURA_GRAPHQL_ENDPOINT` for the selected runtime. The generated Compose file
+hardcodes its network name, so `COMPOSE_PROJECT_NAME` alone is insufficient.
+Do not run a v2 rebuild against the retained v1 database. For initialization use
+`envio local db-migrate up`; resume with `envio start` and the preserved quick
+config. The `start --restart`, `db-migrate setup`, `db-migrate down`, and `envio stop`
+paths are destructive and are outside normal restart/resume verification.
+
 ```powershell
 wsl -d Ubuntu-20.04
 cd /mnt/d/AI_Models/hackson/monad/envio

@@ -98,10 +98,15 @@ impl NansenClient {
                 .as_str()
                 .filter(|s| !s.is_empty() && s.len() <= 256)
                 .ok_or_else(|| DataQualityError::msg("invalid Nansen label"))?;
-            let category = row["category"]
-                .as_str()
-                .filter(|s| s.len() <= 128)
-                .ok_or_else(|| DataQualityError::msg("invalid Nansen category"))?;
+            let category = match row.get("category") {
+                None => None,
+                Some(value) => Some(
+                    value
+                        .as_str()
+                        .filter(|s| s.len() <= 128)
+                        .ok_or_else(|| DataQualityError::msg("invalid Nansen category"))?,
+                ),
+            };
             labels.push(json!({"label":label,"category":category}));
         }
         let complete = response["pagination"]["is_last_page"]
@@ -162,12 +167,14 @@ mod tests {
             let request: Value = serde_json::from_slice(&body).unwrap();
             assert_eq!(request["chain"], "monad");
             assert_eq!(request["pagination"]["per_page"], 100);
-            let response=json!({"data":[{"label":"Synthetic label","category":"behavioral"}],"pagination":{"is_last_page":true}}).to_string();
+            let response=json!({"data":[{"label":"Synthetic label","category":"behavioral"},{"label":"Synthetic uncategorized label"}],"pagination":{"is_last_page":true}}).to_string();
             write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",response.len(),response).unwrap();
         });
         let owner = "0x1111111111111111111111111111111111111111";
         let first = client.labels(owner, 0);
         assert_eq!(first["status"], "available");
+        assert_eq!(first["labels"].as_array().unwrap().len(), 2);
+        assert_eq!(first["labels"][1]["category"], Value::Null);
         assert_eq!(first["pointInTimeEligible"], false);
         let cached = client.labels(owner, i64::MAX);
         assert_eq!(cached["cached"], true);

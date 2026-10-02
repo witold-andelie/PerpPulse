@@ -18,9 +18,13 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 ## Competition fit
 
 - Primary track: Onchain Finance & Trading
-- Perpl bounty: Best Analytics / Risk Tool
+- Perpl: analytics/risk target; an applicable read-only bounty remains unconfirmed
 - Envio bounty: Best Use of Envio
 - Nansen bounty: Best Use of Nansen
+
+The owner-supplied [Perpl task](docs/perpl-bounty.md) requires trading activity
+and is outside the retained read-only scope. [Envio](docs/envio-bounty.md) and
+[Nansen](docs/nansen-bounty.md) requirements are mapped to remaining live evidence.
 
 The product is read-only. It does not place orders, request private keys, or present AI-generated numbers as financial facts.
 
@@ -101,6 +105,12 @@ The database password is stored in Secret Manager as `perppulse-db-password` and
 
 Envio local indexer (optional, needs Docker Desktop, WSL integration, and an
 Envio API token that must not be committed):
+
+These commands assume a new local index. Preserve any existing v1 database:
+prepare v2 with a separate generated directory, Compose project, explicitly
+unique Docker network and loopback ports before starting it. The generated
+Compose template names its network explicitly, so a project-name override alone
+does not isolate database discovery. See [the Envio run contract](envio/README.md).
 
 ```powershell
 wsl -d Ubuntu-20.04
@@ -303,7 +313,10 @@ python scripts/check_repository_policy.py --staged
 The Metropolis public v3 rules accept Monad mainnet or testnet integration and
 require public source, setup, licensing, attribution, build-window history,
 documentation, and a three-minute public operating demo. PerpPulse continues
-to target mainnet. Sponsor-specific eligibility remains unverified; see the
+to target mainnet. The owner supplied the [Envio bounty requirements](docs/envio-bounty.md),
+including meaningful real onchain data use, a cloud-hosted or self-hosted pipeline,
+and an optional video of at most two minutes. Live delivery and sponsor-specific
+eligibility remain unverified; see the
 [source-linked submission checklist](docs/submission-checklist.md).
 
 This repository is licensed under the Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).

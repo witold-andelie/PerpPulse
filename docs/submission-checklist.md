@@ -20,9 +20,16 @@ mainnet; separate sponsor rules must still be verified.
 | Public three-minute operating video | [Script](demo-script.md); recording and public URL pending |
 | Description, architecture, stack, deployment instructions | README and deployment docs; mainnet runtime pending |
 | Website submission; one project and track | Owner registration/submission pending; selected track: Onchain Finance & Trading |
-| Separate sponsor requirements | Perpl, Envio, Nansen authenticated catalog pending |
+| Separate sponsor requirements | Owner-supplied [Envio](envio-bounty.md), [Perpl](perpl-bounty.md) and [Nansen](nansen-bounty.md) requirements mapped on 2026-10-02; catalog URLs/revisions pending; the supplied Perpl trading task is outside the retained read-only scope |
 
 Section 5.2 allocates equal weight across five main-track criteria: product
 quality, technical execution, Monad integration, track relevance, and impact.
 Sponsor judging gives 40% to meeting its published requirements. No sponsor
 eligibility or final submission is claimed by this checklist.
+
+The supplied Envio bounty accepts a self-hosted pipeline, requires useful
+application features driven by real onchain data, and permits an optional video
+of at most two minutes. The working recording plan is one public operating video
+within two minutes, with the final form checked before reusing it for both the
+main competition and Envio submission. See the requirement-to-evidence mapping
+in [the Envio checklist](envio-bounty.md).

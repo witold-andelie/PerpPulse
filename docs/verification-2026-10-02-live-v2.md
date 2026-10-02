@@ -86,10 +86,18 @@ git diff --check
 ```
 
 There were 47 passing Rust tests and one ignored disposable-PostgreSQL test.
-That database test was not rerun for this reader correction. Five HTTP-adapter
+That database test was not rerun locally for this reader correction. Five HTTP-adapter
 tests cover both directions, unknown direction, moving source height, persistent
 inconsistency, stale coverage, incorrect subjects, and event limits. The
 inversion regression exercises the ledger lifecycle.
+
+Implementation `ab8b06b954ebdf6689b2aa1b5ec450ee40cef74a` subsequently passed
+[public CI](https://github.com/witold-andelie/PerpPulse/actions/runs/37068601422),
+including a fresh disposable PostgreSQL integration test, Envio generation,
+typechecking/tests and DOT validation. The separate
+[repository policy run](https://github.com/witold-andelie/PerpPulse/actions/runs/37068601478)
+also passed. [Selected CI acceptance evidence](evidence/ci-ab8b06b-2026-10-02.json)
+records the exact implementation and job IDs.
 
 The live API returned `mode=live`, as-of and processed block 110000196 before
 the run stopped. At `21:29:53.875136Z`, an actual browser check of the stopped

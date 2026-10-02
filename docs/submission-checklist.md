@@ -18,7 +18,7 @@ mainnet; separate sponsor rules must still be verified.
 | AI coding disclosure | README attribution section |
 | Monad integration and applicable addresses | [Registry](protocol-registry.md); current operating verification pending |
 | Public three-minute operating video | [Script](demo-script.md); recording and public URL pending |
-| Description, architecture, stack, deployment instructions | README and deployment docs; mainnet runtime pending |
+| Description, architecture, stack, deployment instructions | README and deployment docs; isolated [mainnet indexing and reader evidence](verification-2026-10-02-live-v2.md) observed; continuous public runtime pending |
 | Website submission; one project and track | Owner registration/submission pending; selected track: Onchain Finance & Trading |
 | Separate sponsor requirements | Owner-supplied [Envio](envio-bounty.md), [Perpl](perpl-bounty.md) and [Nansen](nansen-bounty.md) requirements mapped on 2026-10-02; catalog URLs/revisions pending; the supplied Perpl trading task is outside the retained read-only scope |
 

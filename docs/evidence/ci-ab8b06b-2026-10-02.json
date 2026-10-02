@@ -1,0 +1,23 @@
+{
+  "version": "ci-acceptance-v1",
+  "repository": "https://github.com/witold-andelie/PerpPulse",
+  "implementationCommit": "ab8b06b954ebdf6689b2aa1b5ec450ee40cef74a",
+  "analytics": {
+    "runId": 37068601422,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37068601422",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {"name": "envio", "jobId": 111042425296, "conclusion": "success", "completedAt": "2026-10-02T21:44:44Z"},
+      {"name": "rust", "jobId": 111042425523, "conclusion": "success", "completedAt": "2026-10-02T21:45:49Z"}
+    ]
+  },
+  "repositoryPolicy": {
+    "runId": 37068601478,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37068601478",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "acceptedChecks": ["Rust tests", "disposable PostgreSQL integration", "formatting", "Clippy", "repository policy", "diff checks", "DOT validation", "Envio code generation", "Envio typecheck and tests"],
+  "limits": "CI acceptance does not establish live restart recovery, successful final mainnet browser acceptance, SDK reconciliation, marks, cloud deployment or sponsor eligibility"
+}

@@ -6,10 +6,12 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 
 > Status: canonical ledger, coverage-bounded Envio-to-Rust adapter,
 > golden-fixture web demo, read-only fixture and live-account APIs, compact PostgreSQL serving,
-> hashed evidence, reconciliation scorecards, and optional Nansen label context implemented. The Envio `risk-hotpath-v1` index was
-> verified against live Monad data with a coverage-aware judge quick start;
-> the expanded `risk-hotpath-v2` profile is code-generated and tested but still
-> requires a fresh live reindex. Licensed Apache-2.0. GCP foundation was provisioned
+> hashed evidence, reconciliation scorecards, and optional Nansen label context implemented.
+> The isolated `risk-hotpath-v2` index recorded 61,636 real Monad events on
+> 2026-10-02, and four accounts created inside coverage had successful replay
+> observations. [Mainnet evidence and limits](docs/verification-2026-10-02-live-v2.md)
+> distinguish this bounded run from pending restart, final live browser acceptance,
+> SDK reconciliation, and public deployment. Licensed Apache-2.0. GCP foundation was provisioned
 > in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350;
 > its current state has not been rechecked.
 > No Cloud Run worker is deployed yet. Public repository:
@@ -34,6 +36,13 @@ The following is the intended full product scope. The current web application
 implements fixture metrics, account drill-down, and event evidence. Live serving
 implements bounded account watchlists; global historical analytics, comparison,
 and alerts remain pending.
+
+The reader corrections in `ab8b06b` passed
+[Rust, PostgreSQL, Envio and DOT verification](https://github.com/witold-andelie/PerpPulse/actions/runs/37068601422)
+and [publication policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37068601478).
+CI and a bounded local mainnet run do not establish a continuously available
+public demo. Missing point-in-time marks, global totals and independent
+reconciliation remain visible limits.
 
 1. Start on a signal-first protocol Risk Pulse with the top three changes and visible freshness.
 2. Inspect volume, open interest, TVL, fees and revenue, active users, flows, skew, liquidations, and funding over 24-hour, 7-day, 30-day, and historical windows.

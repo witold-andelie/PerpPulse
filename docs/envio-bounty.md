@@ -20,7 +20,7 @@ The bounty is track-agnostic. Envio Cloud and self-hosted pipelines are accepted
 | Working indexer or pipeline, deployed to Envio Cloud or self-hosted | Public [config](../envio/config.yaml), [schema](../envio/schema.graphql), [handlers](../envio/src/EventHandlers.ts), [run instructions](../envio/README.md); isolated self-hosted mainnet run with preserved restart and independent one-block lag observation | Continuous public availability remains pending; 26.25-second marker-to-ready timing excludes setup and is not full cold-start timing |
 | Useful frontend, dashboard, agent, bot, or API consuming the data | Four-account actual browser acceptance; source-event evidence, cutoff-preserving UI manifest, visible unavailable marks, invalid-range rejection and stopped-source failure | Eligible marks, full SDK correctness verification and global analytics remain outside this accepted account-only path |
 | Short end-to-end video or live link | [80-second real operating recording](demo/README.md), English captions and [recording provenance](demo/recording.json) | Check submission-portal codec acceptance or publish a hosted player; no continuous public app URL is claimed |
-| Submission explanation of meaningful use | Updated draft below, linked source and mainnet evidence | Final release SHA, catalog URL/revision and owner submission |
+| Submission explanation of meaningful use | Updated draft below, linked source/mainnet evidence and [verified implementation 4b9135b](evidence/ci-4b9135b-2026-10-03.json) | Catalog URL/revision, final form and owner submission |
 | Optional Envio demo video, at most two minutes | VP8 WebM duration 80.20 seconds; actual mainnet event-to-feature workflow | Confirm the main competition and Envio forms accept the same recording |
 
 The optional Envio video does not replace the main competition's required public
@@ -56,5 +56,7 @@ An [80-second recording](demo/README.md) shows positions, event evidence,
 manifest export and advancing coverage. A separate selected position diagnostic
 matched 23 fields but is not a full SDK replay at an identical log cutoff.
 Global historical analytics, accounting marks, full SDK reconciliation and
-continuous public hosting remain pending. Final submission must include the
-exact release and confirmed catalog/form links.
+continuous public hosting remain pending. The verified implementation is
+`4b9135b4d9921ec1368d99c65f93ce83d4118ef3`; the indexer source was pinned to
+`a8e5254095496e90b32b15cc331782d7cadc11ef`. Final submission still needs
+confirmed catalog/form links and an accepted recording/player format.

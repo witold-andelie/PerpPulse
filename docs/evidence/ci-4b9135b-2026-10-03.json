@@ -1,0 +1,47 @@
+{
+  "version": "publication-ci-acceptance-v1",
+  "observedLocalDate": "2026-10-03",
+  "repository": "https://github.com/witold-andelie/PerpPulse",
+  "implementationCommit": "4b9135b4d9921ec1368d99c65f93ce83d4118ef3",
+  "remoteMainShaVerified": true,
+  "analytics": {
+    "runId": 37076854913,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37076854913",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "envio",
+        "jobId": 111068589980,
+        "completedAt": "2026-10-02T23:17:49Z",
+        "conclusion": "success",
+        "checks": ["frozen dependency installation", "code generation", "typecheck", "handler tests"]
+      },
+      {
+        "name": "rust",
+        "jobId": 111068590157,
+        "completedAt": "2026-10-02T23:18:49Z",
+        "conclusion": "success",
+        "checks": ["formatting", "locked test suite", "fresh PostgreSQL round-trip integration", "Clippy with warnings denied", "tracked publication policy", "diff check", "DOT source rendering"]
+      }
+    ]
+  },
+  "policy": {
+    "runId": 37076854941,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37076854941",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "publicRecording": {
+    "url": "https://raw.githubusercontent.com/witold-andelie/PerpPulse/4b9135b4d9921ec1368d99c65f93ce83d4118ef3/docs/demo/perppulse-envio-live.webm",
+    "credentialFreeDownloadVerified": true,
+    "sha256": "11fb9d9efd2d58641b6c74665a92358157508c8f8843b2cfcc5b527c82608eaa",
+    "matchesLocalRecording": true
+  },
+  "reproduction": [
+    "gh run view 37076854913 --repo witold-andelie/PerpPulse --json headSha,status,conclusion,url,jobs",
+    "gh run view 37076854941 --repo witold-andelie/PerpPulse --json headSha,status,conclusion,url",
+    "git ls-remote origin refs/heads/main"
+  ],
+  "scope": "CI acceptance of Q16 implementation and recorded operating artifacts; not proof of continuous hosting, full SDK reconciliation, accounting marks, global metrics or live Nansen"
+}

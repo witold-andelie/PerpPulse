@@ -95,14 +95,22 @@ precision. No dependency or Envio schema/handler change was made.
 The earlier publication `3bd9d1a` passed
 [analytics CI](https://github.com/witold-andelie/PerpPulse/actions/runs/37072279448)
 and [publication policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37072279467).
-These runs precede the Q16 correction; its publication acceptance must identify
-the new exact implementation SHA separately.
+These runs precede the Q16 correction. Implementation
+`4b9135b4d9921ec1368d99c65f93ce83d4118ef3` subsequently passed
+[analytics CI](https://github.com/witold-andelie/PerpPulse/actions/runs/37076854913)
+and [publication policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37076854941).
+The new run also passed fresh PostgreSQL integration, Envio generation,
+typechecking/tests, formatting, Clippy and DOT rendering. Its exact job IDs and
+reproduction commands are recorded in
+[selected CI acceptance](evidence/ci-4b9135b-2026-10-03.json).
 
 The [80-second recording](demo/README.md) shows the actual end-to-end account
 workflow, manifest export and advancing coverage, with English captions.
 The WebM is VP8, 1440 by 900, and 80.20 seconds. FFmpeg duration inspection and
 visual checks at seconds 20, 55 and 76 are recorded with its hash. No synthetic
 financial inputs, credentials or owner addresses appear in the recording.
+The credential-free public recording download was also verified against the
+same SHA-256 after publication; its pinned URL is in the CI acceptance record.
 
 The public source/recording can be reviewed without access to the running local
 services. Continuous public deployment, portal format acceptance, complete SDK

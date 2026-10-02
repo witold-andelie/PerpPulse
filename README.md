@@ -39,9 +39,9 @@ implements fixture metrics, account drill-down, and event evidence. Live serving
 implements bounded account watchlists; global historical analytics, comparison,
 and alerts remain pending.
 
-The reader corrections in `ab8b06b` passed
-[Rust, PostgreSQL, Envio and DOT verification](https://github.com/witold-andelie/PerpPulse/actions/runs/37068601422)
-and [publication policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37068601478).
+The latest Q16 reader correction and operating artifacts in `4b9135b` passed
+[Rust, PostgreSQL, Envio and DOT verification](https://github.com/witold-andelie/PerpPulse/actions/runs/37076854913)
+and [publication policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37076854941).
 CI and a bounded local mainnet run do not establish a continuously available
 public demo. Missing point-in-time marks, global totals and independent
 reconciliation remain visible limits.

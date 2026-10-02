@@ -28,3 +28,10 @@ the [dex-sdk](https://github.com/PerplFoundation/dex-sdk), and
 [API documentation](https://github.com/PerplFoundation/api-docs/tree/main).
 The developer-documentation URL could not be retrieved during this check.
 No trading example was copied or integrated.
+
+On 2026-10-03 local time, the public
+[competition landing page](https://hackathon.monad.xyz/) exposed sign-in and
+registration rather than an accessible sponsor catalog. Public searches did
+not establish an analytics bounty. This is not evidence that no such task
+exists; its official catalog link or authenticated owner-supplied contents
+remain required before claiming eligibility.

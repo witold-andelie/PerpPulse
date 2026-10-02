@@ -6,6 +6,15 @@ failure, hardens local mark and registry validation, and adds sanitized public
 metadata observations. It does not complete live v2 indexing, SDK position
 reconciliation, global aggregation, paid Nansen verification, or cloud deployment.
 
+The implementation was published as
+`1744d87bbfc7901902e877f6db30ea39a055361f`. Its
+[analytics workflow](https://github.com/witold-andelie/PerpPulse/actions/runs/37058698385)
+passed both Rust/PostgreSQL/DOT and Envio jobs. Its
+[repository-policy workflow](https://github.com/witold-andelie/PerpPulse/actions/runs/37058698372)
+also passed. Independent `git ls-remote origin refs/heads/main` confirmed that
+SHA. Machine-readable acceptance is in
+[the CI record](evidence/ci-1744d87-2026-10-02.json).
+
 ## Published CI diagnosis
 
 The [repository-policy run](https://github.com/witold-andelie/PerpPulse/actions/runs/36931893836)

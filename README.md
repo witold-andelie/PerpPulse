@@ -9,8 +9,9 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 > hashed evidence, reconciliation scorecards, and optional Nansen label context implemented. The Envio `risk-hotpath-v1` index was
 > verified against live Monad data with a coverage-aware judge quick start;
 > the expanded `risk-hotpath-v2` profile is code-generated and tested but still
-> requires a fresh live reindex. Licensed Apache-2.0. GCP foundation is live
-> in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350.
+> requires a fresh live reindex. Licensed Apache-2.0. GCP foundation was provisioned
+> in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350;
+> its current state has not been rechecked.
 > No Cloud Run worker is deployed yet. Public repository:
 > `https://github.com/witold-andelie/PerpPulse`.
 
@@ -85,7 +86,11 @@ python scripts/check_repository_policy.py --tracked
 
 ### Google Cloud foundation
 
-Owner-authorized project `project-5e761e8c-65aa-4033-8cb` in `europe-west3` (Frankfurt). That region is in use: Cloud SQL `perppulse-pg` is `RUNNABLE` there. The script creates Artifact Registry, evidence storage, a runtime service account, Secret Manager, a EUR 350 budget, and Cloud SQL `db-g1-small`. It does not deploy Cloud Run.
+Owner-authorized project `project-5e761e8c-65aa-4033-8cb` in `europe-west3`
+(Frankfurt). Cloud SQL `perppulse-pg` was previously observed `RUNNABLE` there;
+current resource state has not been rechecked. The script creates Artifact Registry,
+evidence storage, a runtime service account, Secret Manager, a EUR 350 budget,
+and Cloud SQL `db-g1-small`. It does not deploy Cloud Run.
 
 ```powershell
 .\deploy\foundation.ps1

@@ -1,0 +1,39 @@
+{
+  "version": "ci-acceptance-v1",
+  "verifiedDate": "2026-10-02",
+  "repository": "https://github.com/witold-andelie/PerpPulse",
+  "commit": "1744d87bbfc7901902e877f6db30ea39a055361f",
+  "remoteShaIndependentlyMatched": true,
+  "workflows": [
+    {
+      "name": "Verify canonical analytics",
+      "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37058698385",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "envio",
+          "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37058698385/job/111009643263",
+          "conclusion": "success",
+          "completedAt": "2026-10-02T20:09:18Z"
+        },
+        {
+          "name": "rust",
+          "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37058698385/job/111009643657",
+          "conclusion": "success",
+          "completedAt": "2026-10-02T20:10:15Z"
+        }
+      ]
+    },
+    {
+      "name": "Repository policy",
+      "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37058698372",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "limitations": [
+    "CI tests fixtures and mocks; this is not live mainnet reconciliation evidence.",
+    "Acceptance applies to the exact recorded implementation commit."
+  ]
+}

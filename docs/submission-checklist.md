@@ -20,7 +20,7 @@ mainnet; separate sponsor rules must still be verified.
 | Public three-minute operating video | [80-second real Envio recording](demo/README.md) with English captions; hosted-player URL and portal format acceptance pending |
 | Description, architecture, stack, deployment instructions | README and deployment docs; isolated [mainnet indexing and reader evidence](verification-2026-10-02-live-v2.md) observed; continuous public runtime pending |
 | Website submission; one project and track | Owner registration/submission pending; selected track: Onchain Finance & Trading |
-| Separate sponsor requirements | Owner-supplied [Envio](envio-bounty.md), [Perpl](perpl-bounty.md) and [Nansen](nansen-bounty.md) requirements mapped on 2026-10-02; catalog URLs/revisions pending; the supplied Perpl trading task is outside the retained read-only scope |
+| Separate sponsor requirements | Owner-supplied [Envio](envio-bounty.md), [Perpl](perpl-bounty.md) and [Nansen](nansen-bounty.md) requirements mapped on 2026-10-02; [catalog URLs received](evidence/bounty-sources-2026-10-03.json) on 2026-10-03; current page contents/revisions and form checks remain unverified; the supplied Perpl trading task is outside the retained read-only scope |
 
 Section 5.2 allocates equal weight across five main-track criteria: product
 quality, technical execution, Monad integration, track relevance, and impact.

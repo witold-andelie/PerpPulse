@@ -1,8 +1,13 @@
 # Perpl bounty scope decision
 
-The owner supplied a Perpl trading-bot bounty description on 2026-10-02.
-Its catalog title, URL and revision were not supplied. Its stated eligibility
-requires a production-ready bot or automation system with demonstrated real
+The owner supplied a Perpl trading-bot bounty description on 2026-10-02 and the
+[Perpl catalog URL](https://hackathon.monad.xyz/tracks/best-use-of-perpl-s-api)
+on 2026-10-03. The browsing tool could not read the linked page. The URL slug
+suggests "Best Use of Perpl's API", but the displayed title, current contents
+and revision are not independently verified. The
+[catalog record](evidence/bounty-sources-2026-10-03.json) preserves that limit.
+The supplied text's stated eligibility requires a production-ready bot or
+automation system with demonstrated real
 onchain trading activity. Judging covers reliable execution, risk management,
 profitability and real activity. Submission asks for an operating link and a
 demo video of at most two minutes.
@@ -33,5 +38,7 @@ On 2026-10-03 local time, the public
 [competition landing page](https://hackathon.monad.xyz/) exposed sign-in and
 registration rather than an accessible sponsor catalog. Public searches did
 not establish an analytics bounty. This is not evidence that no such task
-exists; its official catalog link or authenticated owner-supplied contents
-remain required before claiming eligibility.
+exists. The owner subsequently supplied the Perpl catalog link above; it does
+not independently establish a separate analytics/risk task or broaden the
+previously supplied trading-bot requirements. Analytics eligibility remains
+unconfirmed, and the read-only product boundary is unchanged.

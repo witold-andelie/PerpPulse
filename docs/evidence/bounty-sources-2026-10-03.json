@@ -1,0 +1,43 @@
+{
+  "version": "owner-supplied-bounty-source-record-v1",
+  "recordedLocalDate": "2026-10-03",
+  "requirementsSuppliedLocalDate": "2026-10-02",
+  "urlSource": "Project owner",
+  "requirementsSource": "Authenticated page text supplied by the project owner",
+  "sources": [
+    {
+      "sponsor": "Nansen",
+      "url": "https://hackathon.monad.xyz/tracks/best-use-of-nansen",
+      "mapping": "../nansen-bounty.md"
+    },
+    {
+      "sponsor": "Envio",
+      "url": "https://hackathon.monad.xyz/tracks/best-use-of-envio",
+      "mapping": "../envio-bounty.md"
+    },
+    {
+      "sponsor": "Perpl",
+      "url": "https://hackathon.monad.xyz/tracks/best-use-of-perpl-s-api",
+      "mapping": "../perpl-bounty.md"
+    }
+  ],
+  "accessObservation": {
+    "ownerReportsLoginRequired": true,
+    "browserToolReadAttempt": "All three supplied URLs were inaccessible through the browsing tool",
+    "independentlyReadCurrentContents": false,
+    "revision": null,
+    "authenticationStateShared": false
+  },
+  "scopeDecision": {
+    "priority": "Envio",
+    "productBoundary": "read-only",
+    "suppliedPerplRequirement": "Production-ready trading bot or automation with real onchain trading activity",
+    "separatePerplAnalyticsTaskConfirmed": false,
+    "nansenLiveIntegrationVerified": false
+  },
+  "limits": [
+    "URL identity is owner-supplied evidence; current page contents, displayed titles, revision and final forms are not independently verified",
+    "A descriptive URL slug does not broaden the supplied eligibility requirements",
+    "Source mapping does not establish bounty acceptance or final submission"
+  ]
+}

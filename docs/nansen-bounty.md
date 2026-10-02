@@ -1,8 +1,11 @@
 # Nansen bounty requirements and planned feature
 
-The owner supplied the authenticated bounty text on 2026-10-02. Its catalog
-title, URL and revision were not supplied. The requirements below record that
-text; they are not an independently verified catalog observation.
+The owner supplied the authenticated bounty text on 2026-10-02 and the
+[Nansen catalog URL](https://hackathon.monad.xyz/tracks/best-use-of-nansen) on
+2026-10-03. The requirements below record that text. The browsing tool could
+not read the linked page; its current contents and revision are not independently
+verified. The [catalog record](evidence/bounty-sources-2026-10-03.json) identifies
+the supplied source and access limits.
 
 ## Requirement-to-evidence mapping
 

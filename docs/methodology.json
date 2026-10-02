@@ -1,5 +1,5 @@
 {
-  "version": "perppulse-methodology-v1",
+  "version": "perppulse-methodology-v2",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
@@ -21,6 +21,9 @@
     "cutoff": "One immutable event cutoff shared across all selected accounts",
     "freshness": "Indexer source lag, observation age, and live processed-watermark advancement are checked separately",
     "missingData": "Explicit null, degraded status, or HTTP 503; never a fabricated zero",
+    "marks": "Positive finite native prices, one mark per market, age strictly below 60000 ms, no future block or timestamp; same-block log cutoffs require matching block hash and log index at or before the cutoff",
+    "restContext": "Sanitized public metadata observation only; composite REST state does not prove mark freshness or an exact log cutoff and never enters canonical accounting",
+    "registry": "Valid contract identities, scales at most 18, consistent exclusions, and maintenance fraction at least the initial fraction, both above 100 hundredths",
     "ranges": "Block selectors must lie within processed coverage and the selected as-of cutoff"
   },
   "outputVersions": {

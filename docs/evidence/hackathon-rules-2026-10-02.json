@@ -1,0 +1,18 @@
+{
+  "version": "hackathon-policy-observation-v1",
+  "source": "https://hackathon.monad.xyz/api/v1/policies/current",
+  "verifiedDate": "2026-10-02",
+  "policyKey": "terms-of-service",
+  "policyVersion": "v3",
+  "providerContentHash": "99725db2fe499bb7a57ec19bf3d504d93babe7e1450b514842ccc971d93a2209",
+  "deadlineSection": "4.2",
+  "submissionDeadline": "2026-10-13 23:59 ET",
+  "integrationSection": "4.1",
+  "acceptedMonadNetworks": ["mainnet", "testnet"],
+  "sponsorRequirementsVerified": false,
+  "limitations": [
+    "The public policy does not supply the authenticated sponsor catalog.",
+    "This is a selected-field observation, not an export of the full provider response.",
+    "Recheck the policy and dashboard before final submission."
+  ]
+}

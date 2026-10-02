@@ -24,6 +24,19 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Inspect sanitized public Perpl metadata; never import REST marks into accounting.
+    InspectContext {
+        #[arg(long, default_value = "fixtures/protocol/mainnet-registry.json")]
+        registry: PathBuf,
+        /// Reinspect a locally captured response without making a network call.
+        #[arg(long)]
+        input: Option<PathBuf>,
+        #[arg(long, requires = "input")]
+        observed_at_ms: Option<i64>,
+        /// Write a new sanitized observation file; never overwrite prior evidence.
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
     /// Replay a golden fixture and print protocol -> wallet -> event evidence.
     Demo {
         #[arg(value_name = "FIXTURE")]
@@ -125,6 +138,45 @@ fn main() -> ExitCode {
 fn run() -> Result<(), DataQualityError> {
     let cli = Cli::parse();
     match cli.command {
+        Command::InspectContext {
+            registry,
+            input,
+            observed_at_ms,
+            output,
+        } => {
+            let registry = load_registry(resolve_repo_path(registry))?;
+            let observation = if let Some(input) = input {
+                let observed = observed_at_ms.ok_or_else(|| {
+                    DataQualityError::msg("local context inspection requires --observed-at-ms")
+                })?;
+                let bytes = std::fs::read(input)
+                    .map_err(|_| DataQualityError::msg("cannot read local context"))?;
+                if bytes.len() > 1_048_576 {
+                    return Err(DataQualityError::msg("local context exceeds 1 MB"));
+                }
+                let value = serde_json::from_slice(&bytes)
+                    .map_err(|_| DataQualityError::msg("invalid local context JSON"))?;
+                perppulse::market_inputs::inspect_public_context(&value, &registry, observed)?
+            } else {
+                perppulse::market_inputs::fetch_public_context(&registry)?
+            };
+            let text = serde_json::to_string_pretty(&observation)
+                .map_err(|_| DataQualityError::msg("cannot serialize market observation"))?;
+            if let Some(path) = output {
+                use std::io::Write;
+                let mut file = std::fs::OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(path)
+                    .map_err(|_| {
+                        DataQualityError::msg("context output must be a new writable path")
+                    })?;
+                file.write_all(text.as_bytes())
+                    .map_err(|_| DataQualityError::msg("cannot write context observation"))?;
+            } else {
+                println!("{text}");
+            }
+        }
         Command::Demo {
             fixture,
             max_lag_blocks,

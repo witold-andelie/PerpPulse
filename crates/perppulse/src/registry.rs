@@ -69,6 +69,43 @@ pub struct ProtocolRegistry {
 }
 
 impl ProtocolRegistry {
+    pub fn validate(&self) -> Result<()> {
+        if self.chain_id == 0 || self.deployed_at_block == 0 || self.markets.is_empty() {
+            return Err(DataQualityError::msg(
+                "registry requires a chain, deployment block, and markets",
+            ));
+        }
+        for address in [&self.exchange_address, &self.collateral.address] {
+            if address.len() != 42
+                || !address.starts_with("0x")
+                || !address[2..].bytes().all(|b| b.is_ascii_hexdigit())
+            {
+                return Err(DataQualityError::msg(
+                    "registry contains an invalid contract address",
+                ));
+            }
+        }
+        if self.collateral.decimals > 18 || self.fee_scale_decimals > 18 {
+            return Err(DataQualityError::msg("registry decimal scales exceed 18"));
+        }
+        let excluded: std::collections::BTreeSet<_> =
+            self.excluded_perpetuals.iter().copied().collect();
+        if excluded.len() != self.excluded_perpetuals.len() {
+            return Err(DataQualityError::msg(
+                "registry contains duplicate exclusions",
+            ));
+        }
+        for (id, market) in &self.markets {
+            market.validate()?;
+            if *id != market.perpetual_id || (excluded.contains(id) && market.listed) {
+                return Err(DataQualityError::msg(
+                    "registry market identity or listing is inconsistent",
+                ));
+            }
+        }
+        Ok(())
+    }
+
     pub fn market(&self, perpetual_id: u32) -> Result<&MarketSpec> {
         let spec = self.markets.get(&perpetual_id).ok_or_else(|| {
             DataQualityError::msg(format!(
@@ -76,6 +113,7 @@ impl ProtocolRegistry {
                 self.network
             ))
         })?;
+        spec.validate()?;
         if !spec.listed {
             return Err(DataQualityError::msg(format!(
                 "perpetual_id {perpetual_id} ({}) is excluded from the active registry",
@@ -86,11 +124,36 @@ impl ProtocolRegistry {
     }
 
     pub fn require_chain(&self, chain_id: u64) -> Result<()> {
+        self.validate()?;
         if chain_id != self.chain_id {
             return Err(DataQualityError::msg(format!(
                 "chain_id {chain_id} does not match registry {} chain {}",
                 self.network, self.chain_id
             )));
+        }
+        Ok(())
+    }
+}
+
+impl MarketSpec {
+    pub fn validate(&self) -> Result<()> {
+        if self.perpetual_id == 0
+            || self.symbol.trim().is_empty()
+            || self.symbol.len() > 64
+            || !self.symbol.is_ascii()
+            || self.symbol.chars().any(char::is_control)
+        {
+            return Err(DataQualityError::msg("registry market identity is invalid"));
+        }
+        if self.price_decimals > 18 || self.size_decimals > 18 {
+            return Err(DataQualityError::msg("market decimal scales exceed 18"));
+        }
+        if self.init_margin_frac_hdths <= 100
+            || self.maint_margin_frac_hdths < self.init_margin_frac_hdths
+        {
+            return Err(DataQualityError::msg(
+                "market margin fractions are inconsistent",
+            ));
         }
         Ok(())
     }
@@ -130,7 +193,7 @@ fn parse_registry_file(parsed: RegistryFile, source: &str) -> Result<ProtocolReg
             )));
         }
     }
-    Ok(ProtocolRegistry {
+    let registry = ProtocolRegistry {
         network: parsed.network,
         chain_id: parsed.chain_id,
         chain_name: parsed.chain_name,
@@ -143,5 +206,7 @@ fn parse_registry_file(parsed: RegistryFile, source: &str) -> Result<ProtocolReg
         sources: parsed.sources,
         retrieved_at: parsed.retrieved_at,
         markets,
-    })
+    };
+    registry.validate()?;
+    Ok(registry)
 }

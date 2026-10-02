@@ -1,0 +1,370 @@
+{
+  "accountingEligible": false,
+  "canonicalRegistryUpdated": false,
+  "fields": {
+    "chainId": 143,
+    "collateral": {
+      "address": "0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a",
+      "decimals": 6,
+      "symbol": "AUSD"
+    },
+    "exchangeAddress": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+    "markets": [
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 1500,
+          "listed": true,
+          "maint_margin_frac_hdths": 2500,
+          "notes": "",
+          "perpetual_id": 1,
+          "price_decimals": 1,
+          "size_decimals": 5,
+          "symbol": "BTC"
+        },
+        "observedMarkPns": "841966",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982760,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 1000,
+          "listed": true,
+          "maint_margin_frac_hdths": 2000,
+          "notes": "",
+          "perpetual_id": 10,
+          "price_decimals": 6,
+          "size_decimals": 0,
+          "symbol": "MON"
+        },
+        "observedMarkPns": "31901",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982759,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 1200,
+          "listed": true,
+          "maint_margin_frac_hdths": 2000,
+          "notes": "",
+          "perpetual_id": 20,
+          "price_decimals": 2,
+          "size_decimals": 3,
+          "symbol": "ETH"
+        },
+        "observedMarkPns": "266450",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982759,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 1200,
+          "listed": true,
+          "maint_margin_frac_hdths": 2000,
+          "notes": "",
+          "perpetual_id": 31,
+          "price_decimals": 3,
+          "size_decimals": 3,
+          "symbol": "SOL"
+        },
+        "observedMarkPns": "117844",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982760,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 1000,
+          "listed": true,
+          "maint_margin_frac_hdths": 2000,
+          "notes": "",
+          "perpetual_id": 40,
+          "price_decimals": 4,
+          "size_decimals": 2,
+          "symbol": "HYPE"
+        },
+        "observedMarkPns": "864588",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982758,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 1000,
+          "listed": true,
+          "maint_margin_frac_hdths": 1800,
+          "notes": "",
+          "perpetual_id": 50,
+          "price_decimals": 2,
+          "size_decimals": 4,
+          "symbol": "ZEC"
+        },
+        "observedMarkPns": "128025",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982758,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 300,
+          "listed": true,
+          "maint_margin_frac_hdths": 1000,
+          "notes": "",
+          "perpetual_id": 60,
+          "price_decimals": 5,
+          "size_decimals": 1,
+          "symbol": "LIT"
+        },
+        "observedMarkPns": "356034",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982758,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 300,
+          "listed": true,
+          "maint_margin_frac_hdths": 1000,
+          "notes": "",
+          "perpetual_id": 70,
+          "price_decimals": 4,
+          "size_decimals": 2,
+          "symbol": "VVV"
+        },
+        "observedMarkPns": "280321",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982760,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 500,
+          "listed": true,
+          "maint_margin_frac_hdths": 1000,
+          "notes": "",
+          "perpetual_id": 90,
+          "price_decimals": 6,
+          "size_decimals": 0,
+          "symbol": "PUMP"
+        },
+        "observedMarkPns": "5336",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982760,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 300,
+          "listed": true,
+          "maint_margin_frac_hdths": 1000,
+          "notes": "",
+          "perpetual_id": 100,
+          "price_decimals": 4,
+          "size_decimals": 2,
+          "symbol": "NEAR"
+        },
+        "observedMarkPns": "46116",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982759,
+        "stateTimestampMs": 1790970891000,
+        "tradingOpen": true
+      },
+      {
+        "configBlock": 109929744,
+        "configTimestampMs": 1790954865000,
+        "contractVersion": [
+          1,
+          7,
+          5
+        ],
+        "markAccountingEligible": false,
+        "market": {
+          "init_margin_frac_hdths": 300,
+          "listed": true,
+          "maint_margin_frac_hdths": 1000,
+          "notes": "",
+          "perpetual_id": 110,
+          "price_decimals": 4,
+          "size_decimals": 2,
+          "symbol": "UNI"
+        },
+        "observedMarkPns": "87079",
+        "reason": "Composite REST state has no verified mark-update time, block hash, or log cutoff.",
+        "stateBlock": 109982756,
+        "stateTimestampMs": 1790970890000,
+        "tradingOpen": true
+      }
+    ]
+  },
+  "fieldsHash": "sha256:6aa93a552eba7c6efb11b364c8e58d45413e84e3070521df004a9714aa2792ff",
+  "limitations": [
+    "Metadata requires independent onchain verification at the ledger cutoff before adoption.",
+    "REST state observation time does not prove the freshness or cutoff of the underlying mark.",
+    "REST protocol totals and fee schedules are not imported into canonical accounting."
+  ],
+  "observedAtMs": 1790970891882,
+  "registryDifferences": [
+    {
+      "kind": "new-market",
+      "perpetualId": 70
+    },
+    {
+      "kind": "new-market",
+      "perpetualId": 100
+    },
+    {
+      "kind": "new-market",
+      "perpetualId": 110
+    }
+  ],
+  "source": "https://app.perpl.xyz/api/v1/pub/context",
+  "stateQuality": [
+    {
+      "perpetualId": 1,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 10,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 20,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 31,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 40,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 50,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 60,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 70,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 90,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 100,
+      "stateAgeMs": 882,
+      "status": "metadata-observation"
+    },
+    {
+      "perpetualId": 110,
+      "stateAgeMs": 1882,
+      "status": "metadata-observation"
+    }
+  ],
+  "version": "perpl-context-observation-v1"
+}

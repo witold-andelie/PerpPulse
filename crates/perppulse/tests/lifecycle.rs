@@ -176,6 +176,8 @@ fn isolated_positions_do_not_share_collateral() {
         oracle_pns: Some(240900),
         block_number: 54773030,
         timestamp_ms: 1770000900000,
+        log_index: None,
+        block_hash: None,
     });
     let ledger = replay(&fixture.events, &fixture.registry, &fixture.as_of).unwrap();
     let btc = ledger

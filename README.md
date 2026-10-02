@@ -168,6 +168,30 @@ deterministic realized facts and position state; incomplete history blocks
 position replay. Free balance and open-position mark-derived facts remain null
 until their missing inputs are proven. An old v1 index is inspection-only.
 
+### Public market input inspection
+
+```powershell
+cargo run --locked -p perppulse -- inspect-context --output .scratch/public-market-observation.json
+```
+
+This read-only command fetches official Perpl public context without credentials,
+checks chain, Exchange and collateral identity, validates market scales and
+margin fractions, and exports selected public fields plus a deterministic hash.
+It identifies newly listed or changed markets and stale composite state.
+Output paths must be new; prior evidence is never overwritten. The
+[2026-10-02 observation](docs/evidence/perpl-context-2026-10-02.json) identifies
+VVV (70), NEAR (100), and UNI (110) beyond the September fixture registry.
+
+The observation does not update the canonical registry or supply accounting
+marks. Composite REST timestamps do not prove mark-update freshness or the
+ledger's exact log cutoff. Accounting requires positive finite marks younger
+than 60 seconds; duplicate, future, stale, and ambiguous same-block marks are
+rejected. The 60-second application limit is conservative and still requires
+comparison with the live protocol's exact-cutoff limits. Same-block log cutoffs
+require the matching block hash and a mark log at or before the selected cutoff.
+The September registry remains a frozen golden-fixture input; live metadata
+adoption and independent onchain mark verification remain pending.
+
 The compact PostgreSQL publisher stores one snapshot per source, capped at 1 MB,
 with input and content hashes. It does not copy the raw event stream. Set
 `PERPPULSE_DATABASE_URL` as process environment using a local PostgreSQL or
@@ -228,7 +252,8 @@ the service authenticated. It is not a mainnet deployment proof.
 
 GitHub Actions runs Rust, PostgreSQL, Graphviz, publication policy, Envio code
 generation, typechecking, and handler tests. Local reproducible evidence is
-recorded in [`docs/verification-2026-10-01.md`](docs/verification-2026-10-01.md).
+recorded in [`docs/verification-2026-10-01.md`](docs/verification-2026-10-01.md)
+and [`docs/verification-2026-10-02.md`](docs/verification-2026-10-02.md).
 The [`two-minute demo script`](docs/demo-script.md) is ready for recording.
 
 ## Architecture
@@ -270,7 +295,11 @@ python scripts/check_repository_policy.py --staged
 
 ## Submission compliance
 
-The Metropolis rules require a working Monad-mainnet product, public GitHub source, an OSI-approved license, setup instructions, attribution, build-window commit history, documentation, contract addresses or transaction hashes, and a public operating demo no longer than three minutes.
+The Metropolis public v3 rules accept Monad mainnet or testnet integration and
+require public source, setup, licensing, attribution, build-window history,
+documentation, and a three-minute public operating demo. PerpPulse continues
+to target mainnet. Sponsor-specific eligibility remains unverified; see the
+[source-linked submission checklist](docs/submission-checklist.md).
 
 This repository is licensed under the Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
 
@@ -278,4 +307,8 @@ This repository is licensed under the Apache License 2.0. See [`LICENSE`](LICENS
 
 The architecture is informed by the public projects and official documentation listed in [`docs/architecture-research.md`](docs/architecture-research.md). Application code is original. `envio/abis/Exchange.events.json` is a subset of events extracted from the MIT-licensed Perpl dex-sdk ABI; see [`envio/abis/SOURCE.md`](envio/abis/SOURCE.md).
 
-OpenAI Codex has been used for web research, architecture drafting, documentation, repository setup, and verification. xAI Grok has been used for bounded review and for implementing this first ledger slice. All generated material is independently reviewed before adoption. Deterministic code and independently verifiable data, rather than language-model output, remain the source of analytical facts.
+OpenAI Codex has been used for web research, architecture drafting, implementation,
+documentation, repository setup, and verification. xAI Grok has been used for
+bounded review and for implementing the first ledger slice. All generated material
+is independently reviewed before adoption. Deterministic code and independently
+verifiable data, rather than language-model output, remain the source of analytical facts.

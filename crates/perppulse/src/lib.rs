@@ -8,6 +8,7 @@ pub mod evidence;
 pub mod identity;
 pub mod ledger;
 pub mod live;
+pub mod market_inputs;
 pub mod metrics;
 pub mod money;
 pub mod pipeline;

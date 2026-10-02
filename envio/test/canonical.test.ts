@@ -155,10 +155,13 @@ test("payload serialization is stable, bigint-safe, and finite", () => {
   assert.throws(() => serializeCanonicalPayload({ value: undefined }), /undefined/);
 });
 
-test("the embedded ABI fingerprint matches the indexed ABI", async () => {
+test("the embedded ABI fingerprint matches the indexed ABI with LF line endings", async () => {
   const abi = await readFile(new URL("../abis/Exchange.events.json", import.meta.url), "utf8");
-  const fingerprint = `sha256:${createHash("sha256").update(abi).digest("hex")}`;
-  assert.equal(ABI_FINGERPRINT, fingerprint);
+  const lf = abi.replace(/\r\n/g, "\n");
+  for (const copy of [lf, lf.replace(/\n/g, "\r\n")]) {
+    const fingerprint = `sha256:${createHash("sha256").update(copy.replace(/\r\n/g, "\n")).digest("hex")}`;
+    assert.equal(ABI_FINGERPRINT, fingerprint);
+  }
 });
 
 test("event handlers contain no wall-clock or random reads", async () => {

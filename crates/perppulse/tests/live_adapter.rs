@@ -76,7 +76,7 @@ fn row(name: &str, log: u32, payload: Value, kind: &str) -> Value {
         "logIndex":log,"timestampMs":"1770000600000","srcAddress":"0x34B6552d57a35a1D042CcAe1951BD1C370112a6F","abiEventName":name,"kind":kind,
         "accountId":"42","perpetualId":if log==0{None}else{Some(1)},"positionType":if log==0{None}else{Some(1)},"payloadJson":payload.to_string(),
         "schemaVersion":"canonical-event-v4","handlerVersion":"envio-handlers-v4","classifierVersion":"exchange-classifier-v3","ingestionProfile":"risk-hotpath-v2",
-        "abiFingerprint":"sha256:16b3a4812e63fd11d543879117f21c48976f8a4ea8c9aa487d7c2ac3fc397482"})
+        "abiFingerprint":"sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1"})
 }
 fn mock(head: u64, corrupt_subject: bool) -> Mock {
     let created = row(

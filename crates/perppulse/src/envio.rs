@@ -103,7 +103,7 @@ const CURRENT_CLASSIFIER_VERSION: &str = "exchange-classifier-v3";
 const CURRENT_INGESTION_PROFILE: &str = "risk-hotpath-v2";
 const LEDGER_ELIGIBLE_PROFILE: &str = "risk-hotpath-v2";
 const CURRENT_ABI_FINGERPRINT: &str =
-    "sha256:16b3a4812e63fd11d543879117f21c48976f8a4ea8c9aa487d7c2ac3fc397482";
+    "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct IndexedPoint {
@@ -1197,6 +1197,13 @@ mod tests {
         raw.schema_version = "canonical-event-v999".to_string();
         let error = parse_canonical_event(raw).expect_err("schema mismatch");
         assert!(error.to_string().contains("unsupported schemaVersion"));
+
+        let mut obsolete = raw_event(payload);
+        obsolete.account_id = Some(NumericScalar::Text("99".to_string()));
+        obsolete.abi_fingerprint =
+            "sha256:16b3a4812e63fd11d543879117f21c48976f8a4ea8c9aa487d7c2ac3fc397482".into();
+        let error = parse_canonical_event(obsolete).expect_err("obsolete Windows ABI fingerprint");
+        assert!(error.to_string().contains("abiFingerprint"));
     }
 
     #[test]

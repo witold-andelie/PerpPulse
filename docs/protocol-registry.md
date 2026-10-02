@@ -65,6 +65,29 @@ documents legacy SOL (30). The registry treats 30 as unlisted.
 Market lists change. Runtime ingestion must refresh from `/v1/pub/context` and
 from `ContractAdded` / `ContractAddedV2` logs. Unknown markets fail closed.
 
+The public context was rechecked on 2026-10-02 using the validated
+`perppulse inspect-context` adapter. The sanitized
+[observation](evidence/perpl-context-2026-10-02.json) includes VVV (70),
+NEAR (100), and UNI (110), and reports contract version 1.7.5. Its config values
+are observation candidates, not independently verified historical inputs.
+The golden registry above is intentionally frozen; adopting today's metadata
+for old event replay would require an explicit point-in-time contract.
+
+The adapter reads nested `config.price_decimals`, `config.size_decimals`,
+`config.initial_margin`, and `config.maintenance_margin`. When the official
+context has an empty symbol for BTC or MON, the ticker-only `name` is accepted
+as an explicit fallback; arbitrary names are rejected. It checks chain,
+Exchange, collateral identity, duplicate subjects, configuration/state ordering,
+and finite scales. Missing or inconsistent input returns an error. Composite
+state age is reported separately from observation time.
+
+The current official [API type contract](https://github.com/PerplFoundation/api-docs/blob/main/types.md)
+defines REST fee rates in micros (six decimals). Do not apply the older
+five-decimal fee-rate scale from this frozen registry to current REST fee
+schedules. Canonical settled CNS fee amounts are unchanged by that display
+scale distinction. The inspector excludes REST fee schedules and protocol
+totals from accounting.
+
 ## Lifecycle events indexed
 
 Position reconstruction uses Exchange logs, not authenticated account history:

@@ -3,7 +3,7 @@ export const HANDLER_VERSION = "envio-handlers-v4";
 export const CLASSIFIER_VERSION = "exchange-classifier-v3";
 export const INGESTION_PROFILE = "risk-hotpath-v2";
 export const ABI_FINGERPRINT =
-  "sha256:16b3a4812e63fd11d543879117f21c48976f8a4ea8c9aa487d7c2ac3fc397482";
+  "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1";
 
 export type LifecycleKind =
   | "ACCOUNT_CREATED"

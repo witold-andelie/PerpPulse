@@ -388,6 +388,10 @@ pub struct MarketMark {
     pub oracle_pns: Option<i128>,
     pub block_number: u64,
     pub timestamp_ms: i64,
+    #[serde(default)]
+    pub log_index: Option<u32>,
+    #[serde(default)]
+    pub block_hash: Option<String>,
 }
 
 #[derive(Clone, Debug)]

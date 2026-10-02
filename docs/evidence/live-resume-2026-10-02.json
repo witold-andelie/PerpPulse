@@ -1,0 +1,36 @@
+{
+  "version": "mainnet-index-resume-observation-v1",
+  "chainId": 143,
+  "envioSourceCommit": "a8e5254095496e90b32b15cc331782d7cadc11ef",
+  "startBlock": 109944714,
+  "quickConfigHash": "sha256:f071c7e0478538af83873983ea460b7df5eccd67935100e34da91b39ead35d1c",
+  "initialMarkerToReady": {
+    "markerCreatedAt": "2026-10-02T20:55:14.732Z",
+    "readyAt": "2026-10-02T20:55:40.982Z",
+    "durationSeconds": 26.25,
+    "boundary": "Initialized marker creation immediately before indexer_starting to Envio readiness; excludes prior authentication, code generation and migration",
+    "fullOperatorColdStartMeasured": false
+  },
+  "resumeReadyAt": "2026-10-02T22:30:33.941Z",
+  "activeObservation": {
+    "observedAt": "2026-10-02T22:31:32.156733Z",
+    "eventCount": 69317,
+    "processedBlock": 110013892,
+    "sourceBlock": 110013890,
+    "independentRpcChainId": 143,
+    "independentRpcHeadBlock": 110013893,
+    "processedLagBlocks": 1
+  },
+  "preservationChecks": {
+    "sameSourceCommit": true,
+    "sameQuickConfigHash": true,
+    "sameStartBlock": true,
+    "sameInitializedMarker": true,
+    "sameDatabaseVolume": true,
+    "previousAccountBirthsRetained": [5382, 5383, 5384, 5385],
+    "newAccountBirth": { "accountId": 5386, "blockNumber": 110009383, "logIndex": 30 }
+  },
+  "browserEvidence": "live-browser-2026-10-02.json",
+  "recordingEvidence": "../demo/recording.json",
+  "scope": "Selected observations from a credential-hidden, thirty-minute local restart; no continuous public availability or full cold-start timing claim"
+}

@@ -16,12 +16,12 @@ The bounty is track-agnostic. Envio Cloud and self-hosted pipelines are accepted
 
 | Supplied requirement | Current evidence | Remaining acceptance work |
 | --- | --- | --- |
-| Meaningful Envio use with real onchain data | HyperIndex canonical handlers and Rust replay; the [isolated v2 run](verification-2026-10-02-live-v2.md) indexed 61,636 Monad events and four accounts created inside coverage replayed successfully | Verify restart recovery and final visible application behavior; retain exact source and cutoff evidence |
-| Working indexer or pipeline, deployed to Envio Cloud or self-hosted | Public [config](../envio/config.yaml), [schema](../envio/schema.graphql), [handlers](../envio/src/EventHandlers.ts), [run instructions](../envio/README.md); isolated self-hosted mainnet run with independent RPC lag observation | Record restart/resume, precise cold catch-up duration and continuous deployment availability |
-| Useful frontend, dashboard, agent, bot, or API consuming the data | `serve-envio` returned a real four-account snapshot at block 110000196; actual stopped-source browser check verified visible HTTP 503 and cleared results | Final successful browser acceptance, shared-cutoff event drill-down and independent correctness verification remain pending |
-| Short end-to-end video or live link | [Demo plan](demo-script.md) | Publish a live operating link or record the real pipeline; synthetic fixtures do not satisfy this proof |
-| Submission explanation of meaningful use | Draft below | Replace pending observations with exact release, runtime, feature, and evidence links |
-| Optional Envio demo video, at most two minutes | Two-minute recording plan | Record at most two minutes; satisfy the main competition's video requirement as well |
+| Meaningful Envio use with real onchain data | HyperIndex canonical handlers and Rust replay; [restart and browser evidence](verification-2026-10-03-envio.md) records 69,317 events, four covered accounts, shared-cutoff export and event drill-down | Complete full SDK reconciliation before claiming independently verified account PnL or risk |
+| Working indexer or pipeline, deployed to Envio Cloud or self-hosted | Public [config](../envio/config.yaml), [schema](../envio/schema.graphql), [handlers](../envio/src/EventHandlers.ts), [run instructions](../envio/README.md); isolated self-hosted mainnet run with preserved restart and independent one-block lag observation | Continuous public availability remains pending; 26.25-second marker-to-ready timing excludes setup and is not full cold-start timing |
+| Useful frontend, dashboard, agent, bot, or API consuming the data | Four-account actual browser acceptance; source-event evidence, cutoff-preserving UI manifest, visible unavailable marks, invalid-range rejection and stopped-source failure | Eligible marks, full SDK correctness verification and global analytics remain outside this accepted account-only path |
+| Short end-to-end video or live link | [80-second real operating recording](demo/README.md), English captions and [recording provenance](demo/recording.json) | Check submission-portal codec acceptance or publish a hosted player; no continuous public app URL is claimed |
+| Submission explanation of meaningful use | Updated draft below, linked source and mainnet evidence | Final release SHA, catalog URL/revision and owner submission |
+| Optional Envio demo video, at most two minutes | VP8 WebM duration 80.20 seconds; actual mainnet event-to-feature workflow | Confirm the main competition and Envio forms accept the same recording |
 
 The optional Envio video does not replace the main competition's required public
 operating video. A single video no longer than two minutes is the working plan,
@@ -50,7 +50,11 @@ read-only application connects account positions and realized facts to their
 source block, transaction and log, with visible incomplete-history and stale-source
 states. Envio therefore supplies the facts behind the user workflow.
 
-This is a description of the implemented integration, not a claim that its v2
-live operating proof is complete. Add the final runtime URL, release SHA,
-covered-account evidence and recording before submission. Global historical
-analytics, independently verified marks and SDK reconciliation are still pending.
+The bounded self-hosted run resumed with preserved coverage and 69,317 events.
+Four accounts created inside that coverage passed actual browser acceptance.
+An [80-second recording](demo/README.md) shows positions, event evidence,
+manifest export and advancing coverage. A separate selected position diagnostic
+matched 23 fields but is not a full SDK replay at an identical log cutoff.
+Global historical analytics, accounting marks, full SDK reconciliation and
+continuous public hosting remain pending. Final submission must include the
+exact release and confirmed catalog/form links.

@@ -80,6 +80,8 @@ pub struct PositionSnapshot {
     pub status: String,
     pub size: Decimal,
     pub entry: Decimal,
+    pub stored_entry_pns: i128,
+    pub entry_residue_pnsq16: u32,
     pub mark: Option<Decimal>,
     pub deposit: Decimal,
     pub leverage: Option<Decimal>,
@@ -161,6 +163,43 @@ pub fn account_wallet(
     })
 }
 
+fn effective_entry(position: &PositionState, decimals: u32) -> Result<Decimal> {
+    let residue = position.entry_residue_pnsq16;
+    if residue == 0 {
+        return from_native(position.entry_pns, decimals, "entry");
+    }
+    if residue >= 65_536 || decimals > 18 {
+        return Err(DataQualityError::msg("invalid effective entry precision"));
+    }
+    let base = if position.side == SIDE_LONG {
+        position.entry_pns.checked_sub(1)
+    } else if position.side == SIDE_SHORT {
+        Some(position.entry_pns)
+    } else {
+        None
+    }
+    .ok_or_else(|| DataQualityError::msg("invalid effective entry side or price"))?;
+    // 1 / 65536 = 5^16 / 10^16. Integer construction keeps every Q16 bit;
+    // reject values that Decimal cannot represent exactly instead of rounding.
+    let mut coefficient = base
+        .checked_mul(65_536)
+        .and_then(|n| n.checked_add(i128::from(residue)))
+        .and_then(|n| n.checked_mul(152_587_890_625))
+        .ok_or_else(|| DataQualityError::msg("effective entry coefficient overflow"))?;
+    let mut scale = decimals + 16;
+    while scale > 0 && coefficient % 10 == 0 {
+        coefficient /= 10;
+        scale -= 1;
+    }
+    if scale > 28 {
+        return Err(DataQualityError::msg(
+            "effective entry exceeds exact decimal precision",
+        ));
+    }
+    Decimal::try_from_i128_with_scale(coefficient, scale)
+        .map_err(|_| DataQualityError::msg("effective entry exceeds exact decimal range"))
+}
+
 pub fn position_snapshot(
     position: &PositionState,
     registry: &ProtocolRegistry,
@@ -181,7 +220,7 @@ pub fn position_snapshot(
     }
     let collateral_decimals = registry.collateral.decimals;
     let size = from_native(position.lot_lns, market.size_decimals, "size")?;
-    let entry = from_native(position.entry_pns, market.price_decimals, "entry")?;
+    let entry = effective_entry(position, market.price_decimals)?;
     let deposit = from_native(position.deposit_cns, collateral_decimals, "deposit")?;
     let realized = from_native(
         position.realized_pnl_cns,
@@ -264,6 +303,8 @@ pub fn position_snapshot(
         status: position.status.clone(),
         size,
         entry,
+        stored_entry_pns: position.entry_pns,
+        entry_residue_pnsq16: position.entry_residue_pnsq16,
         mark: mark_px,
         deposit,
         leverage,

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PerpPulse - Envio mainnet demonstration</title>
+  <style>
+    body { margin: 0 auto; padding: 32px 20px; max-width: 1100px; background: #0a131a; color: #ecf2f5; font: 16px/1.6 system-ui, sans-serif; }
+    h1 { line-height: 1.2; }
+    video { width: 100%; border: 1px solid #334351; border-radius: 8px; background: #000; }
+    video::cue { font-size: 18px; background: rgba(0, 0, 0, 0.85); }
+    a { color: #65dfbf; }
+    p { max-width: 850px; }
+    .note { color: #b4c3ce; }
+  </style>
+</head>
+<body>
+  <h1>Real Monad events to account evidence</h1>
+  <p>Envio HyperIndex and HyperSync power this read-only Perpl account workflow.
+    The 80-second recording shows reconstructed positions, source events, a shared
+    cutoff, manifest export and advancing coverage.</p>
+  <video controls preload="metadata" aria-label="PerpPulse real mainnet Envio demonstration">
+    <source src="perppulse-envio-live.webm" type="video/webm">
+    <track kind="captions" src="perppulse-envio-live.vtt" srclang="en" label="English" default>
+    Download the <a href="perppulse-envio-live.webm">WebM recording</a>.
+  </video>
+  <p class="note">Recorded on October 2, 2026 using real Monad mainnet data.
+    This is an archive of a bounded local run. Four accounts were selected;
+    global totals, price-dependent open-position risk and live Nansen context
+    remain unavailable. The separate position diagnostic does not establish
+    full SDK reconciliation at an identical log cutoff.</p>
+  <p><a href="manifest.json">Recorded snapshot manifest</a> &middot;
+    <a href="recording.json">Recording provenance and limits</a> &middot;
+    <a href="perppulse-envio-live.srt">English SRT captions</a> &middot;
+    <a href="https://github.com/witold-andelie/PerpPulse">Public source</a></p>
+</body>
+</html>

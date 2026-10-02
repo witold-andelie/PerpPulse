@@ -114,6 +114,8 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
                 "status": position.status,
                 "size": position.size.to_string(),
                 "entry": position.entry.to_string(),
+                "entryPricePNS": position.stored_entry_pns.to_string(),
+                "entryResiduePNSQ16": position.entry_residue_pnsq16.to_string(),
                 "mark": position.mark.map(|value| value.to_string()),
                 "deposit": position.deposit.to_string(),
                 "leverage": position.leverage.map(|value| value.to_string()),
@@ -415,6 +417,7 @@ pub fn wallet_value(wallet: &crate::accounting::WalletSnapshot, incomplete_balan
         "positions": wallet.positions.iter().map(|p| json!({
             "perpetualId": p.perpetual_id, "symbol": p.symbol, "side": p.side, "status": p.status,
             "size": p.size.to_string(), "entry": p.entry.to_string(), "deposit": p.deposit.to_string(),
+            "entryPricePNS": p.stored_entry_pns.to_string(), "entryResiduePNSQ16": p.entry_residue_pnsq16.to_string(),
             "realizedPnl": p.realized_pnl.to_string(), "realizedFunding": p.realized_funding.to_string(), "fees": p.fees.to_string(),
             "mark": p.mark.map(|v| v.to_string()), "unrealizedPnl": p.unrealized_pnl.map(|v| v.to_string()),
             "notionalValue": p.notional_value.map(|v| v.to_string()), "liquidationPrice": p.liquidation_price.map(|v| v.to_string()),

@@ -1,0 +1,261 @@
+{
+  "version": "sdk-abi-position-diagnostic-v2",
+  "observedAt": "2026-10-02T22:52:26.986538+00:00",
+  "source": "Perpl SDK ABI based eth_call reference; SDK state engine was not executed",
+  "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+  "sdkArtifactHash": "sha256:2c570f1d77e48142ae0f791774b3a1a94cf8dbd60299d956e09ebb4bb85674a2",
+  "chainId": 143,
+  "blockNumber": 110018014,
+  "blockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+  "timestampMs": 1790981535000,
+  "canonicalLogCutoff": 48,
+  "referenceBoundary": "end-of-block",
+  "laterExchangeEventNames": [
+    "TakerOrderFilledV2",
+    "OrderBatchCompleted",
+    "LinkPriceUpdated",
+    "LinkPriceUpdated",
+    "ReportAgeExceedsLastUpdate",
+    "UpdateOracleFailed",
+    "ReportAgeExceedsLastUpdate",
+    "UpdateOracleFailed",
+    "OrderRequestV2",
+    "OrderChanged",
+    "OrderRequestV2",
+    "OrderChanged",
+    "OrderRequestV2",
+    "OrderChanged",
+    "OrderBatchCompleted",
+    "OrderRequestV2",
+    "OrderRequestV2",
+    "OrderChanged",
+    "OrderBatchCompleted",
+    "OrderRequestV2",
+    "OrderPlaced",
+    "OrderBatchCompleted",
+    "OrderRequestV2",
+    "CrossesBook",
+    "OrderRequestV2",
+    "OrderCancelled",
+    "OrderRequestV2",
+    "OrderChanged",
+    "OrderRequestV2",
+    "OrderPlaced",
+    "OrderBatchCompleted",
+    "OrderRequestV2",
+    "OrderChanged",
+    "OrderBatchCompleted",
+    "OrderRequestV2",
+    "OrderChanged",
+    "OrderBatchCompleted"
+  ],
+  "canonicalInputsHash": "sha256:19f364e500688382dbced6d7db4e1d23601ecdcb0f482923a7d8152c10ea56eb",
+  "registryInputsHash": "sha256:03bab77b773bfecda7c480a7880de94224cd8a7e7d3563959e8078b4faeab993",
+  "methodologyHash": "sha256:d4d8242d2bd415c36d632a25583f68505f3bc1ebba0a6a5e82e5b6257dbe7dbd",
+  "positions": [
+    {
+      "accountId": 5385,
+      "perpetualId": 1,
+      "checks": [
+        {
+          "field": "open",
+          "canonical": "False",
+          "reference": "False",
+          "status": "matched"
+        },
+        {
+          "field": "sizeLNS",
+          "canonical": "0",
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "field": "depositCNS",
+          "canonical": "0",
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "entryResiduePNSQ16": "0",
+      "markPriceValid": true
+    },
+    {
+      "accountId": 5384,
+      "perpetualId": 1,
+      "checks": [
+        {
+          "field": "open",
+          "canonical": "False",
+          "reference": "False",
+          "status": "matched"
+        },
+        {
+          "field": "sizeLNS",
+          "canonical": "0",
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "field": "depositCNS",
+          "canonical": "0",
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "entryResiduePNSQ16": "0",
+      "markPriceValid": true
+    },
+    {
+      "accountId": 5383,
+      "perpetualId": 10,
+      "checks": [
+        {
+          "field": "open",
+          "canonical": "True",
+          "reference": "True",
+          "status": "matched"
+        },
+        {
+          "field": "sizeLNS",
+          "canonical": "108932",
+          "reference": "108932",
+          "status": "matched"
+        },
+        {
+          "field": "depositCNS",
+          "canonical": "349519242",
+          "reference": "349519242",
+          "status": "matched"
+        },
+        {
+          "field": "side",
+          "canonical": "long",
+          "reference": "long",
+          "status": "matched"
+        },
+        {
+          "field": "storedEntryPNS",
+          "canonical": "32086",
+          "reference": "32086",
+          "status": "matched"
+        },
+        {
+          "field": "entryResiduePNSQ16",
+          "canonical": "32964",
+          "reference": "32964",
+          "status": "matched"
+        },
+        {
+          "field": "effectiveEntry",
+          "canonical": "0.03208550299072265625",
+          "reference": "0.03208550299072265625",
+          "status": "matched"
+        }
+      ],
+      "entryResiduePNSQ16": "32964",
+      "markPriceValid": true
+    },
+    {
+      "accountId": 5383,
+      "perpetualId": 40,
+      "checks": [
+        {
+          "field": "open",
+          "canonical": "False",
+          "reference": "False",
+          "status": "matched"
+        },
+        {
+          "field": "sizeLNS",
+          "canonical": "0",
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "field": "depositCNS",
+          "canonical": "0",
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "entryResiduePNSQ16": "0",
+      "markPriceValid": true
+    },
+    {
+      "accountId": 5382,
+      "perpetualId": 1,
+      "checks": [
+        {
+          "field": "open",
+          "canonical": "True",
+          "reference": "True",
+          "status": "matched"
+        },
+        {
+          "field": "sizeLNS",
+          "canonical": "16478",
+          "reference": "16478",
+          "status": "matched"
+        },
+        {
+          "field": "depositCNS",
+          "canonical": "952497608",
+          "reference": "952497608",
+          "status": "matched"
+        },
+        {
+          "field": "side",
+          "canonical": "long",
+          "reference": "long",
+          "status": "matched"
+        },
+        {
+          "field": "storedEntryPNS",
+          "canonical": "852663",
+          "reference": "852663",
+          "status": "matched"
+        },
+        {
+          "field": "entryResiduePNSQ16",
+          "canonical": "0",
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "field": "effectiveEntry",
+          "canonical": "85266.3",
+          "reference": "85266.3",
+          "status": "matched"
+        }
+      ],
+      "entryResiduePNSQ16": "0",
+      "markPriceValid": true
+    }
+  ],
+  "selectedMarketMetadata": {
+    "1": {
+      "priceDecimals": 1,
+      "sizeDecimals": 5,
+      "markPNS": "844900",
+      "markTimestamp": 1790981507
+    },
+    "10": {
+      "priceDecimals": 6,
+      "sizeDecimals": 0,
+      "markPNS": "32243",
+      "markTimestamp": 1790981501
+    },
+    "40": {
+      "priceDecimals": 4,
+      "sizeDecimals": 2,
+      "markPNS": "876768",
+      "markTimestamp": 1790981533
+    }
+  },
+  "rpcReadRequests": 11,
+  "limits": [
+    "Diagnostic only; full-block eth_call is not an identical log-cutoff SDK replay",
+    "Effective entry is compared with the pinned SDK formula; the SDK state engine was not executed",
+    "Account lifetime PnL, funding, fees, free balance, marks and risk values remain unverified"
+  ]
+}

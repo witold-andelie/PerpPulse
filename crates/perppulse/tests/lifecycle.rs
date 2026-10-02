@@ -90,10 +90,12 @@ fn inversion_flips_side_and_verifies_the_previous_size_and_collateral() {
     inverted.price_pns = Some(710_000);
     inverted.delta_pnl_cns = Some(1_000_000_000);
     inverted.funding_cns = Some(-1_000_000);
+    input.events[1].price_residue_pnsq16 = Some(32_768);
     input.events.push(inverted);
     let ledger = replay(&input.events, &registry, &input.as_of).unwrap();
     let position = ledger.positions.values().next().unwrap();
     assert_eq!(position.side, 2);
+    assert_eq!(position.entry_residue_pnsq16, 0);
     assert_eq!(position.lot_lns, 50_000);
     assert_eq!(position.deposit_cns, 5_000_000_000);
     assert_eq!(position.realized_pnl_cns, 1_000_000_000);
@@ -108,6 +110,37 @@ fn inversion_flips_side_and_verifies_the_previous_size_and_collateral() {
     input.events.last_mut().unwrap().start_lot_lns = Some(100_000);
     input.events.last_mut().unwrap().start_deposit_cns = Some(1);
     assert!(replay(&input.events, &registry, &input.as_of).is_err());
+}
+
+#[test]
+fn weighted_entry_residue_survives_reduction_and_resets_on_repricing() {
+    let mut input = load_fixture(fixture("open-increase-reduce-close.json")).unwrap();
+    input.events.truncate(8);
+    input.events[2].price_residue_pnsq16 = Some(32_768);
+    input.events[4].price_residue_pnsq16 = Some(16_384);
+    let ledger = replay(&input.events, &input.registry, &input.as_of).unwrap();
+    let position = ledger.positions.values().next().unwrap();
+    assert_eq!(position.entry_residue_pnsq16, 16_384);
+    let wallet = account_wallet(&ledger, 42, &input.as_of, &[], false).unwrap();
+    assert_eq!(wallet.positions[0].entry, dec("70666.625"));
+
+    input.events[4].price_residue_pnsq16 = None;
+    let ledger = replay(&input.events, &input.registry, &input.as_of).unwrap();
+    assert_eq!(
+        ledger
+            .positions
+            .values()
+            .next()
+            .unwrap()
+            .entry_residue_pnsq16,
+        0
+    );
+
+    let mut open = load_fixture(fixture("open-position-as-of.json")).unwrap();
+    open.events[1].price_residue_pnsq16 = Some(1);
+    open.registry.markets.get_mut(&1).unwrap().price_decimals = 18;
+    let ledger = replay(&open.events, &open.registry, &open.as_of).unwrap();
+    assert!(account_wallet(&ledger, 42, &open.as_of, &[], false).is_err());
 }
 
 #[test]
@@ -333,12 +366,14 @@ fn collateral_decrease_updates_deposit_and_entry_from_end_state() {
     decreased.start_deposit_cns = Some(10_000_000_000);
     decreased.end_deposit_cns = Some(8_000_000_000);
     decreased.price_pns = Some(695_000);
+    fixture.events[1].price_residue_pnsq16 = Some(32_768);
     fixture.events.push(decreased);
 
     let ledger = replay(&fixture.events, &fixture.registry, &fixture.as_of).unwrap();
     let position = ledger.positions.values().next().unwrap();
     assert_eq!(position.deposit_cns, 8_000_000_000);
     assert_eq!(position.entry_pns, 695_000);
+    assert_eq!(position.entry_residue_pnsq16, 0);
 }
 
 #[test]

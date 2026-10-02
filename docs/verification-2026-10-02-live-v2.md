@@ -30,7 +30,9 @@ The runtime used `canonical-event-v4`, `envio-handlers-v4`,
 The hidden-input credential remained in process memory. No credential,
 generated quick configuration, raw response, or local progress file is part of
 the public evidence. Precise cold-start duration was not retained and is not
-claimed. Restart/resume still requires a new hidden-input launch.
+claimed by this first-run observation. The later
+[resume/browser verification](verification-2026-10-03-envio.md) records a
+preserved restart and a narrowly defined marker-to-readiness interval.
 
 ## Reproduced failures and corrections
 
@@ -103,9 +105,12 @@ The live API returned `mode=live`, as-of and processed block 110000196 before
 the run stopped. At `21:29:53.875136Z`, an actual browser check of the stopped
 source verified HTTP 503, a visible source error, empty financial rows, and
 disabled export. Successful browser acceptance of the final corrected reader
-and restart recovery are still pending.
+and restart recovery were pending at this first-run observation and subsequently
+passed in the [follow-up verification](verification-2026-10-03-envio.md).
 
 No independent SDK account or position reconciliation is claimed. Point-in-time
-marks, free balance, global protocol totals, Nansen live enrichment, hosted
-deployment, and the submission video remain unverified or unavailable. No
+marks, free balance, global protocol totals, Nansen live enrichment and hosted
+deployment remain unverified or unavailable. The follow-up adds a bounded real
+operating recording and a selected position diagnostic without closing full SDK
+reconciliation. No
 orders, signing, custody, paid Nansen calls, or cloud provisioning occurred.

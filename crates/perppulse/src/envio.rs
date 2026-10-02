@@ -714,6 +714,7 @@ fn parse_canonical_event(row: RawCanonicalEvent) -> Result<CanonicalEvent> {
         end_lot_lns: None,
         liq_lot_lns: None,
         price_pns: None,
+        price_residue_pnsq16: None,
         mark_price_pns: None,
         liq_price_pns: None,
         amount_cns: None,
@@ -875,6 +876,12 @@ fn parse_canonical_event(row: RawCanonicalEvent) -> Result<CanonicalEvent> {
                 "unsupported Exchange event projection: {other}"
             )));
         }
+    }
+    if matches!(
+        row.abi_event_name.as_str(),
+        "PositionOpenedV2" | "PositionIncreasedV2"
+    ) {
+        event.price_residue_pnsq16 = Some(values.u32("priceResiduePNSQ16")?);
     }
     event.validate()?;
     Ok(event)

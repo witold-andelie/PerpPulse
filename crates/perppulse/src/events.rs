@@ -79,6 +79,8 @@ pub struct CanonicalEvent {
     #[serde(default)]
     pub price_pns: Option<i128>,
     #[serde(default)]
+    pub price_residue_pnsq16: Option<u32>,
+    #[serde(default)]
     pub mark_price_pns: Option<i128>,
     #[serde(default)]
     pub liq_price_pns: Option<i128>,
@@ -161,6 +163,16 @@ impl CanonicalEvent {
                     "event {} has invalid position_type {position_type}",
                     event_id.key()
                 )));
+            }
+        }
+        if let Some(residue) = self.price_residue_pnsq16 {
+            if residue >= 65_536
+                || !matches!(
+                    self.kind,
+                    LifecycleKind::PositionOpened | LifecycleKind::PositionIncreased
+                )
+            {
+                return Err(DataQualityError::msg("invalid entry price Q16 residue"));
             }
         }
         let required: &[&str] = match self.kind {

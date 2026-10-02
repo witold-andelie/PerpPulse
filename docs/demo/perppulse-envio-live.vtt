@@ -1,0 +1,36 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:09.000
+PerpPulse: real Monad data through Envio HyperIndex and HyperSync.
+A read-only account watchlist, bounded by processed coverage.
+
+2
+00:00:09.000 --> 00:00:24.000
+The accounts were created inside the indexed range.
+Lifecycle events reconstruct positions and realized facts.
+
+3
+00:00:24.000 --> 00:00:34.000
+Switch accounts while preserving the snapshot cutoff.
+Missing price-dependent risk values remain unavailable.
+
+4
+00:00:34.000 --> 00:00:44.000
+Filter the canonical events to the selected account.
+Every fact retains its source block, transaction and log.
+
+5
+00:00:44.000 --> 00:00:59.000
+Inspect the position's actual lifecycle event and Envio provenance.
+Download a manifest for the same immutable cutoff.
+
+6
+00:00:59.000 --> 00:01:12.000
+Coverage, methodology and unverified reconciliation remain explicit.
+No orders, custody or invented financial values.
+
+7
+00:01:12.000 --> 00:01:20.200
+Refresh to see real processed coverage advance.
+Envio powers the application feature end to end.

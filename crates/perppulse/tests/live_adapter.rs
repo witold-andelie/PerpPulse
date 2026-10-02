@@ -99,6 +99,23 @@ fn mock_watermarks(
     inconsistent_reads: usize,
     moving: bool,
 ) -> Mock {
+    mock_precision(
+        head,
+        corrupt_subject,
+        wire_side,
+        inconsistent_reads,
+        moving,
+        None,
+    )
+}
+fn mock_precision(
+    head: u64,
+    corrupt_subject: bool,
+    wire_side: u8,
+    inconsistent_reads: usize,
+    moving: bool,
+    residue: Option<&'static str>,
+) -> Mock {
     let coverage_reads = AtomicUsize::new(0);
     let created = row(
         "AccountCreated",
@@ -106,10 +123,20 @@ fn mock_watermarks(
         json!({"id":"42","account":"0x1111111111111111111111111111111111111111"}),
         "ACCOUNT_CREATED",
     );
+    let mut payload = json!({"accountId":"42","perpId":"1","positionType":wire_side.to_string(),"leverageHdths":"700","depositCNS":"10000000000","pricePNS":"700000","lotLNS":"100000","insFeeCNS":"0","protFeeCNS":"69000"});
+    if let Some(value) = residue {
+        if value != "missing" {
+            payload["priceResiduePNSQ16"] = json!(value);
+        }
+    }
     let mut opened = row(
-        "PositionOpened",
+        if residue.is_some() {
+            "PositionOpenedV2"
+        } else {
+            "PositionOpened"
+        },
         1,
-        json!({"accountId":"42","perpId":"1","positionType":wire_side.to_string(),"leverageHdths":"700","depositCNS":"10000000000","pricePNS":"700000","lotLNS":"100000","insFeeCNS":"0","protFeeCNS":"69000"}),
+        payload,
         "POSITION_OPENED",
     );
     if corrupt_subject {
@@ -181,6 +208,18 @@ fn live_wire_short_is_normalized_and_unknown_side_is_rejected() {
     assert!(error
         .to_string()
         .contains("unsupported Perpl positionType 2"));
+}
+#[test]
+fn v2_effective_entry_preserves_long_and_short_q16_rounding() {
+    for (wire, expected) in [(0, "69999.95"), (1, "70000.05")] {
+        let source = mock_precision(54773040, false, wire, 0, false, Some("32768"));
+        let snapshot = fetch_snapshot(&config(&source)).unwrap();
+        assert_eq!(snapshot.wallets[0]["positions"][0]["entry"], expected);
+    }
+    for residue in ["65536", "missing"] {
+        let source = mock_precision(54773040, false, 0, 0, false, Some(residue));
+        assert!(fetch_snapshot(&config(&source)).is_err());
+    }
 }
 #[test]
 fn transient_source_height_race_is_retried_but_persistent_inconsistency_fails() {

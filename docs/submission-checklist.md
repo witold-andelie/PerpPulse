@@ -16,8 +16,8 @@ mainnet; separate sponsor rules must still be verified.
 | Open license and attribution | [LICENSE](../LICENSE), [NOTICE](../NOTICE), [ABI source](../envio/abis/SOURCE.md) |
 | Build-window history and identified prior work | Git history; final originality review pending |
 | AI coding disclosure | README attribution section |
-| Monad integration and applicable addresses | [Registry](protocol-registry.md); current operating verification pending |
-| Public three-minute operating video | [Script](demo-script.md); recording and public URL pending |
+| Monad integration and applicable addresses | [Registry](protocol-registry.md); [real resume/browser evidence](verification-2026-10-03-envio.md) |
+| Public three-minute operating video | [80-second real Envio recording](demo/README.md) with English captions; hosted-player URL and portal format acceptance pending |
 | Description, architecture, stack, deployment instructions | README and deployment docs; isolated [mainnet indexing and reader evidence](verification-2026-10-02-live-v2.md) observed; continuous public runtime pending |
 | Website submission; one project and track | Owner registration/submission pending; selected track: Onchain Finance & Trading |
 | Separate sponsor requirements | Owner-supplied [Envio](envio-bounty.md), [Perpl](perpl-bounty.md) and [Nansen](nansen-bounty.md) requirements mapped on 2026-10-02; catalog URLs/revisions pending; the supplied Perpl trading task is outside the retained read-only scope |
@@ -29,7 +29,7 @@ eligibility or final submission is claimed by this checklist.
 
 The supplied Envio bounty accepts a self-hosted pipeline, requires useful
 application features driven by real onchain data, and permits an optional video
-of at most two minutes. The working recording plan is one public operating video
-within two minutes, with the final form checked before reusing it for both the
-main competition and Envio submission. See the requirement-to-evidence mapping
+of at most two minutes. The recorded operating video is 80.20 seconds,
+with the final form checked before reusing it for both the main competition and
+Envio submission. See the requirement-to-evidence mapping
 in [the Envio checklist](envio-bounty.md).

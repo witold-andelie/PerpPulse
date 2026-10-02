@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-10-02T22:57:12.624158+00:00",
+  "initialCutoff": "As of 110018676 \u00b7 2026-10-02T22:55:35.000Z \u00b7 coverage 109944714\u2013110018680",
+  "finalCutoff": "As of 110018887 \u00b7 2026-10-02T22:56:39.000Z \u00b7 coverage 109944714\u2013110018922",
+  "dataMode": "real Monad mainnet via Envio",
+  "scope": "four-account read-only watchlist",
+  "video": "perppulse-envio-live.webm",
+  "captions": "perppulse-envio-live.srt",
+  "syntheticFinancialInputs": false,
+  "durationSeconds": 80.2,
+  "durationVerification": "FFmpeg demuxer reported 00:01:20.20; browser playback verification is recorded separately",
+  "videoCodec": "VP8",
+  "dimensions": {
+    "width": 1440,
+    "height": 900
+  },
+  "videoBytes": 6523917,
+  "videoSha256": "sha256:11fb9d9efd2d58641b6c74665a92358157508c8f8843b2cfcc5b527c82608eaa",
+  "captionLanguages": [
+    "en"
+  ],
+  "audio": "none; English captions are supplied separately",
+  "visualQaFramesSeconds": [
+    20,
+    55,
+    76
+  ],
+  "visualQa": "Reviewed real wallet positions, selected-event provenance and refreshed coverage; no credentials or owner addresses appear",
+  "runtimeAvailability": "Bounded local run; this archive is not a continuously available live service"
+}

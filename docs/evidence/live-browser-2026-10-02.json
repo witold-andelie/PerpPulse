@@ -1,0 +1,53 @@
+{
+  "observedAt": "2026-10-02T22:52:32.298787+00:00",
+  "mode": "live",
+  "cutoffText": "As of 110018014 \u00b7 2026-10-02T22:52:15.000Z \u00b7 coverage 109944714\u2013110018022",
+  "accounts": [
+    {
+      "accountId": 5385,
+      "positionRows": 1
+    },
+    {
+      "accountId": 5384,
+      "positionRows": 1
+    },
+    {
+      "accountId": 5383,
+      "positionRows": 2
+    },
+    {
+      "accountId": 5382,
+      "positionRows": 1
+    }
+  ],
+  "selectedEvent": {
+    "abi": "PositionIncreasedV2",
+    "accountId": 5383,
+    "blockHash": "0x36b52c9bc9ef6d39e80a29d11085461268188a4e5576cadb1fb3dae6a5aef9af",
+    "blockNumber": 110017671,
+    "eventId": "143:0x36b52c9bc9ef6d39e80a29d11085461268188a4e5576cadb1fb3dae6a5aef9af:0xc470fc8cd0c32747320ea31b7c5a7da51fc2911fde8f7a2ebd7a3281241df091:2",
+    "kind": "PositionIncreased",
+    "logIndex": 2,
+    "perpetualId": 10,
+    "provenance": {
+      "abiFingerprint": "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1",
+      "classifierVersion": "exchange-classifier-v3",
+      "handlerVersion": "envio-handlers-v4",
+      "ingestionProfile": "risk-hotpath-v2",
+      "schemaVersion": "canonical-event-v4"
+    },
+    "timestampMs": 1790981432000,
+    "txHash": "0xc470fc8cd0c32747320ea31b7c5a7da51fc2911fde8f7a2ebd7a3281241df091"
+  },
+  "checks": [
+    "four eligible account views",
+    "shared cutoff preserved",
+    "missing marks visible",
+    "event evidence selected",
+    "out-of-range rejected",
+    "global totals unavailable",
+    "writes rejected",
+    "no JavaScript errors"
+  ],
+  "manifestCutoff": 110018014
+}

@@ -1,0 +1,17 @@
+{
+  "durationSeconds": 80.2,
+  "width": 1440,
+  "height": 900,
+  "captionLanguage": "en",
+  "captionCues": 7,
+  "captionEndSeconds": 80.2,
+  "frameDecodedAtSeconds": 0.022204,
+  "videoSha256": "sha256:11fb9d9efd2d58641b6c74665a92358157508c8f8843b2cfcc5b527c82608eaa",
+  "checks": [
+    "browser metadata loaded",
+    "VP8 frame decoded",
+    "seven English caption cues loaded",
+    "caption timing within video",
+    "no JavaScript errors"
+  ]
+}

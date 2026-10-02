@@ -82,6 +82,17 @@ require the event direction to match the existing position.
 The reference is `crates/sdk/src/state/position.rs` in
 [Perpl dex-sdk at dbb37c5](https://github.com/PerplFoundation/dex-sdk/blob/dbb37c59f6aef03e38d0787eb9c968f59f652617/crates/sdk/src/state/position.rs).
 
+`PositionOpenedV2` and `PositionIncreasedV2` carry `priceResiduePNSQ16` in
+`0..65535`. The Rust projection requires that field; missing or invalid V2
+residue fails visibly. Effective entry uses the SDK's ceiling correction for
+longs and floor correction for shorts: a nonzero long residue represents
+`(pricePNS - 1 + residue / 65536) / 10^priceDecimals`; a short represents
+`(pricePNS + residue / 65536) / 10^priceDecimals`. Zero residue uses stored PNS
+directly. Arithmetic preserves the exact decimal or rejects the value.
+Increases replace the residue, reductions preserve it, and inversion or
+collateral-decrease repricing resets it to zero. The API includes
+`entryPricePNS` and `entryResiduePNSQ16` alongside the effective `entry`.
+
 For `PositionLiquidated`, `liqLotLNS` is the liquidated size and `posLotLNS` is
 the remaining post-event size. The canonical adapter never aliases the latter
 to the liquidated size.

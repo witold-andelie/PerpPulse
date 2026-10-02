@@ -20,6 +20,7 @@ pub struct PositionState {
     pub status: String,
     pub lot_lns: i128,
     pub entry_pns: i128,
+    pub entry_residue_pnsq16: u32,
     pub deposit_cns: i128,
     pub leverage_hdths: u32,
     pub realized_pnl_cns: i128,
@@ -188,6 +189,7 @@ fn apply(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
             position.deposit_cns = end_deposit;
             if let Some(price_pns) = event.price_pns {
                 position.entry_pns = price_pns;
+                position.entry_residue_pnsq16 = 0;
             }
         }
         LifecycleKind::MakerFill => ledger.fills.push(fill(event, "maker")?),
@@ -259,6 +261,7 @@ fn open_position(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
         status: "open".to_string(),
         lot_lns: required(event.lot_lns, "lot_lns")?,
         entry_pns: required(event.price_pns, "price_pns")?,
+        entry_residue_pnsq16: event.price_residue_pnsq16.unwrap_or(0),
         deposit_cns: required(event.deposit_cns, "deposit_cns")?,
         leverage_hdths: event.leverage_hdths.unwrap_or(0),
         realized_pnl_cns: previous.map_or(0, |position| position.realized_pnl_cns),
@@ -290,6 +293,7 @@ fn increase(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
     }
     position.lot_lns = end_lot;
     position.entry_pns = required(event.price_pns, "price_pns")?;
+    position.entry_residue_pnsq16 = event.price_residue_pnsq16.unwrap_or(0);
     position.deposit_cns = required(event.end_deposit_cns, "end_deposit_cns")?;
     if let Some(leverage) = event.leverage_hdths {
         position.leverage_hdths = leverage;
@@ -414,6 +418,7 @@ fn invert(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
     position.side = next_side;
     position.lot_lns = end_lot;
     position.entry_pns = price;
+    position.entry_residue_pnsq16 = 0;
     position.deposit_cns = end_deposit;
     position.realized_pnl_cns = accumulate(position.realized_pnl_cns, delta)?;
     position.realized_funding_cns = accumulate(position.realized_funding_cns, funding)?;

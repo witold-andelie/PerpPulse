@@ -1,5 +1,5 @@
 {
-  "version": "perppulse-methodology-v3",
+  "version": "perppulse-methodology-v4",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
@@ -7,6 +7,7 @@
   "accounting": {
     "amounts": "Finite decimal strings derived from integer native scales",
     "positionSide": "Perpl wire 0=long and 1=short are verified against source payloads and mapped to ledger 1=long and 2=short; other wire values fail closed",
+    "entryPrice": "Preserve V2 Q16 residue: long with nonzero residue uses (stored PNS minus one plus residue/65536), short uses (stored PNS plus residue/65536), then apply the native price scale; integer decimal construction rejects inexact representations",
     "inversion": "Verify prior size and collateral; require the resulting side to differ before applying the post-event state",
     "realizedPnl": "Sum of lifecycle delta_pnl_cns; fees and settled funding are reported separately",
     "unrealizedPnl": "Side-adjusted (mark minus entry) times size; unavailable without an eligible point-in-time mark",

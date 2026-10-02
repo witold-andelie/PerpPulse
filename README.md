@@ -7,11 +7,13 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 > Status: canonical ledger, coverage-bounded Envio-to-Rust adapter,
 > golden-fixture web demo, read-only fixture and live-account APIs, compact PostgreSQL serving,
 > hashed evidence, reconciliation scorecards, and optional Nansen label context implemented.
-> The isolated `risk-hotpath-v2` index recorded 61,636 real Monad events on
-> 2026-10-02, and four accounts created inside coverage had successful replay
-> observations. [Mainnet evidence and limits](docs/verification-2026-10-02-live-v2.md)
-> distinguish this bounded run from pending restart, final live browser acceptance,
-> SDK reconciliation, and public deployment. Licensed Apache-2.0. GCP foundation was provisioned
+> The isolated `risk-hotpath-v2` index resumed on 2026-10-02 with 69,317 real
+> Monad events and a one-block independently observed lag. Four covered accounts
+> passed actual browser checks; an [80-second operating recording](docs/demo/README.md)
+> shows the data flow. [Verification and limits](docs/verification-2026-10-03-envio.md)
+> separate these results and the 23-field position diagnostic from pending full
+> SDK reconciliation, accounting marks and public live deployment.
+> Licensed Apache-2.0. GCP foundation was provisioned
 > in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350;
 > its current state has not been rechecked.
 > No Cloud Run worker is deployed yet. Public repository:
@@ -278,7 +280,9 @@ GitHub Actions runs Rust, PostgreSQL, Graphviz, publication policy, Envio code
 generation, typechecking, and handler tests. Local reproducible evidence is
 recorded in [`docs/verification-2026-10-01.md`](docs/verification-2026-10-01.md)
 and [`docs/verification-2026-10-02.md`](docs/verification-2026-10-02.md).
-The [`two-minute demo script`](docs/demo-script.md) is ready for recording.
+The [real Envio operating recording](docs/demo/README.md) is available with
+English captions. The earlier [demo script](docs/demo-script.md) describes the
+synthetic full-product path; it is not evidence of live global analytics.
 
 ## Architecture
 
@@ -332,7 +336,7 @@ This repository is licensed under the Apache License 2.0. See [`LICENSE`](LICENS
 
 ## Attribution and AI disclosure
 
-The architecture is informed by the public projects and official documentation listed in [`docs/architecture-research.md`](docs/architecture-research.md). Application code is original. `envio/abis/Exchange.events.json` is a subset of events extracted from the MIT-licensed Perpl dex-sdk ABI; see [`envio/abis/SOURCE.md`](envio/abis/SOURCE.md).
+The architecture is informed by the public projects and official documentation listed in [`docs/architecture-research.md`](docs/architecture-research.md). Application code is independently implemented. Exchange event definitions and effective-entry Q16 semantics come from the MIT-licensed Perpl dex-sdk; see [`envio/abis/SOURCE.md`](envio/abis/SOURCE.md), [`docs/data-dictionary.md`](docs/data-dictionary.md), and the [retained upstream license](LICENSES/Perpl-dex-sdk.txt).
 
 OpenAI Codex has been used for web research, architecture drafting, implementation,
 documentation, repository setup, and verification. xAI Grok has been used for

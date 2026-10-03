@@ -35,6 +35,14 @@ The allowance remains 96 and the hard maximum 256. Header, archive, request
 scope and timeout restrictions are described in the
 [operator instructions](../tools/perpl-reference/README.md).
 
+Implementation `f69db5d74bc757a1fbc8300fa37179b83d361a87` was pushed and
+independently remote-SHA checked. [Analytics CI](https://github.com/witold-andelie/PerpPulse/actions/runs/37113722450)
+passed Rust, fresh PostgreSQL, DOT validation, Envio and the SDK operator;
+[policy CI](https://github.com/witold-andelie/PerpPulse/actions/runs/37113722452)
+passed publication checks. [Exact acceptance](evidence/ci-f69db5d-2026-10-03.json)
+retains selected job/check results and the matching anonymous public-download
+hash. Public CI uses fixtures and disposable PostgreSQL, not live RPC calls.
+
 ## Formula and precision contract
 
 The pinned [SDK position implementation](https://github.com/PerplFoundation/dex-sdk/blob/dbb37c59f6aef03e38d0787eb9c968f59f652617/crates/sdk/src/state/position.rs)

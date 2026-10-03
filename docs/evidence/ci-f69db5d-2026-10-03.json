@@ -1,0 +1,175 @@
+{
+  "version": "publication-acceptance-v1",
+  "observedAt": "2026-10-03 09:47:10 UTC",
+  "implementationSha": "f69db5d74bc757a1fbc8300fa37179b83d361a87",
+  "baseSha": "2f4f8b6572a6a323f20fbcbfa1a3287c2d13edd6",
+  "remoteMainSha": "f69db5d74bc757a1fbc8300fa37179b83d361a87",
+  "runs": [
+    {
+      "runId": 37113722450,
+      "workflow": "Verify canonical analytics",
+      "headSha": "f69db5d74bc757a1fbc8300fa37179b83d361a87",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37113722450",
+      "jobs": [
+        {
+          "jobId": 111176380032,
+          "name": "sdk-reference",
+          "conclusion": "success",
+          "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37113722450/job/111176380032",
+          "checks": [
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run dtolnay/rust-toolchain@1.95.0",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python3 scripts/test_sdk_reference.py",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run cargo fmt --manifest-path tools/perpl-reference/Cargo.toml --check",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run cargo build --manifest-path tools/perpl-reference/Cargo.toml --locked",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run cargo test --manifest-path tools/perpl-reference/Cargo.toml --locked",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run cargo clippy --manifest-path tools/perpl-reference/Cargo.toml --locked --all-targets -- -D warnings",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "jobId": 111176380149,
+          "name": "envio",
+          "conclusion": "success",
+          "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37113722450/job/111176380149",
+          "checks": [
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run pnpm/action-setup@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run pnpm install --frozen-lockfile",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run pnpm codegen",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run pnpm install --frozen-lockfile",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run pnpm typecheck && pnpm test",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "jobId": 111176380166,
+          "name": "rust",
+          "conclusion": "success",
+          "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37113722450/job/111176380166",
+          "checks": [
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run dtolnay/rust-toolchain@1.95.0",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run cargo fmt --check",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run cargo test --locked",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run cargo test --locked --test service postgres_round_trip -- --ignored",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run cargo clippy --locked --all-targets --all-features -- -D warnings",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python3 scripts/check_repository_policy.py --tracked",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run git diff --check",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run sudo apt-get update && sudo apt-get install -y graphviz",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run dot -Tsvg perppulse_opm.dot -o /tmp/perppulse_opm.svg",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 37113722452,
+      "workflow": "Repository policy",
+      "headSha": "f69db5d74bc757a1fbc8300fa37179b83d361a87",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37113722452",
+      "jobs": [
+        {
+          "jobId": 111176379907,
+          "name": "validate-public-content",
+          "conclusion": "success",
+          "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37113722452/job/111176379907",
+          "checks": [
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Reject local progress and CJK content",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publicArtifact": {
+    "url": "https://raw.githubusercontent.com/witold-andelie/PerpPulse/f69db5d74bc757a1fbc8300fa37179b83d361a87/docs/evidence/sdk-risk-execution-2026-10-03.json",
+    "anonymousDownloadMatches": true,
+    "sha256": "7d82ccba0d61a4487d4590df241a238a05d5ee90a41ee45ab99b7a3f65d96588"
+  },
+  "scope": "Entry-based maintenance, explicit unverified funding and selected historical risk scenarios. Canonical mark/funding ingestion and live risk remain pending."
+}

@@ -4,6 +4,14 @@ Observed 2026-10-03T20:16:19.598847Z. This is retained historical mainnet
 verification, not current source freshness or a new live browser acceptance.
 The thirty-minute Envio launch has ended; the live API continues to fail visibly.
 
+Implementation `73f75a2e3124520bcd028732746c69380ffffe37` is published,
+independently remote-SHA checked and accepted by
+[analytics CI](https://github.com/witold-andelie/PerpPulse/actions/runs/37151154005)
+and [repository policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37151154013).
+The [exact acceptance record](evidence/ci-funding-checkpoints-2026-10-03.json)
+includes the fresh PostgreSQL, Envio, SDK and DOT jobs. An anonymous pinned
+evidence download matched its SHA-256.
+
 ## Accepted scope
 
 The [selected SDK execution](evidence/sdk-funding-checkpoints-2026-10-03.json)

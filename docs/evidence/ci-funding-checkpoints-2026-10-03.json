@@ -1,0 +1,64 @@
+{
+  "version": "publication-ci-acceptance-v1",
+  "observedAt": "2026-10-03T20:24:04Z",
+  "implementationCommit": "73f75a2e3124520bcd028732746c69380ffffe37",
+  "indexerImplementationCommit": "9e0a3673c8bbfc8c5ccc4a34bdacab4c5ff60269",
+  "remoteMainShaMatched": true,
+  "analytics": {
+    "runId": 37151154005,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37151154005",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "rust",
+        "jobId": 111285157002,
+        "conclusion": "success",
+        "checks": [
+          "format",
+          "85 Rust tests",
+          "fresh PostgreSQL integration",
+          "clippy",
+          "tracked publication policy",
+          "diff whitespace",
+          "DOT validation"
+        ]
+      },
+      {
+        "name": "sdk-reference",
+        "jobId": 111285157128,
+        "conclusion": "success",
+        "checks": [
+          "three RPC gate/redaction tests",
+          "format",
+          "locked SDK build",
+          "five SDK precision tests",
+          "clippy"
+        ]
+      },
+      {
+        "name": "envio",
+        "jobId": 111285157140,
+        "conclusion": "success",
+        "checks": [
+          "frozen installation",
+          "code generation",
+          "type checking",
+          "19 Envio tests"
+        ]
+      }
+    ]
+  },
+  "repositoryPolicy": {
+    "runId": 37151154013,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37151154013",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "publicArtifact": {
+    "url": "https://raw.githubusercontent.com/witold-andelie/PerpPulse/73f75a2e3124520bcd028732746c69380ffffe37/docs/evidence/sdk-funding-checkpoints-2026-10-03.json",
+    "credentialFreeDownloadMatched": true,
+    "sha256": "e8a25489d5060cd9fc6536c379e7445d3687c5bc351fcc22e8cb0188983e337e"
+  },
+  "scope": "Published covered funding checkpoints in the one canonical ledger, eligible funded risk, checkpoint inspection and 15 matched SDK checks for three zero-funding positions. Older BTC funding has zero checks and remains unknown. Nonzero mainnet checkpoints, lifetime totals, global analytics and continuous hosting remain unverified."
+}

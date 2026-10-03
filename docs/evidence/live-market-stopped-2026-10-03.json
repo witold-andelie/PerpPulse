@@ -1,0 +1,20 @@
+{
+  "version": "live-market-stopped-source-v1",
+  "observedAt": "2026-10-03T19:07:41.257091+00:00",
+  "status": "passed",
+  "snapshotHttpStatus": 503,
+  "checks": [
+    "source unavailable badge",
+    "financial rows cleared",
+    "export disabled",
+    "no JavaScript errors"
+  ],
+  "sourceArtifacts": {
+    "web/app.js": "sha256:bf459fc69a86f8871e36a7c612f8e120b205c4d6a7d6a5abf3857cd1111a4a55",
+    "crates/perppulse/src/live.rs": "sha256:b4aa512605a928e21bd18c73871e1396aa4ac02a38c6cffcbc049fd7e2ab8872",
+    "crates/perppulse/src/envio.rs": "sha256:0b811e249f9a2bfacc4e82e5994b678780ec1c9e83b7d3fea45d108146ad0856"
+  },
+  "limitations": [
+    "Stopped-source failure evidence; not a fresh mainnet observation."
+  ]
+}

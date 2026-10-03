@@ -324,17 +324,34 @@ fn market_mock(failure: &'static str) -> Mock {
         }
         let query = body["query"].as_str().unwrap();
         if query.contains("PerpPulseRustCoverage") {
-            let progress = if failure == "regression" && market_reads.load(Ordering::SeqCst) > 1 {
+            let progress = if matches!(failure, "regression" | "archive-regression")
+                && market_reads.load(Ordering::SeqCst) > 1
+            {
                 54773034
             } else {
                 54773035
             };
-            json!({"data":{"_meta":[{"chainId":143,"startBlock":"54773010","progressBlock":progress.to_string(),"sourceBlock":"54773040","eventsProcessed":"4","isReady":true}],"CanonicalEvent":[point]}})
+            let source = match failure {
+                "stopped" => "54773034",
+                "archive-lookahead" => "54773029",
+                _ => "54773040",
+            };
+            json!({"data":{"_meta":[{"chainId":143,"startBlock":"54773010","progressBlock":progress.to_string(),"sourceBlock":source,"eventsProcessed":"4","isReady":failure!="stopped"}],"CanonicalEvent":[point]}})
         } else if query.contains("PerpPulseRustVerifyEvent") {
             json!({"data":{"CanonicalEvent":[point]}})
         } else if query.contains("PerpPulseRustMarketEvents") {
             market_reads.fetch_add(1, Ordering::SeqCst);
-            assert_eq!(body["variables"]["endLog"], 3);
+            assert_eq!(
+                body["variables"]["endLog"],
+                if matches!(
+                    failure,
+                    "stopped" | "archive-lookahead" | "archive-regression"
+                ) {
+                    i32::MAX
+                } else {
+                    3
+                }
+            );
             assert_eq!(body["variables"]["endBlock"], "54773030");
             if body["variables"]["abiNames"][0] == "MarkUpdated" {
                 assert!(query.contains("logIndex: desc"));
@@ -346,6 +363,41 @@ fn market_mock(failure: &'static str) -> Mock {
             json!({"data":{"CanonicalEvent":[created,opened]}})
         }
     })
+}
+
+#[test]
+fn archived_market_inputs_accept_retained_coverage_but_never_bypass_live_gates() {
+    let server = market_mock("stopped");
+    let cfg = config(&server);
+    let cutoff = perppulse::AsOf::new(143, 54773030, "0xblock", 1770000600000, None).unwrap();
+    assert!(fetch_snapshot(&cfg).is_err());
+    let archived = cfg
+        .client
+        .fetch_archived_market_inputs_at(&[1], &cutoff, &cfg.registry)
+        .unwrap();
+    assert_eq!(archived.events.len(), 2);
+    let timeline = perppulse::funding::timeline(&archived.events, 1, &cutoff).unwrap();
+    assert!(timeline["active"].is_null());
+    assert_eq!(timeline["pending"][0]["effectiveBlock"], 54773040);
+    assert!(fetch_snapshot(&cfg).is_err());
+    let outside = market_mock("archive-lookahead");
+    let cfg = config(&outside);
+    assert!(cfg
+        .client
+        .fetch_archived_market_inputs_at(&[1], &cutoff, &cfg.registry)
+        .is_err());
+    let inside_block =
+        perppulse::AsOf::new(143, 54773030, "0xblock", 1770000600000, Some(3)).unwrap();
+    assert!(cfg
+        .client
+        .fetch_archived_market_inputs_at(&[1], &inside_block, &cfg.registry)
+        .is_err());
+    let regressed = market_mock("archive-regression");
+    let cfg = config(&regressed);
+    assert!(cfg
+        .client
+        .fetch_archived_market_inputs_at(&[1], &cutoff, &cfg.registry)
+        .is_err());
 }
 
 #[test]

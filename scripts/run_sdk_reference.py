@@ -137,6 +137,30 @@ def ids(value: str) -> list[int]:
         raise argparse.ArgumentTypeError("IDs must be distinct positive u32 integers") from None
 
 
+def failure_reason(stderr: bytes) -> str:
+    """Export only fixed local failure codes, never arbitrary child/provider text."""
+    known = {
+        "funding targets regress or overlap before effectiveness": "funding_schedule_overlap",
+        "funding cumulative sums are discontinuous": "funding_sum_discontinuity",
+        "funding overwrite is unauthorized or changes its prior cumulative sum": "funding_overwrite_invalid",
+        "as-of mark is stale (60-second application limit)": "canonical_mark_stale",
+        "invalid market scope, cutoff or unready coverage": "market_coverage_invalid",
+        "market input coverage changed or regressed": "market_coverage_regressed",
+        "processed block ": "processed_source_inconsistent",
+        "Envio coverage changed incompatibly during source-height verification": "source_witness_invalid",
+        "Envio GraphQL request failed; check endpoint and authentication": "graphql_request_failed",
+        "SDK snapshot failed; no reference was accepted": "sdk_snapshot_failed",
+        "Canonical price PnL missing": "canonical_price_pnl_missing",
+    }
+    if len(stderr) > MAX_BODY:
+        return "unclassified_local_failure"
+    message = stderr.decode("utf-8", errors="replace")
+    for phrase, code in known.items():
+        if message.startswith("Reference verification failed: ") and phrase in message:
+            return code
+    return "unclassified_local_failure"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, required=True)
@@ -149,6 +173,7 @@ def main() -> int:
     parser.add_argument("--allowance", type=int, default=96)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--risk-diagnostics", action="store_true")
+    parser.add_argument("--market-diagnostics", action="store_true")
     args = parser.parse_args()
     if (not 1 <= args.allowance <= 256 or not 0 < args.block <= 2**64 - 1
             or len(args.accounts) > 20 or len(args.markets) > 5
@@ -168,7 +193,7 @@ def main() -> int:
     config = {"rpcUrl": f"http://127.0.0.1:{server.server_port}", "block": args.block,
               "blockHash": args.block_hash, "accountIds": args.accounts, "marketIds": args.markets,
               "graphqlUrl": args.graphql, "registryPath": str(args.registry.resolve()),
-              "riskDiagnostics": args.risk_diagnostics}
+              "riskDiagnostics": args.risk_diagnostics, "marketDiagnostics": args.market_diagnostics}
     try:
         result = subprocess.run([str(args.binary.resolve())], input=json.dumps(config).encode(),
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180, check=False)
@@ -181,7 +206,8 @@ def main() -> int:
              "rpcErrorResponses": gate.failed, "responseLimitBytes": MAX_RESPONSE,
              "requestLimitBytes": MAX_BODY, "overallTimeoutSeconds": 180}
     if result.returncode not in {0, 2} or gate.rejections:
-        print(json.dumps({"status": "failed", "stage": "sdk_reference", "rpcGate": stats}), file=sys.stderr)
+        print(json.dumps({"status": "failed", "stage": "sdk_reference",
+                          "reason": failure_reason(result.stderr), "rpcGate": stats}), file=sys.stderr)
         return 1
     if len(result.stdout) > MAX_RESPONSE:
         raise ValueError("Selected reference output exceeds size limit")
@@ -194,6 +220,7 @@ def main() -> int:
     selected["rpcGate"] = stats
     artifacts = ["crates/perppulse/src/envio.rs", "crates/perppulse/src/evidence.rs",
                  "crates/perppulse/src/accounting.rs", "crates/perppulse/src/serve.rs", "docs/methodology.json",
+                 "crates/perppulse/src/funding.rs", "crates/perppulse/src/ledger.rs",
                  "tools/perpl-reference/src/main.rs", "tools/perpl-reference/Cargo.toml",
                  "tools/perpl-reference/Cargo.lock", "scripts/run_sdk_reference.py"]
     # Git normalizes tracked text to LF; hash that publication representation.
@@ -202,6 +229,8 @@ def main() -> int:
         for name in artifacts
     }
     selected["operatorBinaryHash"] = "sha256:" + hashlib.sha256(args.binary.read_bytes()).hexdigest()
+    selected["registryArtifactName"] = args.registry.name
+    selected["registryArtifactHash"] = "sha256:" + hashlib.sha256(args.registry.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
     # No raw provider responses, owner addresses, endpoint or credentials are exported.
     with args.output.open("x", encoding="utf-8", newline="\n") as output:
         json.dump(selected, output, indent=2, ensure_ascii=True)

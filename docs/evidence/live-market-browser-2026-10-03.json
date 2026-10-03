@@ -1,0 +1,188 @@
+{
+  "version": "live-v3-browser-acceptance-v1",
+  "observedAt": "2026-10-03T18:07:32.786379Z",
+  "mode": "live-mainnet-account-slice",
+  "chainId": 143,
+  "asOfBlock": 110247586,
+  "asOfBlockHash": "0x94972716d33af4fdf8746aed6a3ce2d89404f9a172ef0fceabf73d65bbc7b57f",
+  "asOfLogIndex": 74,
+  "asOfTimestampMs": 1791050834000,
+  "wallets": [
+    {
+      "accountId": 5382,
+      "openPositions": [
+        {
+          "perpetualId": 1,
+          "symbol": "BTC",
+          "side": "long",
+          "size": "0.16478",
+          "entry": "85266.3",
+          "mark": "84995.5",
+          "markEventId": "143:0x4e403266cf313739c3820c575cc04b55ebf2a3b03019de4c1ff56bcadf55e94a:0x6e95ec6151afa9bbf33fb536514c8887b45a4fa41c5615d0977128cb17c61e5f:164",
+          "unrealizedPricePnl": "-44.622424",
+          "unrealizedFunding": null,
+          "liquidationPrice": null
+        }
+      ],
+      "pricePnl": "-44.622424",
+      "marketInputs": [
+        {
+          "active": {
+            "effectiveBlock": 110240202,
+            "paymentPns": "-25",
+            "role": "raw native-unit funding observation; not a position funding amount",
+            "sourceBlock": 110240124,
+            "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:88",
+            "sumPns": "-36808"
+          },
+          "observationCount": 35,
+          "pending": [],
+          "perpetualId": 1,
+          "positionFundingAmount": null,
+          "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+          "replacementCount": 0,
+          "scalingExponent": null,
+          "scalingSourceEventId": null,
+          "status": "observed-checkpoint-unverified"
+        }
+      ]
+    },
+    {
+      "accountId": 5383,
+      "openPositions": [
+        {
+          "perpetualId": 70,
+          "symbol": "VVV",
+          "side": "long",
+          "size": "12.67",
+          "entry": "27.97017767333984375",
+          "mark": "28.0138",
+          "markEventId": "143:0xfeed84409c81a9344ec387c154bf2173a7dbd9435511543bf354270419197ef7:0xd6dded964390d81c1c411224dbcb66ec983870d4006c423aae5ba032cfd6dd67:24",
+          "unrealizedPricePnl": "0.5526948787841796875",
+          "unrealizedFunding": null,
+          "liquidationPrice": null
+        },
+        {
+          "perpetualId": 90,
+          "symbol": "PUMP",
+          "side": "short",
+          "size": "54738",
+          "entry": "0.0060779675140380859375",
+          "mark": "0.006091",
+          "markEventId": "143:0x9e8d7e73221294c5ea031a4c6c015c3e22eba779b9d4ae6b15d1cf880402bde8:0xa0b5cf1fcd90f50f9896986bddcd79e1b7c9ff9e0e233c5c4427a46adc35ffb2:82",
+          "unrealizedPricePnl": "-0.7133722165832519531250",
+          "unrealizedFunding": null,
+          "liquidationPrice": null
+        }
+      ],
+      "pricePnl": "-0.1606773377990722656250",
+      "marketInputs": [
+        {
+          "active": {
+            "effectiveBlock": 110240202,
+            "paymentPns": "1115",
+            "role": "raw native-unit funding observation; not a position funding amount",
+            "sourceBlock": 110240124,
+            "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:84",
+            "sumPns": "129870"
+          },
+          "observationCount": 35,
+          "pending": [],
+          "perpetualId": 70,
+          "positionFundingAmount": null,
+          "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+          "replacementCount": 0,
+          "scalingExponent": null,
+          "scalingSourceEventId": null,
+          "status": "observed-checkpoint-unverified"
+        },
+        {
+          "active": {
+            "effectiveBlock": 110240202,
+            "paymentPns": "0",
+            "role": "raw native-unit funding observation; not a position funding amount",
+            "sourceBlock": 110240124,
+            "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:91",
+            "sumPns": "3744"
+          },
+          "observationCount": 35,
+          "pending": [],
+          "perpetualId": 90,
+          "positionFundingAmount": null,
+          "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+          "replacementCount": 0,
+          "scalingExponent": null,
+          "scalingSourceEventId": null,
+          "status": "observed-checkpoint-unverified"
+        }
+      ]
+    },
+    {
+      "accountId": 5384,
+      "openPositions": [],
+      "pricePnl": "0",
+      "marketInputs": []
+    },
+    {
+      "accountId": 5385,
+      "openPositions": [
+        {
+          "perpetualId": 1,
+          "symbol": "BTC",
+          "side": "short",
+          "size": "0.00118",
+          "entry": "84996.6",
+          "mark": "84995.5",
+          "markEventId": "143:0x4e403266cf313739c3820c575cc04b55ebf2a3b03019de4c1ff56bcadf55e94a:0x6e95ec6151afa9bbf33fb536514c8887b45a4fa41c5615d0977128cb17c61e5f:164",
+          "unrealizedPricePnl": "0.001298",
+          "unrealizedFunding": null,
+          "liquidationPrice": null
+        }
+      ],
+      "pricePnl": "0.001298",
+      "marketInputs": [
+        {
+          "active": {
+            "effectiveBlock": 110240202,
+            "paymentPns": "-25",
+            "role": "raw native-unit funding observation; not a position funding amount",
+            "sourceBlock": 110240124,
+            "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:88",
+            "sumPns": "-36808"
+          },
+          "observationCount": 35,
+          "pending": [],
+          "perpetualId": 1,
+          "positionFundingAmount": null,
+          "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+          "replacementCount": 0,
+          "scalingExponent": null,
+          "scalingSourceEventId": null,
+          "status": "observed-checkpoint-unverified"
+        }
+      ]
+    }
+  ],
+  "canonicalInputsHash": "sha256:6acfb3061a729e8692d8401593dd01322c9d285d3fa876bd691ffdee5d07591f",
+  "marketMarksHash": "sha256:a0443638ce795119d06e6a66b42c88ec8c62e6486c26cc9178f2362f9b1b6c04",
+  "checks": [
+    "four eligible account views",
+    "canonical marks drive open-position price PnL",
+    "unknown position funding and actual risk remain null",
+    "mark source identity and native price inspected",
+    "shared cutoff preserved",
+    "manifest export preserves cutoff",
+    "invalid range rejected",
+    "global totals return 503",
+    "writes return 405",
+    "no JavaScript errors"
+  ],
+  "sourceArtifacts": {
+    "web/app.js": "sha256:bf459fc69a86f8871e36a7c612f8e120b205c4d6a7d6a5abf3857cd1111a4a55",
+    "crates/perppulse/src/live.rs": "sha256:b4aa512605a928e21bd18c73871e1396aa4ac02a38c6cffcbc049fd7e2ab8872",
+    "crates/perppulse/src/envio.rs": "sha256:1e2e9d587e0d2e697e581d755b3b57b17f36e3bd5b641595bf417f6c062b3819",
+    "crates/perppulse/src/accounting.rs": "sha256:3e6d27137aab6b993412b890ce0346b902f0cb360a5dc54ba22011775c67c647",
+    "crates/perppulse/src/funding.rs": "sha256:f779ee0dbdf38c0e84dadc39f65273c3b1b592b06a7ecc9791b949e90ca0c2f4",
+    "fixtures/protocol/mainnet-registry-2026-10-03.json": "sha256:321ab609354ed563ea6123877792b327ff78659d415d3cb7b2d34f6a729b5833"
+  }
+}

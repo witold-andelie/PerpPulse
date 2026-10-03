@@ -115,10 +115,13 @@ correlating the excluded request stream. Raw request and duplicate taker-fill
 evidence may be archived in a separate bounded pipeline, but they must not
 inflate or become a second canonical position ledger.
 
-The official dex-sdk still does not process funding into its in-memory cache.
-PerpPulse records `FundingEventCompleted` and realized `fundingCNS` on
-decrease/close/liquidation events. Unrealized funding on open positions is
-marked unavailable rather than invented.
+PerpPulse records effective-dated `FundingEventCompleted` schedules and realized
+`fundingCNS` on decrease/close/liquidation events. The pinned SDK has funding
+state/checkpoint semantics; PerpPulse's independent canonical position checkpoint
+reconstruction remains unverified. Unrealized funding on open positions stays
+unavailable. [Selected mainnet verification](verification-2026-10-03-market-mainnet.md)
+adds a separate dated registry with SDK-verified VVV (70), preserving the
+September golden registry. NEAR (100) and UNI (110) remain unsupported.
 
 ## Safety
 

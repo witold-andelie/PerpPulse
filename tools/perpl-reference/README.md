@@ -36,7 +36,8 @@ chain identity, fixed-number block headers, and fixed-block contract reads of
 the Exchange or Multicall3. Transaction submission, signing, latest tags,
 other contracts and state overrides are rejected. The SDK receives only this
 local URL. No provider response or child stderr is written to disk. Selected
-numeric fields, input hashes and request counters are exported.
+numeric fields, input hashes and request counters are exported. Failures expose
+only fixed local reason codes; arbitrary child/provider text is discarded.
 
 Default allowance is 96 RPC requests (hard maximum 256), including failed
 attempts; batches count each request. The gate limits request bodies to 64 KiB,
@@ -74,12 +75,46 @@ Add `--risk-diagnostics` to export selected SDK price PnL, premium PnL,
 maintenance and liquidation observations plus a scenario scorecard. The
 canonical entry, size and deposit are combined with SDK reference marks solely
 inside the verifier, after native scales and margin parameters match the
-registry. Maintenance is compared exactly; price PnL is compared after
+registry. Maintenance uses the pinned SDK's UD64 Floor entry representation
+followed by UD128 arithmetic; the exact canonical value is also retained.
+Entry comparisons project native stored price/Q16 residue through that same
+representation and retain the exact ledger entry. This is coefficient-width
+rounding, not a fixed decimal-place tolerance. Price PnL is compared after
 truncation toward zero to collateral native units; liquidation with SDK
 reference premium PnL is compared at market price ticks. Raw values and the
 precision contract are retained. These reference inputs never become canonical
 marks or funding. Actual canonical liquidation remains null. See the
 [risk verification](../../docs/verification-2026-10-03-risk.md).
+
+Add `--market-diagnostics` to acquire canonical v3 MarkUpdated and funding/scale
+events at that same historical end-of-block cutoff. The operator compares exact
+native mark prices and timestamps, retains funding schedules, includes market
+events and mark hashes in canonical manifests, and, with `--risk-diagnostics`,
+also compares canonical mark-driven price PnL at collateral units. SDK/REST marks
+remain reference observations. Historical market reads use retained coverage
+with nonregression/header/subject checks and never relax the live serving gate.
+
+```powershell
+py -3 scripts/run_sdk_reference.py `
+  --binary tools/perpl-reference/target/debug/perppulse-perpl-reference.exe `
+  --block 110245407 `
+  --block-hash 0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65 `
+  --accounts 5382,5383,5384,5385 --markets 1,10,40,70,90 `
+  --graphql http://127.0.0.1:18086/v1/graphql `
+  --registry fixtures/protocol/mainnet-registry-2026-10-03.json `
+  --risk-diagnostics --market-diagnostics --allowance 96 `
+  --output sdk-market-reference.json
+```
+
+This requires the corresponding indexed v3 coverage, not an empty database.
+For the sixth historical market, run a separate scope `--markets 31` at the same
+header and a new output path. For the actual BTC pending funding observation,
+use block 110240124/hash
+`0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44`
+and `--markets 1`. The [mainnet evidence](../../docs/verification-2026-10-03-market-mainnet.md)
+records scope, counts, precision, pending-to-active identity and remaining limits.
+An offline artifact/source audit is `py -3 scripts/check_market_evidence.py`
+from the evidence publication checkout.
 
 ```powershell
 cargo fmt --manifest-path tools/perpl-reference/Cargo.toml --check

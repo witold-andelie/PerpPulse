@@ -1,0 +1,39 @@
+{
+  "observedAt": "2026-10-03T17:56:24.823364+00:00",
+  "chainId": 143,
+  "block": 110245407,
+  "blockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+  "timestampMs": 1791050177000,
+  "asOfLogIndex": null,
+  "coverage": {
+    "chainId": 143,
+    "startBlock": 109944714,
+    "progressBlock": 110245427,
+    "sourceBlock": 110245427,
+    "eventsProcessed": 357925,
+    "isReady": true
+  },
+  "independentRpcHead": 110245430,
+  "accountIds": [
+    5382,
+    5383,
+    5384,
+    5385
+  ],
+  "marketIds": [
+    1,
+    10,
+    31,
+    40,
+    70,
+    90
+  ],
+  "version": "live-market-source-observation-v1",
+  "indexerImplementationCommit": "9e0a3673c8bbfc8c5ccc4a34bdacab4c5ff60269",
+  "runtimeConfigHash": "sha256:1126b2980684755e82fe9782d4439b2dded7bbb797e62f70c8e0e0e186890462",
+  "independentHeadLagBlocks": 3,
+  "limitations": [
+    "Bounded workstation observation; not continuous public hosting.",
+    "Retained isReady does not establish freshness after the launch ends."
+  ]
+}

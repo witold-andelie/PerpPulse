@@ -490,6 +490,22 @@ impl EnvioClient {
         })
     }
 
+    /// Explicit retained-history market verification; never a live fallback.
+    pub fn fetch_archived_market_inputs_at(
+        &self,
+        market_ids: &[u32],
+        as_of: &AsOf,
+        registry: &ProtocolRegistry,
+    ) -> Result<MarketEventSlice> {
+        if as_of.log_index.is_some() {
+            return Err(DataQualityError::msg(
+                "archival market reference requires an end-of-block cutoff",
+            ));
+        }
+        let coverage = self.archived_coverage(as_of)?;
+        self.read_market_inputs_at(market_ids, &coverage, as_of, registry, true)
+    }
+
     /// Bound market observations to the same immutable live cutoff as accounts.
     /// Only the v3 profile proves MarkUpdated coverage; older profiles never
     /// fall back to SDK/REST observations.
@@ -500,7 +516,18 @@ impl EnvioClient {
         as_of: &AsOf,
         registry: &ProtocolRegistry,
     ) -> Result<MarketEventSlice> {
-        if !coverage.is_ready
+        self.read_market_inputs_at(market_ids, coverage, as_of, registry, false)
+    }
+
+    fn read_market_inputs_at(
+        &self,
+        market_ids: &[u32],
+        coverage: &EnvioCoverage,
+        as_of: &AsOf,
+        registry: &ProtocolRegistry,
+        archival: bool,
+    ) -> Result<MarketEventSlice> {
+        if (!archival && !coverage.is_ready)
             || as_of.chain_id == 0
             || as_of.chain_id > i32::MAX as u64
             || as_of.chain_id != coverage.evidence.chain_id
@@ -610,7 +637,11 @@ impl EnvioClient {
             return Err(DataQualityError::msg("market input event bound exceeded"));
         }
         self.verify_event(&coverage.latest_event)?;
-        let final_coverage = self.fetch_coverage(as_of.chain_id)?;
+        let final_coverage = if archival {
+            self.archived_coverage(as_of)?
+        } else {
+            self.fetch_coverage(as_of.chain_id)?
+        };
         if final_coverage.evidence.start_block != coverage.evidence.start_block
             || final_coverage.evidence.processed_block < coverage.evidence.processed_block
             || final_coverage.source_block < coverage.source_block

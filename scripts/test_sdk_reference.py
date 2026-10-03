@@ -3,7 +3,7 @@ import json
 import unittest
 from unittest.mock import patch
 
-from run_sdk_reference import EXCHANGE, Gate
+from run_sdk_reference import EXCHANGE, Gate, failure_reason
 
 
 def request(method, params):
@@ -11,6 +11,16 @@ def request(method, params):
 
 
 class GateTests(unittest.TestCase):
+    def test_failure_export_uses_only_fixed_codes_and_discards_private_text(self):
+        self.assertEqual(failure_reason(
+            b"Reference verification failed: as-of mark is stale (60-second application limit) private provider text"
+        ), "canonical_mark_stale")
+        self.assertEqual(failure_reason(b"private provider text"), "unclassified_local_failure")
+        self.assertEqual(failure_reason(b"funding cumulative sums are discontinuous"),
+                         "unclassified_local_failure")
+        self.assertEqual(failure_reason(b"Reference verification failed: " + b"x" * 65536),
+                         "unclassified_local_failure")
+
     def test_only_pinned_read_operations_are_allowed(self):
         gate = Gate(100, 2, "https://rpc.example.invalid")
         gate.validate(request("eth_chainId", []))

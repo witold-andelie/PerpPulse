@@ -16,7 +16,7 @@ mainnet; separate sponsor rules must still be verified.
 | Open license and attribution | [LICENSE](../LICENSE), [NOTICE](../NOTICE), [ABI source](../envio/abis/SOURCE.md) |
 | Build-window history and identified prior work | Git history; final originality review pending |
 | AI coding disclosure | README attribution section |
-| Monad integration and applicable addresses | [Registry](protocol-registry.md); [real resume/browser evidence](verification-2026-10-03-envio.md) |
+| Monad integration and applicable addresses | [Registry](protocol-registry.md); [v3 actual browser, marks and SDK proof](verification-2026-10-03-market-mainnet.md) |
 | Public three-minute operating video | [80-second real Envio recording](demo/README.md) with English captions; hosted-player URL and portal format acceptance pending |
 | Description, architecture, stack, deployment instructions | README and deployment docs; isolated [mainnet indexing and reader evidence](verification-2026-10-02-live-v2.md) observed; continuous public runtime pending |
 | Website submission; one project and track | Owner registration/submission pending; selected track: Onchain Finance & Trading |

@@ -14,16 +14,18 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 > separate these results and the earlier 23-field ABI diagnostic from pending work.
 > The [official SDK execution](docs/verification-2026-10-03-sdk.md) now matches 40
 > position fields at the identical end-of-block cutoff for four covered accounts
-> and three selected markets. Lifetime totals, accounting marks and public live
+> and three selected markets. Lifetime totals and public live
 > deployment remain unverified.
 > [Risk formula verification](docs/verification-2026-10-03-risk.md) matches six
 > selected historical SDK comparisons. Maintenance uses effective entry notional;
 > price PnL is separate from total PnL. Actual liquidation and equity stay null
 > until unsettled funding is reconstructed independently.
-> The [v3 canonical market path](docs/verification-2026-10-03-market-v3.md)
-> now ingests source-linked marks and effective-dated funding observations.
-> Local mock/fixture and browser checks pass; new v3 mainnet acceptance and
-> position funding checkpoints remain pending.
+> The [v3 mainnet market proof](docs/verification-2026-10-03-market-mainnet.md)
+> verifies canonical marks and price PnL in the actual four-account dashboard.
+> Same-cutoff SDK execution matches 80 position checks, 12 native mark/time
+> checks and 16 risk diagnostics across six selected markets. Real published
+> funding remains pending until its effective block. Position funding checkpoints,
+> global analytics and continuous public hosting remain pending.
 > Licensed Apache-2.0. GCP foundation was provisioned
 > in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350;
 > its current state has not been rechecked.
@@ -54,8 +56,9 @@ The latest Q16 reader correction and operating artifacts in `4b9135b` passed
 [Rust, PostgreSQL, Envio and DOT verification](https://github.com/witold-andelie/PerpPulse/actions/runs/37076854913)
 and [publication policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37076854941).
 CI and a bounded local mainnet run do not establish a continuously available
-public demo. Missing point-in-time marks, global totals and independent
-reconciliation remain visible limits.
+public demo. Missing or stale inputs, global totals and unverified lifetime
+accounting remain visible limits. Selected mainnet mark/position verification is
+recorded in the newer v3 proof above.
 
 1. Start on a signal-first protocol Risk Pulse with the top three changes and visible freshness.
 2. Inspect volume, open interest, TVL, fees and revenue, active users, flows, skew, liquidations, and funding over 24-hour, 7-day, 30-day, and historical windows.
@@ -97,7 +100,7 @@ metrics. Because a taker-fill balance cannot be attributed to an account from
 that log alone, arbitrary-wallet free-balance history remains explicitly
 degraded rather than being presented as complete.
 
-Verified Perpl mainnet facts live in [`docs/protocol-registry.md`](docs/protocol-registry.md) and [`fixtures/protocol/mainnet-registry.json`](fixtures/protocol/mainnet-registry.json). Exchange proxy: `0x34B6552d57a35a1D042CcAe1951BD1C370112a6F` on Monad chain 143, start block `54773010`.
+Verified Perpl mainnet facts live in [`docs/protocol-registry.md`](docs/protocol-registry.md). The [September registry](fixtures/protocol/mainnet-registry.json) remains frozen for fixtures; the [dated live registry](fixtures/protocol/mainnet-registry-2026-10-03.json) additionally covers independently verified VVV (70). Exchange proxy: `0x34B6552d57a35a1D042CcAe1951BD1C370112a6F` on Monad chain 143, start block `54773010`.
 
 ### Setup
 
@@ -189,6 +192,7 @@ operate on one immutable snapshot obtained through `/api/snapshot`.
 
 ```powershell
 cargo run -p perppulse -- serve-envio --accounts 5238
+cargo run --locked -p perppulse -- serve-envio --accounts 5382,5383,5384,5385 --registry fixtures/protocol/mainnet-registry-2026-10-03.json
 cargo run -p perppulse -- evidence fixtures/golden/open-position-as-of.json
 ```
 
@@ -203,8 +207,9 @@ Restart only after the source has been reconciled.
 A watchlist cannot prove global protocol totals, so the live protocol endpoint
 returns 503. Each account exposes its replay eligibility. Eligible accounts have
 deterministic realized facts and position state; incomplete history blocks
-position replay. Free balance and open-position mark-derived facts remain null
-until their missing inputs are proven. An old v1 index is inspection-only.
+position replay. Canonical v3 MarkUpdated inputs drive price PnL and source
+inspection. Free balance and actual funded equity/liquidation remain null;
+legacy profiles retain unavailable marks. An old v1 index is inspection-only.
 
 ### Public market input inspection
 
@@ -227,8 +232,10 @@ than 60 seconds; duplicate, future, stale, and ambiguous same-block marks are
 rejected. The 60-second application limit is conservative and still requires
 comparison with the live protocol's exact-cutoff limits. Same-block log cutoffs
 require the matching block hash and a mark log at or before the selected cutoff.
-The September registry remains a frozen golden-fixture input; live metadata
-adoption and independent onchain mark verification remain pending.
+The September registry remains a frozen golden-fixture input. The dated registry
+adds SDK-verified VVV metadata; six selected markets have same-cutoff onchain
+mark comparisons in the [v3 proof](docs/verification-2026-10-03-market-mainnet.md).
+Unknown markets still fail closed.
 
 The compact PostgreSQL publisher stores one snapshot per source, capped at 1 MB,
 with input and content hashes. It does not copy the raw event stream. Set

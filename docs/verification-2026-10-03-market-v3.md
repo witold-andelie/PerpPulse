@@ -9,6 +9,8 @@ effective schedules, while position funding amounts and actual liquidation
 remain unavailable until checkpoint reconstruction is proven.
 
 This is local implementation acceptance, not a new v3 mainnet operating proof.
+Subsequent [mainnet acceptance](verification-2026-10-03-market-mainnet.md)
+records real browser operation and independent same-cutoff mark/price-PnL checks.
 The previously accepted v2 archive/runtime remains intact. No cloud resource,
 paid call, wallet, order or custody logic was added.
 
@@ -112,7 +114,7 @@ In a separate terminal, choose unused output paths:
 py -3 scripts/verify_risk_browser.py --expect-mark-event --expect-pending-funding-block 54773040 --fixture fixtures/golden/canonical-market-inputs.json --output market-browser.json --screenshot market-browser.png
 ```
 
-## Pending mainnet acceptance
+## Runtime preparation and subsequent mainnet acceptance
 
 The local isolated runtime is now prepared from the exact implementation SHA.
 It uses a separate v3 network, volume and PostgreSQL/Hasura ports, and preserves
@@ -131,9 +133,9 @@ normal launch accepts an Envio HyperSync token through masked terminal input,
 passes it through stdin, redacts output and retains it only in process memory.
 Its authenticated ingestion window is capped at thirty minutes. It resumes
 the source/config-bound initialized database without a restart/reset migration.
-After owner input, record fresh
-coverage/head, source hashes, one shared cutoff, MarkUpdated provenance and
-independent SDK mark/time/price-PnL comparisons. Published future schedules must
-remain pending and failures must stay visible. The retained v2 archive does not
-contain MarkUpdated and cannot close this acceptance. Full position funding
-replay, global analytics, continuous hosting and live Nansen remain open.
+Owner input subsequently enabled the bounded real run. The
+[mainnet acceptance record](verification-2026-10-03-market-mainnet.md) now captures
+fresh coverage/head, actual browser operation, same-cutoff SDK marks and price
+PnL, and a real pending-to-active funding publication. The retained v2 archive
+does not contain MarkUpdated. Full position funding replay, global analytics,
+continuous hosting and live Nansen remain open.

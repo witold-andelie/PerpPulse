@@ -3124,6 +3124,7 @@ name = "perppulse-perpl-reference"
 version = "0.1.0"
 dependencies = [
  "alloy",
+ "fastnum",
  "perpl-sdk",
  "perppulse",
  "rust_decimal",

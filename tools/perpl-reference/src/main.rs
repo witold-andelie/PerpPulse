@@ -9,6 +9,7 @@ use alloy::{
     eips::BlockId,
     providers::{Provider, ProviderBuilder},
 };
+use fastnum::{UD64, UD128, decimal::RoundingMode};
 use perpl_sdk::{
     Chain,
     state::{PositionType, SnapshotBuilder},
@@ -42,6 +43,8 @@ struct Config {
     market_ids: Vec<u32>,
     #[serde(default)]
     risk_diagnostics: bool,
+    #[serde(default)]
+    market_diagnostics: bool,
 }
 
 fn decimal(value: impl std::fmt::Display) -> Result<String, String> {
@@ -60,6 +63,66 @@ fn risk_check(name: &str, actual: Decimal, expected: Decimal, decimals: Option<u
     json!({"field": name, "formulaValue": actual.to_string(), "sdkValue": expected.to_string(),
         "comparisonDecimals": decimals, "rounding": if decimals.is_some() {"truncate toward zero"} else {"exact"},
         "status": if comparable(actual) == comparable(expected) {"matched"} else {"mismatch"}})
+}
+
+// Verifier-only projection based on the pinned MIT SDK's
+// state/position.rs::effective_entry_price; see LICENSES/Perpl-dex-sdk.txt.
+fn sdk_entry_value(stored: i128, residue: u32, side: u8, decimals: u32) -> Result<UD64, String> {
+    if stored <= 0 || residue >= 65536 || decimals > 18 || !matches!(side, SIDE_LONG | SIDE_SHORT) {
+        return Err("Unsupported SDK entry projection inputs".into());
+    }
+    let stored = u64::try_from(stored).map_err(|_| "SDK native entry exceeds u64")?;
+    let converter = perpl_sdk::num::Converter::new(decimals as u8);
+    if residue == 0 {
+        return Ok(converter.from_u64(stored));
+    }
+    let mut base = UD64::from_u64(stored).with_rounding_mode(RoundingMode::Floor);
+    if side == SIDE_LONG {
+        base -= UD64::ONE;
+    }
+    Ok((base
+        + UD64::from_u32(residue).with_rounding_mode(RoundingMode::Floor)
+            / UD64::from_u64(65536).with_rounding_mode(RoundingMode::Floor))
+        / converter.scale())
+}
+
+fn sdk_entry_projection(
+    stored: i128,
+    residue: u32,
+    side: u8,
+    decimals: u32,
+) -> Result<Decimal, String> {
+    number(sdk_entry_value(stored, residue, side, decimals)?)
+}
+
+fn sdk_maintenance_projection(
+    stored: i128,
+    residue: u32,
+    side: u8,
+    decimals: u32,
+    size: Decimal,
+    inverse: Decimal,
+) -> Result<Decimal, String> {
+    if size <= Decimal::ZERO || inverse <= Decimal::ZERO {
+        return Err("Invalid SDK margin projection inputs".into());
+    }
+    let entry: UD128 = sdk_entry_value(stored, residue, side, decimals)?.resize();
+    let sdk_size = size
+        .to_string()
+        .parse::<UD64>()
+        .map_err(|_| "SDK size projection failed")?
+        .with_rounding_mode(RoundingMode::Floor);
+    let sdk_inverse = inverse
+        .to_string()
+        .parse::<UD64>()
+        .map_err(|_| "SDK margin projection failed")?
+        .with_rounding_mode(RoundingMode::Floor);
+    if number(sdk_size)? != size || number(sdk_inverse)? != inverse {
+        return Err("SDK size or inverse cannot be projected exactly".into());
+    }
+    let size: UD128 = sdk_size.resize();
+    let inverse: UD128 = sdk_inverse.resize();
+    number(entry * size / inverse)
 }
 
 async fn header<P: Provider>(provider: &P, block: u64) -> Result<AsOf, String> {
@@ -215,6 +278,52 @@ async fn run(config: Config) -> Result<Value, String> {
     let mut manifests = Vec::new();
     let mut risk_references = Vec::new();
     let mut risk_scorecards = Vec::new();
+    let mut market_scorecards = Vec::new();
+    let mut market_inputs = Vec::new();
+    let mut funding_timelines = Vec::new();
+    if config.market_diagnostics {
+        market_inputs = client
+            .fetch_archived_market_inputs_at(&config.market_ids, &as_of, &registry)
+            .map_err(|e| e.to_string())?
+            .events;
+        let ledger = replay(&market_inputs, &registry, &as_of).map_err(|e| e.to_string())?;
+        for id in &markets {
+            let canonical = ledger
+                .market_marks
+                .get(id)
+                .ok_or("Canonical mark is missing")?;
+            let market = snapshot.perpetuals().get(id).ok_or("SDK market missing")?;
+            let spec = registry.market(*id).map_err(|e| e.to_string())?;
+            let native = number(market.mark_price())?
+                .checked_mul(Decimal::from(10u64.pow(spec.price_decimals)))
+                .ok_or("SDK mark scaling overflow")?;
+            if !native.fract().is_zero() {
+                return Err("SDK mark is not an exact native integer".into());
+            }
+            let sdk_time = market
+                .mark_price_timestamp()
+                .checked_mul(1000)
+                .and_then(|v| i64::try_from(v).ok())
+                .ok_or("SDK mark time overflow")?;
+            let checks = vec![
+                risk_check("markPricePns", number(canonical.mark_pns)?, native, None),
+                risk_check(
+                    "markTimestampMs",
+                    number(canonical.timestamp_ms)?,
+                    number(sdk_time)?,
+                    None,
+                ),
+            ];
+            market_scorecards.push(json!({"perpetualId":id,"sourceEventId":ledger.mark_event_ids[id],
+                "sourceBlock":canonical.block_number,"sourceBlockHash":canonical.block_hash,"sourceLogIndex":canonical.log_index,
+                "markAgeMs":as_of.timestamp_ms-canonical.timestamp_ms,
+                "status":if checks.iter().all(|c| c["status"]=="matched") {"matched"} else {"mismatch"},"checks":checks}));
+            funding_timelines.push(
+                perppulse::funding::timeline(&market_inputs, *id, &as_of)
+                    .map_err(|e| e.to_string())?,
+            );
+        }
+    }
     let mut total_events = 0usize;
     for id in &accounts {
         let slice = client
@@ -236,8 +345,11 @@ async fn run(config: Config) -> Result<Value, String> {
         {
             return Err("Canonical account history is not eligible for replay".into());
         }
-        let ledger = replay(&slice.events, &registry, &as_of).map_err(|e| e.to_string())?;
-        let wallet = account_wallet(&ledger, u64::from(*id), &as_of, &[], false)
+        let mut combined = slice.events.clone();
+        combined.extend(market_inputs.iter().cloned());
+        let ledger = replay(&combined, &registry, &as_of).map_err(|e| e.to_string())?;
+        let marks: Vec<_> = ledger.market_marks.values().cloned().collect();
+        let wallet = account_wallet(&ledger, u64::from(*id), &as_of, &marks, false)
             .map_err(|e| e.to_string())?;
         let account = snapshot
             .accounts()
@@ -308,12 +420,17 @@ async fn run(config: Config) -> Result<Value, String> {
                     premium,
                 )
                 .map_err(|e| e.to_string())?;
-                let checks = vec![
+                let mut checks = vec![
                     risk_check(
-                        "entryMaintenanceMargin",
-                        scenario
-                            .maintenance_margin
-                            .ok_or("Maintenance scenario missing")?,
+                        "entryMaintenanceMarginAtSdkArithmetic",
+                        sdk_maintenance_projection(
+                            canonical.entry_pns,
+                            canonical.entry_residue_pnsq16,
+                            canonical.side,
+                            spec.price_decimals,
+                            scenario.size,
+                            number(market.maintenance_margin())?,
+                        )?,
                         number(p.maintenance_margin_requirement())?,
                         None,
                     ),
@@ -332,12 +449,34 @@ async fn run(config: Config) -> Result<Value, String> {
                         Some(spec.price_decimals),
                     ),
                 ];
+                checks[0]["canonicalExactValue"] =
+                    json!(scenario.maintenance_margin.map(|v| v.to_string()));
+                checks[0]["comparisonRepresentation"] = json!(
+                    "Pinned SDK UD64 entry flooring followed by UD128 margin arithmetic; canonical exact arithmetic is unchanged"
+                );
+                if config.market_diagnostics {
+                    let canonical_position = wallet
+                        .positions
+                        .iter()
+                        .find(|p| p.perpetual_id == *market_id && p.status == "open")
+                        .ok_or("Canonical price PnL position missing")?;
+                    checks.push(risk_check(
+                        "canonicalPricePnlAtCollateralUnits",
+                        canonical_position
+                            .unrealized_price_pnl
+                            .ok_or("Canonical price PnL missing")?,
+                        number(p.delta_pnl())?,
+                        Some(registry.collateral.decimals),
+                    ));
+                    checks.last_mut().unwrap()["markSourceEventId"] =
+                        json!(canonical_position.mark_event_id);
+                }
                 risk_scorecards.push(json!({"accountId": id, "perpetualId": market_id,
                         "status": if checks.iter().all(|v| v["status"] == "matched") {"matched"} else {"mismatch"}, "checks": checks,
                         "zeroFundingLiquidationPrice": scenario.zero_funding_liquidation_price.map(|v| v.to_string()),
                         "referencePremiumPnl": premium.to_string(), "conditionalFundedLiquidationPrice": conditional_liq.to_string(),
                         "canonicalActualLiquidationPrice": scenario.liquidation_price.map(|v| v.to_string()),
-                        "role": "reference-input scenario only; canonical mark and unsettled funding provenance remain unverified"}));
+                        "role": "SDK mark/funding scenarios are verifier inputs only; enabled canonical price checks use separately indexed marks. Position funding checkpoints remain unverified."}));
             }
             positions.push(if let Some(p) = account.positions().get(market_id) {
                 json!({"perpetualId": market_id, "status": "open",
@@ -356,12 +495,49 @@ async fn run(config: Config) -> Result<Value, String> {
             "positionSnapshotComplete": true, "marketIds": markets, "positions": positions,
             "realizedPnl": Value::Null, "realizedFunding": Value::Null, "fees": Value::Null,
             "freeBalance": Value::Null});
-        scorecards.push(
-            evidence::reconcile_positions(&wallet, &as_of, &reference)
-                .map_err(|e| e.to_string())?,
-        );
+        let mut sdk_wallet = wallet.clone();
+        for p in sdk_wallet
+            .positions
+            .iter_mut()
+            .filter(|p| p.status == "open" && markets.contains(&p.perpetual_id))
+        {
+            let spec = registry.market(p.perpetual_id).map_err(|e| e.to_string())?;
+            p.entry = sdk_entry_projection(
+                p.stored_entry_pns,
+                p.entry_residue_pnsq16,
+                if p.side == "long" {
+                    SIDE_LONG
+                } else {
+                    SIDE_SHORT
+                },
+                spec.price_decimals,
+            )?;
+        }
+        let mut scorecard = evidence::reconcile_positions(&sdk_wallet, &as_of, &reference)
+            .map_err(|e| e.to_string())?;
+        scorecard["version"] = json!("position-reconciliation-v2-sdk-width");
+        for check in scorecard["checks"]
+            .as_array_mut()
+            .ok_or("Invalid position scorecard")?
+        {
+            if check["field"] == "entryPrice"
+                && let Some(p) = wallet.positions.iter().find(|p| {
+                    Some(u64::from(p.perpetual_id)) == check["perpetualId"].as_u64()
+                        && p.status == "open"
+                })
+            {
+                check["canonicalSdkProjection"] = check["canonical"].clone();
+                check["canonical"] = json!(p.entry.to_string());
+                check["canonicalStoredEntryPns"] = json!(p.stored_entry_pns.to_string());
+                check["canonicalEntryResiduePnsQ16"] = json!(p.entry_residue_pnsq16);
+                check["comparisonRepresentation"] = json!(
+                    "Pinned SDK UD64 Floor projection from canonical native entry/residue; exact ledger entry is retained"
+                );
+            }
+        }
+        scorecards.push(scorecard);
         let mut manifest = evidence::manifest(
-            &slice.events,
+            &combined,
             &as_of,
             &slice.coverage.evidence,
             "envio-mainnet-archive",
@@ -369,13 +545,15 @@ async fn run(config: Config) -> Result<Value, String> {
         .map_err(|e| e.to_string())?;
         manifest["accountId"] = json!(id);
         manifest["registryHash"] = json!(evidence::digest(&registry).map_err(|e| e.to_string())?);
+        manifest["marketMarksHash"] =
+            json!(evidence::digest(&ledger.market_marks).map_err(|e| e.to_string())?);
         manifest["observedSourceBlock"] = json!(slice.coverage.source_block);
         manifest["observedIsReady"] = json!(slice.coverage.is_ready);
         manifest["reconciliation"] = json!({"status": "partially-verified",
             "role": "external verifier", "positionsStatus": scorecards.last().unwrap()["status"],
             "accountTotalsStatus": "unverified",
             "referenceHash": evidence::digest(&reference).map_err(|e| e.to_string())?,
-            "scope": "Requested position state only; lifetime totals, balances and mark-derived facts remain unverified."});
+            "scope": "Requested position state; enabled diagnostics separately compare canonical marks and price PnL. Lifetime totals, balances and position funding remain unverified."});
         manifests.push(manifest);
         references.push(reference);
     }
@@ -385,6 +563,7 @@ async fn run(config: Config) -> Result<Value, String> {
     let matched = scorecards
         .iter()
         .chain(&risk_scorecards)
+        .chain(&market_scorecards)
         .all(|v| v["status"] == "matched");
     Ok(
         json!({"version": "sdk-reference-execution-v1", "sdkCommit": SDK_COMMIT,
@@ -396,9 +575,12 @@ async fn run(config: Config) -> Result<Value, String> {
         "marketObservations": metadata,
         "riskReferences": risk_references,
         "riskScorecards": risk_scorecards,
+        "marketScorecards": market_scorecards, "fundingTimelines": funding_timelines,
+        "marketInputsHash": if market_inputs.is_empty() {Value::Null} else {json!(evidence::digest(&market_inputs).map_err(|e|e.to_string())?)},
+        "marketInputEventCount": market_inputs.len(),
         "limitations": ["SDK calls pin the block number; its header hash is checked before and after acquisition, not EIP-1898 on every call.",
             "Completeness is restricted to the selected markets and covered account histories.",
-            "Lifetime totals, balances, mark-derived accounting and live freshness are not verified."]}),
+            "Lifetime totals, balances, unsettled position funding, funded equity/liquidation and live freshness are not verified."]}),
     )
 }
 
@@ -440,6 +622,40 @@ async fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sdk_width_entry_projection_matches_native_q16_flooring() {
+        assert_eq!(
+            sdk_entry_projection(279308, 9405, SIDE_LONG, 4).unwrap(),
+            number("27.93071435089111328").unwrap()
+        );
+        assert_eq!(
+            sdk_entry_projection(849317, 62196, SIDE_SHORT, 1).unwrap(),
+            number("84931.79490356445312").unwrap()
+        );
+        assert_ne!(
+            sdk_entry_projection(279308, 9405, SIDE_LONG, 4).unwrap(),
+            sdk_entry_projection(279308, 9406, SIDE_LONG, 4).unwrap()
+        );
+        assert!(sdk_entry_projection(279308, 65536, SIDE_LONG, 4).is_err());
+        assert!(sdk_entry_projection(279308, 9405, 0, 4).is_err());
+    }
+
+    #[test]
+    fn sdk_width_maintenance_preserves_the_upstream_entry_rounding() {
+        assert_eq!(
+            sdk_maintenance_projection(
+                279308,
+                9405,
+                SIDE_LONG,
+                4,
+                number("6.47").unwrap(),
+                number(10).unwrap()
+            )
+            .unwrap(),
+            number("18.07117218502655029216").unwrap()
+        );
+    }
 
     #[test]
     fn comparison_contract_preserves_raw_values_and_rejects_native_unit_differences() {

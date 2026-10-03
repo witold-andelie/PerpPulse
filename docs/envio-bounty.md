@@ -19,9 +19,9 @@ The bounty is track-agnostic. Envio Cloud and self-hosted pipelines are accepted
 
 | Supplied requirement | Current evidence | Remaining acceptance work |
 | --- | --- | --- |
-| Meaningful Envio use with real onchain data | HyperIndex canonical handlers and Rust replay; [restart/browser evidence](verification-2026-10-03-envio.md) and [40 matching SDK position checks](verification-2026-10-03-sdk.md) for four covered accounts | Lifetime account totals and mark-derived risk remain unverified |
+| Meaningful Envio use with real onchain data | HyperIndex lifecycle and MarkUpdated inputs drive positions, price PnL and source inspection; [v3 mainnet proof](verification-2026-10-03-market-mainnet.md) has 80 matching SDK position checks and 12 exact mark/time checks across six markets | Lifetime account totals and position funding/funded risk remain unverified |
 | Working indexer or pipeline, deployed to Envio Cloud or self-hosted | Public [config](../envio/config.yaml), [schema](../envio/schema.graphql), [handlers](../envio/src/EventHandlers.ts), [run instructions](../envio/README.md); isolated self-hosted mainnet run with preserved restart and independent one-block lag observation | Continuous public availability remains pending; 26.25-second marker-to-ready timing excludes setup and is not full cold-start timing |
-| Useful frontend, dashboard, agent, bot, or API consuming the data | Four-account actual browser acceptance; source-event evidence, cutoff-preserving UI manifest, visible unavailable marks, invalid-range rejection and stopped-source failure | Eligible marks, account-total verification and global analytics remain outside this accepted account-only path |
+| Useful frontend, dashboard, agent, bot, or API consuming the data | Ten actual v3 browser checks: four covered accounts, canonical mark-driven price PnL, source inspection, preserved export cutoff and visible failure boundaries | Account-total verification, position funding and global analytics remain pending |
 | Short end-to-end video or live link | [80-second real operating recording](demo/README.md), English captions and [recording provenance](demo/recording.json) | Check submission-portal codec acceptance or publish a hosted player; no continuous public app URL is claimed |
 | Submission explanation of meaningful use | Owner-provided catalog URL, updated draft, source/mainnet evidence and [verified implementation 4b9135b](evidence/ci-4b9135b-2026-10-03.json) | Current catalog revision, final form and owner submission |
 | Optional Envio demo video, at most two minutes | VP8 WebM duration 80.20 seconds; actual mainnet event-to-feature workflow | Confirm the main competition and Envio forms accept the same recording |
@@ -34,7 +34,7 @@ subject to the final submission form accepting the same artifact.
 
 | Supplied criterion | Implementation direction | Evidence needed |
 | --- | --- | --- |
-| Depth of use | Non-trivial lifecycle schema, source provenance, processed-coverage metadata, derived Rust positions and deterministic analytics | A real v2 event-to-feature trace and exact-cutoff replay evidence; aggregate only sufficiently covered data |
+| Depth of use | Lifecycle schema, canonical marks, effective-dated funding, source provenance, processed coverage and derived Rust positions | Accepted v3 event-to-feature and same-cutoff SDK evidence; aggregate only sufficiently covered data |
 | Working product | Read-only app powered by a continuously refreshed source | Live data correctness, catch-up and restart, freshness, quarantine and unavailable-source behavior |
 | Originality | Protocol-to-wallet-to-event navigation preserving one cutoff | A concrete useful workflow and an honest explanation of prior work and current limits |
 | Craft | Pinned dependencies, readable handlers, explicit schema, bounded adapters and reproducible setup | Green public CI, source/config links and a reproducible live run manifest |
@@ -53,14 +53,19 @@ read-only application connects account positions and realized facts to their
 source block, transaction and log, with visible incomplete-history and stale-source
 states. Envio therefore supplies the facts behind the user workflow.
 
-The bounded self-hosted run resumed with preserved coverage and 69,317 events.
-Four accounts created inside that coverage passed actual browser acceptance.
+The isolated v3 self-hosted run processed 357,925 events at the selected source
+observation with a three-block independently observed lag. Four covered
+accounts passed ten actual browser checks, including canonical mark-driven
+price PnL and mark-event inspection. Official SDK execution at the same
+historical end-of-block header matches 80 position checks, 12 exact native
+mark/time checks and 16 risk diagnostics across six markets. A real funding
+publication stays pending until its future effective block. These results are
+recorded in [v3 mainnet verification](verification-2026-10-03-market-mainnet.md).
+
 An [80-second recording](demo/README.md) shows positions, event evidence,
-manifest export and advancing coverage. The earlier 23-field ABI diagnostic
-was followed by [official SDK execution](verification-2026-10-03-sdk.md) matching
-40 position checks for four covered accounts and three markets at the identical
-end-of-block header. Lifetime totals, global historical analytics, accounting
-marks and continuous public hosting remain pending. The video implementation is
+manifest export and advancing coverage from the earlier v2 run; it does not
+show the newer v3 marks. Lifetime totals, global historical analytics, position
+funding/funded risk and continuous public hosting remain pending. The video implementation is
 `4b9135b4d9921ec1368d99c65f93ce83d4118ef3`; the indexer source was pinned to
 `a8e5254095496e90b32b15cc331782d7cadc11ef`. The owner-provided catalog link is
 recorded above. Final submission still needs the current form/revision check

@@ -1,0 +1,37 @@
+{
+  "asOfBlock": 110247586,
+  "asOfBlockHash": "0x94972716d33af4fdf8746aed6a3ce2d89404f9a172ef0fceabf73d65bbc7b57f",
+  "asOfLogIndex": 74,
+  "asOfTimestampMs": 1791050834000,
+  "canonicalInputsHash": "sha256:6acfb3061a729e8692d8401593dd01322c9d285d3fa876bd691ffdee5d07591f",
+  "chainId": 143,
+  "eventCount": 9008,
+  "firstEventId": "143:0x05082078c025f4702d3dc0dbdf9ad43f6d514955305d0ee53550f70b9092dec9:0x411e5b4eedb883f6f6ee51c46509cb031a40094b7bd69aff8ec4c4ca37cb31c6:34",
+  "lastEventId": "143:0xfeed84409c81a9344ec387c154bf2173a7dbd9435511543bf354270419197ef7:0xd6dded964390d81c1c411224dbcb66ec983870d4006c423aae5ba032cfd6dd67:24",
+  "limitations": [
+    "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+    "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+  ],
+  "marketMarksHash": "sha256:a0443638ce795119d06e6a66b42c88ec8c62e6486c26cc9178f2362f9b1b6c04",
+  "methodologyHash": "sha256:9d8bc66f122e810c7947638fdf776d0c1c378986f7f2fd771621b307ecc4fdf4",
+  "orderedEventIdsHash": "sha256:cd974a68eb0dcfe1200c15883b29b40c2f74837f0a4d8012b4d8a561b0f0ed7c",
+  "processedBlock": 110247586,
+  "provenanceTuples": [
+    [
+      "canonical-event-v5",
+      "envio-handlers-v5",
+      "exchange-classifier-v4",
+      "risk-hotpath-v3",
+      "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+    ]
+  ],
+  "reconciliation": {
+    "reason": "No same-cutoff Perpl reference was supplied.",
+    "role": "external verifier",
+    "status": "unverified"
+  },
+  "registryInputsHash": "sha256:67b3c7b5b871dbe76771c0f3ab99dc73bc1d5c2bf3a7fd3a176e2243a35c3c26",
+  "source": "Envio account watchlist",
+  "startBlock": 109944714,
+  "version": "range-manifest-v1"
+}

@@ -1,8 +1,10 @@
 # Market input observation and accounting eligibility
 
 Version: market-input-contract-v2. This contract adds local validation and a
-public metadata observation path. It does not establish live mark verification,
-complete wallet history, or protocol-wide coverage.
+public metadata observation path. The selected
+[v3 mainnet proof](verification-2026-10-03-market-mainnet.md) separately verifies
+canonical marks for six markets; complete wallet accounting and protocol-wide
+coverage remain open.
 
 ## Public context observation
 
@@ -52,7 +54,9 @@ inputs still need source verification before use in live accounting.
 
 The 60-second freshness limit is an application quality rule. It does not claim
 to be the live Perpl `refPriceMaxAgeSec`. Native fixture marks remain synthetic.
-The v3 watchlist can consume canonical MarkUpdated inputs with source event IDs. Legacy profiles retain null mark-derived facts. New mainnet v3 acceptance remains pending.
+The v3 watchlist consumes canonical MarkUpdated inputs with source event IDs.
+Selected mainnet marks and price PnL have independent SDK evidence; legacy
+profiles retain null mark-derived facts.
 Supplying malformed or stale marks fails the accounting request visibly.
 
 Price PnL and entry-based maintenance use checked decimal arithmetic. Actual equity and liquidation remain null while unsettled funding checkpoints are unverified; conditional zero-funding scenarios have separate fields. Values outside
@@ -69,7 +73,11 @@ metadata did not change after that selected cutoff; and attach a sanitized
 source manifest. An end-of-block SDK/RPC snapshot must not be used for a
 mid-block log cutoff without proving that intervening relevant logs are absent.
 Then compare eligible open-position facts against an independently obtained
-Perpl SDK state. These requirements remain open.
+Perpl SDK state. This has been accepted for the six explicitly scoped markets
+at block 110245407, with a separate actual-browser cutoff at 110247586/log 74.
+No end-of-block SDK reference is represented as a mid-block UI reconciliation.
+The dated registry adds only verified VVV (70); broader metadata adoption and
+unsettled position funding remain open.
 
 
 ## Canonical market inputs

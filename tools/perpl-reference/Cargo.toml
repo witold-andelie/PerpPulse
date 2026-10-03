@@ -1,0 +1,17 @@
+[package]
+name = "perppulse-perpl-reference"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+perppulse = { path = "../../crates/perppulse" }
+perpl-sdk = { git = "https://github.com/PerplFoundation/dex-sdk", rev = "dbb37c59f6aef03e38d0787eb9c968f59f652617", default-features = false }
+alloy = { version = "=2.0.4", default-features = false, features = ["provider-http", "rpc-types", "reqwest-rustls-tls"] }
+tokio = { version = "1.52.2", features = ["rt-multi-thread", "macros", "time"] }
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+rust_decimal = "1.36"

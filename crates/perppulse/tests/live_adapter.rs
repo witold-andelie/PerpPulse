@@ -78,6 +78,76 @@ fn row(name: &str, log: u32, payload: Value, kind: &str) -> Value {
         "schemaVersion":"canonical-event-v4","handlerVersion":"envio-handlers-v4","classifierVersion":"exchange-classifier-v3","ingestionProfile":"risk-hotpath-v2",
         "abiFingerprint":"sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1"})
 }
+
+fn archived_mock(corrupt_header: bool, regress: bool) -> Mock {
+    let reads = AtomicUsize::new(0);
+    let mut created = row(
+        "AccountCreated",
+        0,
+        json!({"id":"42","account":"0x1111111111111111111111111111111111111111"}),
+        "ACCOUNT_CREATED",
+    );
+    if corrupt_header {
+        created["blockHash"] = json!("0xdifferent");
+    }
+    let point = json!({"id":"143:0xlater:0xtx:1", "blockNumber":"54773035",
+        "blockHash":"0xlater", "logIndex":1, "timestampMs":"1770000605000"});
+    Mock::new(move |body| {
+        let query = body["query"].as_str().unwrap();
+        if query.contains("PerpPulseRustCoverage") {
+            let read = reads.fetch_add(1, Ordering::SeqCst);
+            let progress = if regress && read > 0 {
+                "54773035"
+            } else {
+                "54773036"
+            };
+            json!({"data":{"_meta":[{"chainId":143,"startBlock":"54773010",
+                "progressBlock":progress,"sourceBlock":"54773035","eventsProcessed":"2",
+                "isReady":false}],"CanonicalEvent":[point]}})
+        } else if query.contains("PerpPulseRustVerifyEvent") {
+            json!({"data":{"CanonicalEvent":[point]}})
+        } else {
+            assert_eq!(body["variables"]["endBlock"], "54773030");
+            json!({"data":{"CanonicalEvent":[created]}})
+        }
+    })
+}
+
+#[test]
+fn explicit_archive_accepts_retained_whole_block_but_live_still_rejects_it() {
+    let server = archived_mock(false, false);
+    let client = EnvioClient::new(&server.endpoint, None, 500, 100).unwrap();
+    let cutoff = perppulse::AsOf::new(143, 54773030, "0xblock", 1770000600000, None).unwrap();
+    let slice = client.fetch_archived_account_at(42, &cutoff).unwrap();
+    assert_eq!(slice.as_of, cutoff);
+    assert!(!slice.coverage.is_ready);
+    assert_eq!(slice.coverage.evidence.processed_block, 54773036);
+    assert_eq!(slice.coverage.source_block, 54773035);
+    assert_eq!(slice.events.len(), 1);
+    assert!(client.fetch_account_at(42, &slice.coverage).is_err());
+    let mut partial = cutoff.clone();
+    partial.log_index = Some(0);
+    assert!(client.fetch_archived_account_at(42, &partial).is_err());
+    let beyond_source =
+        perppulse::AsOf::new(143, 54773036, "0xblock", 1770000600000, None).unwrap();
+    assert!(client
+        .fetch_archived_account_at(42, &beyond_source)
+        .is_err());
+}
+
+#[test]
+fn archive_rejects_wrong_header_and_regressing_retained_coverage() {
+    let cutoff = perppulse::AsOf::new(143, 54773030, "0xblock", 1770000600000, None).unwrap();
+    for (wrong_header, regress) in [(true, false), (false, true)] {
+        let server = archived_mock(wrong_header, regress);
+        let client = EnvioClient::new(&server.endpoint, None, 500, 100).unwrap();
+        assert!(client.fetch_archived_account_at(42, &cutoff).is_err());
+    }
+    let server = archived_mock(false, false);
+    let client = EnvioClient::new(&server.endpoint, None, 500, 100).unwrap();
+    let wrong_time = perppulse::AsOf::new(143, 54773030, "0xblock", 1770000600001, None).unwrap();
+    assert!(client.fetch_archived_account_at(42, &wrong_time).is_err());
+}
 fn mock(head: u64, corrupt_subject: bool) -> Mock {
     mock_side(head, corrupt_subject, 0)
 }

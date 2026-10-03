@@ -55,6 +55,16 @@ totals, not the account's complete position state or executable liquidity.
 
 ## Operational boundaries
 
+The separate [SDK reference operator](../tools/perpl-reference/README.md)
+executes `SnapshotBuilder` at an independently checked historical end-of-block
+header and compares selected position state with retained Envio replay. Its
+`position-reconciliation-v1` contract requires an explicit nonempty market
+scope, complete open/closed rows, exact finite decimal strings and the same
+chain, account, block hash and timestamp. Absence outside requested markets is
+not evidence. This does not change the account-total CLI contract above or
+replace the live API's freshness gates. See the
+[40-check mainnet result](verification-2026-10-03-sdk.md).
+
 - A live wallet requires the exact v2 provenance tuple and history from deployment
   or its first account-creation event before position replay is eligible.
 - Live marks have no verified ledger cutoff yet, so open unrealized PnL,

@@ -9,3 +9,8 @@ https://github.com/PerplFoundation/dex-sdk
 The upstream license is retained in LICENSES/Perpl-dex-sdk.txt. The pinned
 source revision and semantic references are documented in envio/abis/SOURCE.md
 and docs/data-dictionary.md.
+
+The isolated read-only verifier in tools/perpl-reference executes the same
+MIT-licensed Perpl dex-sdk as a pinned Git dependency. Its revision, request
+boundary and reproduction instructions are documented in
+tools/perpl-reference/README.md. It is not part of the production serving ledger.

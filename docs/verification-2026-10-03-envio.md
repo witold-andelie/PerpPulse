@@ -5,6 +5,10 @@ observations occurred on October 2 UTC. It extends the
 [first mainnet run and reader corrections](verification-2026-10-02-live-v2.md).
 The product remains read-only.
 
+Subsequent [official SDK execution](verification-2026-10-03-sdk.md) on October 3
+matched 40 selected position checks at an identical end-of-block header. The
+ABI-only diagnostic below retains its original log-cutoff and execution limits.
+
 ## Restart and coverage
 
 The operator restarted the isolated runtime through hidden terminal input.

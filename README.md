@@ -11,8 +11,11 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 > Monad events and a one-block independently observed lag. Four covered accounts
 > passed actual browser checks; an [80-second operating recording](docs/demo/README.md)
 > shows the data flow. [Verification and limits](docs/verification-2026-10-03-envio.md)
-> separate these results and the 23-field position diagnostic from pending full
-> SDK reconciliation, accounting marks and public live deployment.
+> separate these results and the earlier 23-field ABI diagnostic from pending work.
+> The [official SDK execution](docs/verification-2026-10-03-sdk.md) now matches 40
+> position fields at the identical end-of-block cutoff for four covered accounts
+> and three selected markets. Lifetime totals, accounting marks and public live
+> deployment remain unverified.
 > Licensed Apache-2.0. GCP foundation was provisioned
 > in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350;
 > its current state has not been rechecked.
@@ -246,6 +249,15 @@ account totals report matched, mismatch, or unverified per field; missing values
 do not count as matches. Position state and executable liquidity are outside this
 scorecard's scope. A mismatch exits with an error. See the reference contract in
 [`docs/serving-and-evidence.md`](docs/serving-and-evidence.md).
+
+The isolated [SDK reference operator](tools/perpl-reference/README.md) executes
+the pinned official `SnapshotBuilder` against a fixed historical block behind a
+read-only RPC request gate. It replays retained Envio events at the same
+end-of-block header and compares position status, size, deposit, direction and
+effective entry. Every selected market requires explicit open/closed state;
+missing or incomplete references fail. This archival path never replaces the
+live API's freshness checks. Its selected mainnet evidence is in
+[`docs/verification-2026-10-03-sdk.md`](docs/verification-2026-10-03-sdk.md).
 
 Optional Nansen common labels use the official
 [Address Labels endpoint](https://docs.nansen.ai/api/profiler/address-labels),

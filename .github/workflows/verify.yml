@@ -48,3 +48,14 @@ jobs:
         working-directory: envio
       - run: pnpm typecheck && pnpm test
         working-directory: envio
+  sdk-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: rustfmt, clippy
+      - run: python3 scripts/test_sdk_reference.py
+      - run: cargo fmt --manifest-path tools/perpl-reference/Cargo.toml --check
+      - run: cargo build --manifest-path tools/perpl-reference/Cargo.toml --locked
+      - run: cargo clippy --manifest-path tools/perpl-reference/Cargo.toml --locked --all-targets -- -D warnings

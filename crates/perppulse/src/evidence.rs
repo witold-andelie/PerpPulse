@@ -126,3 +126,170 @@ pub fn reconcile(snapshot: &crate::serve::ApiSnapshot, reference: &Value) -> Res
         "checks": checks, "scope": "Account totals only; open-position state, unrealized funding, and executable liquidity are not verified by this scorecard."}),
     )
 }
+
+/// Position-only verification against a complete SDK snapshot of explicitly
+/// selected markets. Account lifetime totals are outside this contract.
+pub fn reconcile_positions(
+    wallet: &crate::accounting::WalletSnapshot,
+    as_of: &AsOf,
+    reference: &Value,
+) -> Result<Value> {
+    use rust_decimal::Decimal;
+    use std::collections::{BTreeMap, BTreeSet};
+
+    if as_of.log_index.is_some()
+        || reference["source"] != "perpl-dex-sdk"
+        || reference["positionSnapshotComplete"] != true
+        || reference["chainId"].as_u64() != Some(as_of.chain_id)
+        || reference["accountId"].as_u64() != Some(wallet.account_id)
+        || reference["asOfBlock"].as_u64() != Some(as_of.block_number)
+        || reference["asOfBlockHash"].as_str() != Some(&as_of.block_hash)
+        || reference.get("asOfLogIndex") != Some(&Value::Null)
+        || reference["asOfTimestampMs"].as_i64() != Some(as_of.timestamp_ms)
+    {
+        return Err(DataQualityError::msg(
+            "position reference requires a complete SDK snapshot at the identical end-of-block header",
+        ));
+    }
+    let ids = reference["marketIds"]
+        .as_array()
+        .ok_or_else(|| DataQualityError::msg("position reference requires explicit marketIds"))?;
+    let mut scope = BTreeSet::new();
+    for id in ids {
+        let id = id
+            .as_u64()
+            .and_then(|n| u32::try_from(n).ok())
+            .filter(|n| *n > 0)
+            .ok_or_else(|| DataQualityError::msg("invalid reference market ID"))?;
+        if !scope.insert(id) {
+            return Err(DataQualityError::msg("duplicate reference market ID"));
+        }
+    }
+    if scope.is_empty() || scope.len() > 20 {
+        return Err(DataQualityError::msg(
+            "reference market scope must contain 1 to 20 IDs",
+        ));
+    }
+    let rows = reference["positions"]
+        .as_array()
+        .ok_or_else(|| DataQualityError::msg("reference positions are missing"))?;
+    let mut positions = BTreeMap::new();
+    for row in rows {
+        let id = row["perpetualId"]
+            .as_u64()
+            .and_then(|n| u32::try_from(n).ok())
+            .ok_or_else(|| DataQualityError::msg("invalid reference position market"))?;
+        if !scope.contains(&id) || positions.insert(id, row).is_some() {
+            return Err(DataQualityError::msg(
+                "duplicate or out-of-scope reference position",
+            ));
+        }
+    }
+    if positions.len() != scope.len() {
+        return Err(DataQualityError::msg(
+            "every requested market requires explicit open or closed reference state",
+        ));
+    }
+    let canonical: BTreeMap<_, _> = wallet
+        .positions
+        .iter()
+        .map(|p| (p.perpetual_id, p))
+        .collect();
+    if canonical.len() != wallet.positions.len() {
+        return Err(DataQualityError::msg("duplicate canonical position"));
+    }
+    let mut checks = Vec::new();
+    for id in &scope {
+        let row = positions[id];
+        let status = row["status"]
+            .as_str()
+            .filter(|s| matches!(*s, "open" | "closed"))
+            .ok_or_else(|| DataQualityError::msg("invalid reference position status"))?;
+        let mut amounts = BTreeMap::new();
+        for field in ["size", "deposit"] {
+            let amount = row[field]
+                .as_str()
+                .and_then(|s| Decimal::from_str_exact(s).ok())
+                .filter(|n| *n >= Decimal::ZERO)
+                .ok_or_else(|| {
+                    DataQualityError::msg(
+                        "reference size/deposit must be exact nonnegative decimals",
+                    )
+                })?;
+            amounts.insert(field, amount);
+        }
+        let side = row["side"].as_str();
+        let entry = row["entryPrice"]
+            .as_str()
+            .and_then(|s| Decimal::from_str_exact(s).ok());
+        if (status == "closed"
+            && (amounts["size"] != Decimal::ZERO
+                || amounts["deposit"] != Decimal::ZERO
+                || row.get("side") != Some(&Value::Null)
+                || row.get("entryPrice") != Some(&Value::Null)))
+            || (status == "open"
+                && (amounts["size"] <= Decimal::ZERO
+                    || !matches!(side, Some("long" | "short"))
+                    || entry.is_none_or(|n| n <= Decimal::ZERO)))
+        {
+            return Err(DataQualityError::msg(
+                "inconsistent reference position state",
+            ));
+        }
+        let position = canonical.get(id);
+        let canonical_status = position.map_or("closed", |p| p.status.as_str());
+        let mut check = |field: &str, actual: Value, expected: Value, matched: bool| {
+            checks.push(json!({"perpetualId": id, "field": field,
+                "canonical": actual, "reference": expected,
+                "status": if matched {"matched"} else {"mismatch"}}));
+        };
+        check(
+            "status",
+            json!(canonical_status),
+            json!(status),
+            canonical_status == status,
+        );
+        for field in ["size", "deposit"] {
+            let actual = position.map_or(Decimal::ZERO, |p| {
+                if field == "size" {
+                    p.size
+                } else {
+                    p.deposit
+                }
+            });
+            check(
+                field,
+                json!(actual.normalize().to_string()),
+                row[field].clone(),
+                actual == amounts[field],
+            );
+        }
+        if status == "open" || canonical_status == "open" {
+            let actual_side = position
+                .filter(|p| p.status == "open")
+                .map(|p| p.side.as_str());
+            let actual_entry = position.filter(|p| p.status == "open").map(|p| p.entry);
+            check(
+                "side",
+                json!(actual_side),
+                row["side"].clone(),
+                actual_side == side,
+            );
+            check(
+                "entryPrice",
+                json!(actual_entry.map(|n| n.normalize().to_string())),
+                row["entryPrice"].clone(),
+                actual_entry == entry,
+            );
+        }
+    }
+    let excluded: Vec<_> = canonical.keys().filter(|id| !scope.contains(id)).collect();
+    let matched = checks.iter().all(|c| c["status"] == "matched");
+    Ok(json!({"version": "position-reconciliation-v1",
+        "status": if matched {"matched"} else {"mismatch"},
+        "accountId": wallet.account_id, "chainId": as_of.chain_id,
+        "asOfBlock": as_of.block_number, "asOfBlockHash": as_of.block_hash,
+        "asOfLogIndex": Value::Null, "asOfTimestampMs": as_of.timestamp_ms,
+        "marketIds": scope, "excludedCanonicalMarketIds": excluded, "checks": checks,
+        "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified."}))
+}

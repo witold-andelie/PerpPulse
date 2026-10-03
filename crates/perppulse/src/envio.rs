@@ -378,6 +378,113 @@ impl EnvioClient {
             Some(coverage.latest_event.log_index),
         )?;
 
+        let events = self.read_account_events(account_id, coverage, &as_of)?;
+        self.verify_event(&coverage.latest_event)?;
+        let final_coverage = self.fetch_coverage(chain_id)?;
+        if !final_coverage.is_ready
+            || final_coverage.evidence.start_block != coverage.evidence.start_block
+            || final_coverage.evidence.processed_block < coverage.evidence.processed_block
+        {
+            return Err(DataQualityError::msg(
+                "Envio coverage changed incompatibly while the account slice was read",
+            ));
+        }
+        Ok(AccountEventSlice {
+            account_id,
+            coverage: coverage.clone(),
+            as_of,
+            events,
+        })
+    }
+
+    /// Explicit historical end-of-block read. The caller must independently
+    /// verify the supplied block header before and after reference acquisition.
+    /// Retained committed coverage is usable while the indexer is stopped;
+    /// this method is never a fallback for the live freshness/readiness path.
+    pub fn fetch_archived_account_at(
+        &self,
+        account_id: u64,
+        as_of: &AsOf,
+    ) -> Result<AccountEventSlice> {
+        if as_of.log_index.is_some() {
+            return Err(DataQualityError::msg(
+                "archival reference requires an end-of-block cutoff",
+            ));
+        }
+        let coverage = self.archived_coverage(as_of)?;
+        let events = self.read_account_events(account_id, &coverage, as_of)?;
+        self.verify_event(&coverage.latest_event)?;
+        let final_coverage = self.archived_coverage(as_of)?;
+        if final_coverage.evidence.start_block != coverage.evidence.start_block
+            || final_coverage.evidence.processed_block < coverage.evidence.processed_block
+            || final_coverage.source_block < coverage.source_block
+            || final_coverage.events_processed < coverage.events_processed
+        {
+            return Err(DataQualityError::msg(
+                "retained Envio coverage regressed during the archival read",
+            ));
+        }
+        Ok(AccountEventSlice {
+            account_id,
+            coverage,
+            as_of: as_of.clone(),
+            events,
+        })
+    }
+
+    fn archived_coverage(&self, as_of: &AsOf) -> Result<EnvioCoverage> {
+        let chain_id = as_of.chain_id;
+        if chain_id == 0 || chain_id > i32::MAX as u64 {
+            return Err(DataQualityError::msg("invalid archival chain_id"));
+        }
+        let data: RawCoverageData = self.post(
+            COVERAGE_QUERY,
+            &CoverageVariables {
+                chain_id: chain_id as u32,
+            },
+        )?;
+        if data.metadata.len() != 1 || data.latest_events.len() != 1 {
+            return Err(DataQualityError::msg(
+                "archival coverage requires one metadata row and latest event",
+            ));
+        }
+        let metadata = &data.metadata[0];
+        let evidence = CoverageEvidence {
+            chain_id: u64::from(metadata.chain_id),
+            start_block: metadata.start_block.to_u64("_meta.startBlock")?,
+            processed_block: metadata.progress_block.to_u64("_meta.progressBlock")?,
+        };
+        evidence.validate()?;
+        let source_block = metadata.source_block.to_u64("_meta.sourceBlock")?;
+        let latest_event = data.latest_events[0].to_indexed_point()?;
+        if evidence.chain_id != chain_id
+            || as_of.block_number < evidence.start_block
+            || as_of.block_number > evidence.processed_block
+            || as_of.block_number > source_block
+            || latest_event.block_number < evidence.start_block
+            || latest_event.block_number > evidence.processed_block
+        {
+            return Err(DataQualityError::msg(
+                "archival cutoff is outside retained Envio chain/source/processed coverage",
+            ));
+        }
+        Ok(EnvioCoverage {
+            evidence,
+            source_block,
+            events_processed: metadata.events_processed.to_u64("_meta.eventsProcessed")?,
+            is_ready: metadata.is_ready,
+            latest_event,
+        })
+    }
+
+    fn read_account_events(
+        &self,
+        account_id: u64,
+        coverage: &EnvioCoverage,
+        as_of: &AsOf,
+    ) -> Result<Vec<CanonicalEvent>> {
+        let chain_id = coverage.evidence.chain_id;
+
         let mut cursor_block = coverage.evidence.start_block;
         let mut cursor_log = -1i64;
         let mut raw_events = Vec::new();
@@ -435,28 +542,16 @@ impl EnvioClient {
                 || event.block_number < coverage.evidence.start_block
                 || !as_of.includes(event.block_number, event.log_index)
                 || event.timestamp_ms > as_of.timestamp_ms
+                || (event.block_number == as_of.block_number
+                    && (event.block_hash != as_of.block_hash
+                        || event.timestamp_ms != as_of.timestamp_ms))
             {
                 return Err(DataQualityError::msg(
                     "GraphQL returned an event outside the requested account, coverage, or cutoff",
                 ));
             }
         }
-        self.verify_event(&coverage.latest_event)?;
-        let final_coverage = self.fetch_coverage(chain_id)?;
-        if !final_coverage.is_ready
-            || final_coverage.evidence.start_block != coverage.evidence.start_block
-            || final_coverage.evidence.processed_block < coverage.evidence.processed_block
-        {
-            return Err(DataQualityError::msg(
-                "Envio coverage changed incompatibly while the account slice was read",
-            ));
-        }
-        Ok(AccountEventSlice {
-            account_id,
-            coverage: coverage.clone(),
-            as_of,
-            events,
-        })
+        Ok(events)
     }
 
     fn verify_event(&self, expected: &IndexedPoint) -> Result<()> {

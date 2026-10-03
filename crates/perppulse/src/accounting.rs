@@ -83,6 +83,7 @@ pub struct PositionSnapshot {
     pub stored_entry_pns: i128,
     pub entry_residue_pnsq16: u32,
     pub mark: Option<Decimal>,
+    pub mark_event_id: Option<String>,
     pub deposit: Decimal,
     pub leverage: Option<Decimal>,
     pub unrealized_pnl: Option<Decimal>,
@@ -143,7 +144,15 @@ pub fn account_wallet(
         if position.position_id.account_id != account_id {
             continue;
         }
-        let snap = position_snapshot(position, &ledger.registry, as_of, marks, require_marks)?;
+        let mut snap = position_snapshot(position, &ledger.registry, as_of, marks, require_marks)?;
+        if snap.mark.is_some()
+            && ledger
+                .market_marks
+                .get(&snap.perpetual_id)
+                .is_some_and(|canonical| marks.iter().any(|mark| mark == canonical))
+        {
+            snap.mark_event_id = ledger.mark_event_ids.get(&snap.perpetual_id).cloned();
+        }
         warnings.extend(snap.warnings.iter().cloned());
         realized_total = add(realized_total, snap.realized_pnl, "wallet realized PnL")?;
         fees_total = add(fees_total, snap.fees, "wallet fees")?;
@@ -325,6 +334,7 @@ pub fn position_snapshot(
         stored_entry_pns: position.entry_pns,
         entry_residue_pnsq16: position.entry_residue_pnsq16,
         mark: mark_px,
+        mark_event_id: None,
         deposit,
         leverage,
         unrealized_pnl: (!position.is_open()).then_some(Decimal::ZERO),

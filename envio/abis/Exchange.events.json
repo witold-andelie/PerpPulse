@@ -2280,5 +2280,43 @@
       }
     ],
     "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MarkUpdated",
+    "inputs": [
+      {
+        "name": "perpId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "pricePNS",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FundingSumScalingExpUpdated",
+    "inputs": [
+      {
+        "name": "perpId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newExp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
   }
 ]

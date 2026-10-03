@@ -33,6 +33,8 @@ contracts:
       - event: PositionUnwoundV2
       - event: PositionUnwoundWithoutPayment
       - event: PositionUnwoundWithoutPaymentV2
+      - event: MarkUpdated
+      - event: FundingSumScalingExpUpdated
       - event: FundingEventCompleted
       - event: MakerOrderFilled
       - event: MakerOrderFilledV2

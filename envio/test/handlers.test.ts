@@ -86,6 +86,9 @@ test("PositionLiquidated writes one fully traceable canonical fact", async () =>
     fundingPricePns: undefined,
     fundingPaymentPns: undefined,
     fundingSumPns: undefined,
+    fundingEventBlock: undefined,
+    fundingAllowOverwrite: undefined,
+    fundingScalingExp: undefined,
     positionFmvCns: undefined,
     paymentCns: undefined,
     amountOwedCns: undefined,
@@ -102,4 +105,23 @@ test("PositionLiquidated writes one fully traceable canonical fact", async () =>
     ingestionProfile: INGESTION_PROFILE,
     abiFingerprint: ABI_FINGERPRINT,
   });
+});
+
+test("MarkUpdated and funding handlers preserve event identity and effective block", async () => {
+  const data = {chainId:143, logIndex:2, block:{number:100,hash:"0xblock",parentHash:"0xparent",timestamp:1000},transaction:{hash:"0xtx"}};
+  const mark = TestHelpers.Exchange.MarkUpdated.createMockEvent({perpId:1n,pricePNS:710000n,mockEventData:data});
+  const marked = await TestHelpers.Exchange.MarkUpdated.processEvent({event:mark,mockDb:TestHelpers.MockDb.createMockDb()});
+  const row = marked.entities.CanonicalEvent.getAll()[0];
+  assert.equal(row.markPricePns,710000n);
+  assert.equal(row.kind,"MARK_UPDATED");
+  assert.equal(row.accountId,undefined);
+  assert.equal(row.id,"143:0xblock:0xtx:2");
+  const funding = TestHelpers.Exchange.FundingEventCompleted.createMockEvent({perpId:1n,fundingEventBlock:120n,
+    specifiedRatePct100k:-5n,actualRatePct100k:-5n,fundingPricePNS:710000n,fundingPaymentPNS:-8n,fundingSumPNS:-10n,allowOverwrite:true,mockEventData:{...data,logIndex:3}});
+  const funded = await TestHelpers.Exchange.FundingEventCompleted.processEvent({event:funding,mockDb:marked});
+  const observation = funded.entities.CanonicalEvent.getAll().find((e) => e.kind === "MARKET_FUNDING")!;
+  assert.equal(observation.fundingEventBlock,120n);
+  assert.equal(observation.fundingAllowOverwrite,true);
+  assert.equal(observation.fundingPaymentPns,-8n);
+  assert.equal(observation.timestampMs,1000000n);
 });

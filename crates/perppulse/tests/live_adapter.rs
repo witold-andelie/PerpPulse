@@ -255,6 +255,161 @@ fn config(mock: &Mock) -> LiveConfig {
         nansen: None,
     }
 }
+
+fn v3_row(mut value: Value) -> Value {
+    value["schemaVersion"] = json!(perppulse::envio::MARKET_SCHEMA_VERSION);
+    value["handlerVersion"] = json!(perppulse::envio::MARKET_HANDLER_VERSION);
+    value["classifierVersion"] = json!(perppulse::envio::MARKET_CLASSIFIER_VERSION);
+    value["ingestionProfile"] = json!(perppulse::envio::MARKET_INGESTION_PROFILE);
+    value["abiFingerprint"] = json!(perppulse::envio::MARKET_ABI_FINGERPRINT);
+    value
+}
+
+fn market_mock(failure: &'static str) -> Mock {
+    let created = v3_row(row(
+        "AccountCreated",
+        0,
+        json!({"id":"42","account":"0x1111111111111111111111111111111111111111"}),
+        "ACCOUNT_CREATED",
+    ));
+    let opened = v3_row(row(
+        "PositionOpened",
+        1,
+        json!({"accountId":"42","perpId":"1","positionType":"0","leverageHdths":"700","depositCNS":"10000000000","pricePNS":"700000","lotLNS":"100000","insFeeCNS":"0","protFeeCNS":"69000"}),
+        "POSITION_OPENED",
+    ));
+    let mut mark = v3_row(row(
+        "MarkUpdated",
+        2,
+        json!({"perpId":"1","pricePNS":"710000"}),
+        "MARK_UPDATED",
+    ));
+    mark["accountId"] = Value::Null;
+    mark["positionType"] = Value::Null;
+    let mut funding = v3_row(row(
+        "FundingEventCompleted",
+        3,
+        json!({"perpId":"1","fundingEventBlock":"54773040","actualRatePct100k":"1","fundingPricePNS":"700000","fundingPaymentPNS":"1","fundingSumPNS":"5","allowOverwrite":false}),
+        "MARKET_FUNDING",
+    ));
+    funding["accountId"] = Value::Null;
+    funding["positionType"] = Value::Null;
+    let point = json!({"id":"143:0xblock:0xtx:3","blockNumber":"54773030","blockHash":"0xblock","logIndex":3,"timestampMs":"1770000600000"});
+    if failure == "future-log" {
+        mark["logIndex"] = json!(4);
+        mark["id"] = json!("143:0xblock:0xtx:4");
+    }
+    if failure == "foreign-market" {
+        mark["perpetualId"] = json!(10);
+    }
+    if failure == "legacy-mark" {
+        mark["schemaVersion"] = json!("canonical-event-v4");
+    }
+    if failure == "stale" {
+        mark["blockNumber"] = json!("54773020");
+        mark["timestampMs"] = json!("1770000540000");
+    }
+    if failure == "malformed-funding" {
+        let mut p: Value = serde_json::from_str(funding["payloadJson"].as_str().unwrap()).unwrap();
+        p["allowOverwrite"] = json!("false");
+        funding["payloadJson"] = json!(p.to_string());
+    }
+    let market_reads = AtomicUsize::new(0);
+    Mock::new(move |body| {
+        if body["method"] == "eth_chainId" {
+            return json!({"result":"0x8f"});
+        }
+        if body["method"] == "eth_blockNumber" {
+            return json!({"result":format!("0x{:x}",54773040)});
+        }
+        let query = body["query"].as_str().unwrap();
+        if query.contains("PerpPulseRustCoverage") {
+            let progress = if failure == "regression" && market_reads.load(Ordering::SeqCst) > 1 {
+                54773034
+            } else {
+                54773035
+            };
+            json!({"data":{"_meta":[{"chainId":143,"startBlock":"54773010","progressBlock":progress.to_string(),"sourceBlock":"54773040","eventsProcessed":"4","isReady":true}],"CanonicalEvent":[point]}})
+        } else if query.contains("PerpPulseRustVerifyEvent") {
+            json!({"data":{"CanonicalEvent":[point]}})
+        } else if query.contains("PerpPulseRustMarketEvents") {
+            market_reads.fetch_add(1, Ordering::SeqCst);
+            assert_eq!(body["variables"]["endLog"], 3);
+            assert_eq!(body["variables"]["endBlock"], "54773030");
+            if body["variables"]["abiNames"][0] == "MarkUpdated" {
+                assert!(query.contains("logIndex: desc"));
+                json!({"data":{"CanonicalEvent":if failure=="missing" {vec![]} else {vec![mark.clone()]}}})
+            } else {
+                json!({"data":{"CanonicalEvent":[funding]}})
+            }
+        } else {
+            json!({"data":{"CanonicalEvent":[created,opened]}})
+        }
+    })
+}
+
+#[test]
+fn v3_live_marks_drive_price_pnl_and_source_evidence_while_funding_stays_unknown() {
+    let server = market_mock("");
+    let snapshot = fetch_snapshot(&config(&server)).unwrap();
+    let wallet = &snapshot.wallets[0];
+    let p = &wallet["positions"][0];
+    assert_eq!(
+        rust_decimal::Decimal::from_str_exact(p["unrealizedPricePnl"].as_str().unwrap()).unwrap(),
+        rust_decimal::Decimal::from(1000)
+    );
+    assert_eq!(p["markEventId"], "143:0xblock:0xtx:2");
+    assert!(p["unrealizedPnl"].is_null());
+    assert!(p["liquidationPrice"].is_null());
+    assert_eq!(
+        wallet["marketInputs"][0]["pending"][0]["effectiveBlock"],
+        54773040
+    );
+    assert!(wallet["marketInputs"][0]["active"].is_null());
+    assert!(snapshot.manifest["marketMarksHash"].is_string());
+    assert_eq!(snapshot.events.as_array().unwrap().len(), 4);
+}
+
+#[test]
+fn missing_v3_mark_is_visible_without_suppressing_canonical_history() {
+    let server = market_mock("missing");
+    let snapshot = fetch_snapshot(&config(&server)).unwrap();
+    assert_eq!(snapshot.wallets[0]["quality"], "marks-unavailable");
+    assert!(snapshot.wallets[0]["unrealizedPricePnl"].is_null());
+    assert_eq!(snapshot.wallets[0]["positions"][0]["status"], "open");
+}
+
+#[test]
+fn market_inputs_reject_lookahead_wrong_scope_malformed_funding_and_regression() {
+    for failure in [
+        "future-log",
+        "foreign-market",
+        "legacy-mark",
+        "stale",
+        "malformed-funding",
+        "regression",
+    ] {
+        let server = market_mock(failure);
+        assert!(fetch_snapshot(&config(&server)).is_err(), "{failure}");
+    }
+}
+
+#[test]
+fn market_input_limit_and_duplicate_market_scope_never_return_partial_success() {
+    let server = market_mock("");
+    let mut config = config(&server);
+    config.client = EnvioClient::new(&server.endpoint, None, 1, 1).unwrap();
+    let coverage = config.client.fetch_coverage(143).unwrap();
+    let cutoff = perppulse::AsOf::new(143, 54773030, "0xblock", 1770000600000, Some(3)).unwrap();
+    assert!(config
+        .client
+        .fetch_market_inputs_at(&[1, 1], &coverage, &cutoff, &config.registry)
+        .is_err());
+    assert!(config
+        .client
+        .fetch_market_inputs_at(&[1], &coverage, &cutoff, &config.registry)
+        .is_err());
+}
 #[test]
 fn live_snapshot_replays_same_cutoff_without_inventing_marks_or_protocol_totals() {
     let mock = mock(54773040, false);

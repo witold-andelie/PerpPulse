@@ -96,10 +96,28 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
         "rangeNote": "Time ranges are bounded by startBlock; a quick window must not be presented as complete history.",
     });
 
-    let wallets_json = json!(wallets
+    let mut wallets_json = json!(wallets
         .iter()
         .map(|wallet| wallet_value(wallet, false))
         .collect::<Vec<_>>());
+    if !pulse.ledger.market_marks.is_empty() {
+        for (wallet, value) in wallets.iter().zip(
+            wallets_json
+                .as_array_mut()
+                .ok_or_else(|| DataQualityError::msg("invalid wallet serialization"))?,
+        ) {
+            let markets: std::collections::BTreeSet<_> = wallet
+                .positions
+                .iter()
+                .filter(|p| p.status == "open")
+                .map(|p| p.perpetual_id)
+                .collect();
+            value["marketInputs"] = json!(markets
+                .iter()
+                .map(|id| crate::funding::timeline(&pulse.ledger.events, *id, &pulse.fixture.as_of))
+                .collect::<Result<Vec<_>>>()?);
+        }
+    }
 
     let mut evidence = Vec::with_capacity(pulse.ledger.events.len());
     for event in &pulse.ledger.events {
@@ -109,6 +127,12 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
             "eventId": event_id.key(),
             "abi": stored.abi_event_name,
             "kind": format!("{:?}", stored.kind),
+            "markPricePns": stored.mark_price_pns.map(|v| v.to_string()),
+            "fundingEventBlock": stored.funding_event_block,
+            "fundingPaymentPns": stored.funding_payment_pns.map(|v| v.to_string()),
+            "fundingSumPns": stored.funding_sum_pns.map(|v| v.to_string()),
+            "fundingAllowOverwrite": stored.funding_allow_overwrite,
+            "fundingScalingExponent": stored.funding_scaling_exp,
             "blockNumber": stored.block_number,
             "blockHash": stored.block_hash,
             "txHash": stored.tx_hash,
@@ -387,6 +411,7 @@ pub fn wallet_value(wallet: &crate::accounting::WalletSnapshot, incomplete_balan
             "entryPricePNS": p.stored_entry_pns.to_string(), "entryResiduePNSQ16": p.entry_residue_pnsq16.to_string(),
             "realizedPnl": p.realized_pnl.to_string(), "realizedFunding": p.realized_funding.to_string(), "fees": p.fees.to_string(),
             "mark": p.mark.map(|v| v.to_string()), "unrealizedPnl": p.unrealized_pnl.map(|v| v.to_string()),
+            "markEventId": p.mark_event_id,
             "unrealizedPricePnl": p.unrealized_price_pnl.map(|v| v.to_string()),
             "unrealizedFunding": p.unrealized_funding.map(|v| v.to_string()),
             "riskStatus": if p.status == "open" { "funding-unverified" } else { "closed" },

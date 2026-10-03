@@ -1,0 +1,109 @@
+{
+  "name": "canonical-market-inputs-synthetic",
+  "registry_file": "fixtures/protocol/mainnet-registry.json",
+  "coverage": {
+    "chain_id": 143,
+    "start_block": 54773010,
+    "processed_block": 54773030
+  },
+  "as_of": {
+    "chain_id": 143,
+    "block_number": 54773030,
+    "block_hash": "0xasofopenposccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "timestamp_ms": 1770000900000
+  },
+  "events": [
+    {
+      "chain_id": 143,
+      "block_hash": "0xblock11cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tx_hash": "0xtxacct2cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 0,
+      "block_number": 54773020,
+      "timestamp_ms": 1770000000000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "abi_event_name": "AccountCreated",
+      "kind": "account_created",
+      "account_id": 42,
+      "owner": "0x1111111111111111111111111111111111111111"
+    },
+    {
+      "chain_id": 143,
+      "block_hash": "0xasofopenposccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tx_hash": "0xtxopen2cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 0,
+      "block_number": 54773030,
+      "timestamp_ms": 1770000900000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "abi_event_name": "PositionOpened",
+      "kind": "position_opened",
+      "account_id": 42,
+      "perpetual_id": 1,
+      "position_type": 1,
+      "leverage_hdths": 700,
+      "deposit_cns": 10000000000,
+      "price_pns": 700000,
+      "lot_lns": 100000,
+      "ins_fee_cns": 0,
+      "prot_fee_cns": 69000
+    },
+    {
+      "chain_id": 143,
+      "block_hash": "0xasofopenposccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tx_hash": "0xtxopen2cccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 1,
+      "block_number": 54773030,
+      "timestamp_ms": 1770000900000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "abi_event_name": "MakerOrderFilled",
+      "kind": "maker_fill",
+      "account_id": 7,
+      "perpetual_id": 1,
+      "price_pns": 700000,
+      "lot_lns": 100000,
+      "fee_cns": 9000
+    },
+    {
+      "chain_id": 143,
+      "block_number": 54773030,
+      "block_hash": "0xasofopenposccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "timestamp_ms": 1770000900000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "perpetual_id": 1,
+      "tx_hash": "0xsyntheticmarketcccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 2,
+      "abi_event_name": "MarkUpdated",
+      "kind": "mark_updated",
+      "mark_price_pns": 710000
+    },
+    {
+      "chain_id": 143,
+      "block_number": 54773030,
+      "block_hash": "0xasofopenposccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "timestamp_ms": 1770000900000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "perpetual_id": 1,
+      "tx_hash": "0xsyntheticmarketcccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 3,
+      "abi_event_name": "FundingSumScalingExpUpdated",
+      "kind": "funding_scale_updated",
+      "funding_scaling_exp": 0
+    },
+    {
+      "chain_id": 143,
+      "block_number": 54773030,
+      "block_hash": "0xasofopenposccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "timestamp_ms": 1770000900000,
+      "contract_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+      "perpetual_id": 1,
+      "tx_hash": "0xsyntheticmarketcccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "log_index": 4,
+      "abi_event_name": "FundingEventCompleted",
+      "kind": "market_funding",
+      "funding_rate_pct100k": 1,
+      "funding_payment_pns": 5,
+      "funding_sum_pns": 100,
+      "funding_event_block": 54773040,
+      "funding_allow_overwrite": false
+    }
+  ]
+}

@@ -5,6 +5,7 @@ pub mod envio;
 pub mod error;
 pub mod events;
 pub mod evidence;
+pub mod funding;
 pub mod identity;
 pub mod ledger;
 pub mod live;

@@ -1,5 +1,5 @@
 {
-  "version": "perppulse-methodology-v5",
+  "version": "perppulse-methodology-v6",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
@@ -11,7 +11,7 @@
     "inversion": "Verify prior size and collateral; require the resulting side to differ before applying the post-event state",
     "realizedPnl": "Sum of lifecycle delta_pnl_cns; fees and settled funding are reported separately",
     "unrealizedPnl": "Total price plus unsettled funding PnL; null for open positions until funding is independently reconstructed; zero only with no open position",
-    "freeBalance": "Unavailable under risk-hotpath-v2 because subjectless taker balances are excluded",
+    "freeBalance": "Unavailable under risk-hotpath-v2/v3 because subjectless taker balances are excluded",
     "openInterest": "Sum of mark-derived absolute notionals for proven open positions",
     "tvl": "Isolated position collateral only; not total protocol collateral",
     "volume": "Maker fill price times size, counted once",
@@ -22,10 +22,11 @@
     "unrealizedFunding": "Null for open positions until cumulative funding and the position funding checkpoint are reconstructed from canonical history",
     "maintenanceMargin": "Effective entry price times size divided by the registry maintenance inverse; independent of the current mark",
     "zeroFundingScenario": "Conditional equity = deposit + price PnL; buffer = equity - entry-based maintenance; liquidation = max(0, entry + sideSign * (maintenance - deposit) / size). These fields assume zero unsettled funding and are never actual risk facts",
-    "sdkRiskDiagnostics": "Verifier only: compare maintenance exactly, price PnL truncated to collateral native units, and liquidation scenarios using SDK reference funding at market price ticks. SDK marks and funding observations never become canonical inputs"
+    "sdkRiskDiagnostics": "Verifier only: compare maintenance exactly, price PnL truncated to collateral native units, and liquidation scenarios using SDK reference funding at market price ticks. SDK marks and funding observations never become canonical inputs",
+    "fundingTimeline": "Raw signed int48 payments/sums preserve native units, effective block, source ID, overwrite and scaling observations. Published future payments remain pending. Discontinuity and unauthorized replacement fail visibly; position amounts stay null until cumulative coverage and checkpoints are proven"
   },
   "eligibility": {
-    "positionReplay": "Exact risk-hotpath-v2 provenance and coverage from deployment or account creation",
+    "positionReplay": "Exact risk-hotpath-v2 or risk-hotpath-v3 provenance and coverage from deployment or account creation; mixed profiles fail",
     "cutoff": "One immutable event cutoff shared across all selected accounts",
     "freshness": "Indexer source lag, observation age, and live processed-watermark advancement are checked separately",
     "sourceHeightWitness": "If the separately polled Envio source height trails committed progress, preserve the original cutoff and seek at most three later source observations 200 ms apart; changed coverage, regression, or failure to cover that cutoff is an error",
@@ -33,7 +34,8 @@
     "marks": "Positive finite native prices, one mark per market, age strictly below 60000 ms, no future block or timestamp; same-block log cutoffs require matching block hash and log index at or before the cutoff",
     "restContext": "Sanitized public metadata observation only; composite REST state does not prove mark freshness or an exact log cutoff and never enters canonical accounting",
     "registry": "Valid contract identities, scales at most 18, consistent exclusions, and maintenance fraction at least the initial fraction, both above 100 hundredths",
-    "ranges": "Block selectors must lie within processed coverage and the selected as-of cutoff"
+    "ranges": "Block selectors must lie within processed coverage and the selected as-of cutoff",
+    "canonicalMarketInputs": "risk-hotpath-v3: latest MarkUpdated within the shared block/hash/log cutoff and full bounded FundingEventCompleted/scale-update observations inside indexed coverage; v2 never substitutes SDK/REST marks"
   },
   "outputVersions": {
     "manifest": "range-manifest-v1",

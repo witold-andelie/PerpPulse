@@ -16,6 +16,9 @@ def main():
     parser.add_argument("--url", default="http://127.0.0.1:18085")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--screenshot", type=Path)
+    parser.add_argument("--expect-mark-event", action="store_true")
+    parser.add_argument("--expect-pending-funding-block", type=int)
+    parser.add_argument("--fixture", default="fixtures/golden/open-position-as-of.json")
     args = parser.parse_args()
     url = args.url.rstrip("/")
     parsed = urlsplit(url)
@@ -47,6 +50,15 @@ def main():
             assert position[field] is None
         assert position["riskStatus"] == "funding-unverified"
         assert position["zeroFundingLiquidationPrice"] is not None
+        if args.expect_mark_event:
+            assert position["markEventId"]
+            page.get_by_role("button", name="Mark evidence", exact=True).click()
+            detail = json.loads(page.locator("#detail").inner_text())
+            assert detail["abi"] == "MarkUpdated" and detail["eventId"] == position["markEventId"]
+            assert detail["markPricePns"] == "710000"
+        if args.expect_pending_funding_block:
+            assert wallet["marketInputs"][0]["pending"][0]["effectiveBlock"] == args.expect_pending_funding_block
+            expect(page.locator("#wallet-note")).to_contain_text("scheduled funding at block " + str(args.expect_pending_funding_block))
         assert page.request.post(url + "/api/wallet/42").status == 405
         if args.screenshot:
             page.screenshot(path=str(args.screenshot), full_page=True)
@@ -58,7 +70,7 @@ def main():
         assert not errors, errors
         record = {
             "version": "risk-browser-acceptance-v1", "observedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "mode": "synthetic-fixture", "fixture": "fixtures/golden/open-position-as-of.json",
+            "mode": "synthetic-fixture", "fixture": args.fixture, "markEvidenceChecked": args.expect_mark_event, "pendingFundingBlockChecked": args.expect_pending_funding_block,
             "accountId": 42, "asOfBlock": snapshot["asOfBlock"],
             "pricePnl": wallet["unrealizedPricePnl"], "actualLiquidationPrice": position["liquidationPrice"],
             "zeroFundingLiquidationPrice": position["zeroFundingLiquidationPrice"],
@@ -66,8 +78,12 @@ def main():
                        "actual liquidation unavailable", "zero-funding scenario separate in API", "writes rejected with 405",
                        "source failure clears financial rows and disables export", "no JavaScript errors"],
             "sourceArtifacts": {name: "sha256:" + hashlib.sha256((ROOT / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
-                                for name in ["web/app.js", "web/index.html", "crates/perppulse/src/serve.rs", "scripts/verify_risk_browser.py"]},
+                                for name in ["web/app.js", "web/index.html", "crates/perppulse/src/serve.rs", "scripts/verify_risk_browser.py", args.fixture]},
         }
+        if args.expect_mark_event:
+            record["checks"].append("canonical mark identity and native price inspected")
+        if args.expect_pending_funding_block:
+            record["checks"].append("future funding remains pending in API and wallet note")
         with args.output.open("x", encoding="utf-8", newline="\n") as stream:
             stream.write(json.dumps(record, indent=2) + "\n")
         print(json.dumps({"status": "passed", "mode": record["mode"], "checks": len(record["checks"])}))

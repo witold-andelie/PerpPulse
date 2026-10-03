@@ -79,6 +79,56 @@ query PerpPulseRustAccountEvents(
 }
 "#;
 
+const MARKET_EVENTS_QUERY: &str = r#"
+query PerpPulseRustMarketEvents(
+  $chainId: Int!
+  $perpetualId: Int!
+  $abiNames: [String!]!
+  $endLog: Int!
+  $cursorBlock: numeric!
+  $cursorLog: Int!
+  $endBlock: numeric!
+  $limit: Int!
+) {
+  CanonicalEvent(
+    where: {
+      chainId: {_eq: $chainId}
+      perpetualId: {_eq: $perpetualId}
+      abiEventName: {_in: $abiNames}
+      _and: [{_or: [{blockNumber: {_lt: $endBlock}}, {_and: [{blockNumber: {_eq: $endBlock}}, {logIndex: {_lte: $endLog}}]}]}]
+      blockNumber: {_lte: $endBlock}
+      _or: [
+        {blockNumber: {_gt: $cursorBlock}}
+        {_and: [{blockNumber: {_eq: $cursorBlock}}, {logIndex: {_gt: $cursorLog}}]}
+      ]
+    }
+    limit: $limit
+    order_by: [{blockNumber: asc}, {logIndex: asc}]
+  ) {
+    id
+    chainId
+    blockNumber
+    blockHash
+    parentHash
+    txHash
+    logIndex
+    timestampMs
+    srcAddress
+    abiEventName
+    kind
+    accountId
+    perpetualId
+    positionType
+    payloadJson
+    schemaVersion
+    handlerVersion
+    classifierVersion
+    ingestionProfile
+    abiFingerprint
+  }
+}
+"#;
+
 const VERIFY_EVENT_QUERY: &str = r#"
 query PerpPulseRustVerifyEvent($id: String!) {
   CanonicalEvent(where: {id: {_eq: $id}}, limit: 1) {
@@ -101,7 +151,12 @@ const CURRENT_SCHEMA_VERSION: &str = "canonical-event-v4";
 const CURRENT_HANDLER_VERSION: &str = "envio-handlers-v4";
 const CURRENT_CLASSIFIER_VERSION: &str = "exchange-classifier-v3";
 const CURRENT_INGESTION_PROFILE: &str = "risk-hotpath-v2";
-const LEDGER_ELIGIBLE_PROFILE: &str = "risk-hotpath-v2";
+pub const MARKET_SCHEMA_VERSION: &str = "canonical-event-v5";
+pub const MARKET_HANDLER_VERSION: &str = "envio-handlers-v5";
+pub const MARKET_CLASSIFIER_VERSION: &str = "exchange-classifier-v4";
+pub const MARKET_INGESTION_PROFILE: &str = "risk-hotpath-v3";
+pub const MARKET_ABI_FINGERPRINT: &str =
+    "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6";
 const CURRENT_ABI_FINGERPRINT: &str =
     "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1";
 
@@ -181,12 +236,15 @@ impl AccountEventSlice {
             )));
         }
         let profile = profiles.iter().next().copied().unwrap_or_default();
-        if profile != LEDGER_ELIGIBLE_PROFILE {
+        if !matches!(
+            profile,
+            CURRENT_INGESTION_PROFILE | MARKET_INGESTION_PROFILE
+        ) {
             return Ok(ReplayEligibility {
                 eligible: false,
                 basis: "ingestion-profile".to_string(),
                 reason: format!(
-                    "profile {profile} is inspection-only; position replay requires {LEDGER_ELIGIBLE_PROFILE} after low-frequency state events are indexed"
+                    "profile {profile} is inspection-only; position replay requires {CURRENT_INGESTION_PROFILE} or {MARKET_INGESTION_PROFILE} after low-frequency state events are indexed"
                 ),
             });
         }
@@ -432,6 +490,177 @@ impl EnvioClient {
         })
     }
 
+    /// Bound market observations to the same immutable live cutoff as accounts.
+    /// Only the v3 profile proves MarkUpdated coverage; older profiles never
+    /// fall back to SDK/REST observations.
+    pub fn fetch_market_inputs_at(
+        &self,
+        market_ids: &[u32],
+        coverage: &EnvioCoverage,
+        as_of: &AsOf,
+        registry: &ProtocolRegistry,
+    ) -> Result<MarketEventSlice> {
+        if !coverage.is_ready
+            || as_of.chain_id == 0
+            || as_of.chain_id > i32::MAX as u64
+            || as_of.chain_id != coverage.evidence.chain_id
+            || as_of.block_number < coverage.evidence.start_block
+            || as_of.block_number > coverage.evidence.processed_block
+            || as_of.block_number > coverage.source_block
+            || market_ids.is_empty()
+            || market_ids.len() > 20
+            || market_ids.iter().copied().collect::<BTreeSet<_>>().len() != market_ids.len()
+        {
+            return Err(DataQualityError::msg(
+                "invalid market scope, cutoff or unready coverage",
+            ));
+        }
+        let end_log = as_of
+            .log_index
+            .map(i32::try_from)
+            .transpose()
+            .map_err(|_| DataQualityError::msg("cutoff log exceeds GraphQL Int"))?
+            .unwrap_or(i32::MAX);
+        let mut result = MarketEventSlice {
+            events: Vec::new(),
+            missing_markets: Vec::new(),
+        };
+        for id in market_ids {
+            registry.market(*id)?;
+            let latest_query = MARKET_EVENTS_QUERY.replace(
+                "order_by: [{blockNumber: asc}, {logIndex: asc}]",
+                "order_by: [{blockNumber: desc}, {logIndex: desc}]",
+            );
+            let mut vars = MarketVariables {
+                chain_id: as_of.chain_id as u32,
+                perpetual_id: *id,
+                abi_names: vec!["MarkUpdated"],
+                end_log,
+                cursor_block: coverage.evidence.start_block.to_string(),
+                cursor_log: -1,
+                end_block: as_of.block_number.to_string(),
+                limit: 1,
+            };
+            let latest: RawAccountData = self.post(&latest_query, &vars)?;
+            if latest.events.len() > 1 {
+                return Err(DataQualityError::msg(
+                    "latest mark query returned multiple rows",
+                ));
+            }
+            if latest.events.is_empty() {
+                result.missing_markets.push(*id);
+            }
+            for row in latest.events {
+                result.events.push(self.market_event(
+                    row,
+                    *id,
+                    coverage,
+                    as_of,
+                    registry,
+                    &[LifecycleKind::MarkUpdated],
+                )?);
+            }
+            vars.abi_names = vec!["FundingEventCompleted", "FundingSumScalingExpUpdated"];
+            vars.limit = self.page_size;
+            loop {
+                let page: RawAccountData = self.post(MARKET_EVENTS_QUERY, &vars)?;
+                if page.events.len() > self.page_size as usize {
+                    return Err(DataQualityError::msg(
+                        "market page exceeds configured limit",
+                    ));
+                }
+                let count = page.events.len();
+                for row in page.events {
+                    let event = self.market_event(
+                        row,
+                        *id,
+                        coverage,
+                        as_of,
+                        registry,
+                        &[
+                            LifecycleKind::MarketFunding,
+                            LifecycleKind::FundingScaleUpdated,
+                        ],
+                    )?;
+                    let cursor = (event.block_number, i64::from(event.log_index));
+                    let prior = (
+                        vars.cursor_block
+                            .parse::<u64>()
+                            .map_err(|_| DataQualityError::msg("invalid market cursor"))?,
+                        vars.cursor_log,
+                    );
+                    if cursor <= prior {
+                        return Err(DataQualityError::msg("market event cursor did not advance"));
+                    }
+                    vars.cursor_block = cursor.0.to_string();
+                    vars.cursor_log = cursor.1;
+                    result.events.push(event);
+                    if result.events.len() > self.max_events {
+                        return Err(DataQualityError::msg(
+                            "market input event bound exceeded; no partial success",
+                        ));
+                    }
+                }
+                if count < self.page_size as usize {
+                    break;
+                }
+            }
+        }
+        if result.events.len() > self.max_events {
+            return Err(DataQualityError::msg("market input event bound exceeded"));
+        }
+        self.verify_event(&coverage.latest_event)?;
+        let final_coverage = self.fetch_coverage(as_of.chain_id)?;
+        if final_coverage.evidence.start_block != coverage.evidence.start_block
+            || final_coverage.evidence.processed_block < coverage.evidence.processed_block
+            || final_coverage.source_block < coverage.source_block
+            || final_coverage.events_processed < coverage.events_processed
+        {
+            return Err(DataQualityError::msg(
+                "market input coverage changed or regressed",
+            ));
+        }
+        result
+            .events
+            .sort_by_key(|event| (event.block_number, event.log_index));
+        Ok(result)
+    }
+
+    fn market_event(
+        &self,
+        row: RawCanonicalEvent,
+        id: u32,
+        coverage: &EnvioCoverage,
+        as_of: &AsOf,
+        registry: &ProtocolRegistry,
+        kinds: &[LifecycleKind],
+    ) -> Result<CanonicalEvent> {
+        let event = parse_canonical_event(row)?;
+        if event.chain_id != as_of.chain_id
+            || event.perpetual_id != Some(id)
+            || event.account_id.is_some()
+            || !kinds.contains(&event.kind)
+            || event.block_number < coverage.evidence.start_block
+            || !as_of.includes(event.block_number, event.log_index)
+            || event.timestamp_ms > as_of.timestamp_ms
+            || !event
+                .contract_address
+                .eq_ignore_ascii_case(&registry.exchange_address)
+            || event
+                .provenance
+                .as_ref()
+                .is_none_or(|p| p.ingestion_profile != MARKET_INGESTION_PROFILE)
+            || (event.block_number == as_of.block_number
+                && (event.block_hash != as_of.block_hash
+                    || event.timestamp_ms != as_of.timestamp_ms))
+        {
+            return Err(DataQualityError::msg(
+                "market input is outside the scope, provenance, coverage or cutoff",
+            ));
+        }
+        Ok(event)
+    }
+
     fn archived_coverage(&self, as_of: &AsOf) -> Result<EnvioCoverage> {
         let chain_id = as_of.chain_id;
         if chain_id == 0 || chain_id > i32::MAX as u64 {
@@ -632,6 +861,25 @@ struct AccountVariables {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MarketVariables {
+    chain_id: u32,
+    perpetual_id: u32,
+    abi_names: Vec<&'static str>,
+    end_log: i32,
+    cursor_block: String,
+    cursor_log: i64,
+    end_block: String,
+    limit: u32,
+}
+
+#[derive(Clone, Debug)]
+pub struct MarketEventSlice {
+    pub events: Vec<CanonicalEvent>,
+    pub missing_markets: Vec<u32>,
+}
+
+#[derive(Serialize)]
 struct VerifyVariables {
     id: String,
 }
@@ -749,6 +997,13 @@ struct RawCanonicalEvent {
 fn parse_canonical_event(row: RawCanonicalEvent) -> Result<CanonicalEvent> {
     validate_provenance_tuple(&row)?;
 
+    if matches!(
+        row.abi_event_name.as_str(),
+        "MarkUpdated" | "FundingSumScalingExpUpdated"
+    ) && row.schema_version != MARKET_SCHEMA_VERSION
+    {
+        return Err(DataQualityError::msg("market event requires v3 provenance"));
+    }
     let payload_value: serde_json::Value =
         serde_json::from_str(&row.payload_json).map_err(|err| {
             DataQualityError::msg(format!("{} payloadJson is invalid: {err}", row.id))
@@ -827,6 +1082,9 @@ fn parse_canonical_event(row: RawCanonicalEvent) -> Result<CanonicalEvent> {
         funding_price_pns: None,
         funding_payment_pns: None,
         funding_sum_pns: None,
+        funding_event_block: None,
+        funding_allow_overwrite: None,
+        funding_scaling_exp: None,
         position_fmv_cns: None,
         payment_cns: None,
         amount_owed_cns: None,
@@ -952,11 +1210,19 @@ fn parse_canonical_event(row: RawCanonicalEvent) -> Result<CanonicalEvent> {
             event.position_fmv_cns = Some(values.signed("positionFmvCNS")?);
             event.amount_owed_cns = Some(values.unsigned("amountOwedCNS")?);
         }
+        "MarkUpdated" => {
+            event.mark_price_pns = Some(values.unsigned("pricePNS")?);
+        }
+        "FundingSumScalingExpUpdated" => {
+            event.funding_scaling_exp = Some(values.u32("newExp")?);
+        }
         "FundingEventCompleted" => {
             event.funding_rate_pct100k = Some(values.signed("actualRatePct100k")?);
             event.funding_price_pns = Some(values.unsigned("fundingPricePNS")?);
             event.funding_payment_pns = Some(values.signed("fundingPaymentPNS")?);
             event.funding_sum_pns = Some(values.signed("fundingSumPNS")?);
+            event.funding_event_block = Some(values.u64("fundingEventBlock")?);
+            event.funding_allow_overwrite = Some(values.boolean("allowOverwrite")?);
         }
         "MakerOrderFilled" | "MakerOrderFilledV2" => {
             event.price_pns = Some(values.unsigned("pricePNS")?);
@@ -995,7 +1261,11 @@ fn verify_subjects(
         | "CollateralWithdrawal"
         | "TransferAccountToProtocol"
         | "TransferProtocolToAccount" => Some("accountId"),
-        "FundingEventCompleted" | "ContractAdded" | "ContractAddedV2" => None,
+        "FundingEventCompleted"
+        | "ContractAdded"
+        | "ContractAddedV2"
+        | "MarkUpdated"
+        | "FundingSumScalingExpUpdated" => None,
         "PositionLiquidated" => Some("posAccountId"),
         _ => Some("accountId"),
     };
@@ -1088,6 +1358,8 @@ fn lifecycle_kind(abi_event_name: &str) -> Result<LifecycleKind> {
         | "PositionUnwoundWithoutPayment"
         | "PositionUnwoundWithoutPaymentV2" => Ok(LifecycleKind::PositionUnwound),
         "FundingEventCompleted" => Ok(LifecycleKind::MarketFunding),
+        "MarkUpdated" => Ok(LifecycleKind::MarkUpdated),
+        "FundingSumScalingExpUpdated" => Ok(LifecycleKind::FundingScaleUpdated),
         "MakerOrderFilled" | "MakerOrderFilledV2" => Ok(LifecycleKind::MakerFill),
         "ContractAdded" | "ContractAddedV2" => Ok(LifecycleKind::ContractAdded),
         "TransferProtocolToAccount" => Ok(LifecycleKind::ProtocolToAccountTransfer),
@@ -1116,6 +1388,8 @@ fn envio_kind(kind: LifecycleKind) -> &'static str {
         LifecycleKind::CollateralIncreased => "COLLATERAL_INCREASED",
         LifecycleKind::CollateralDecreased => "COLLATERAL_DECREASED",
         LifecycleKind::MarketFunding => "MARKET_FUNDING",
+        LifecycleKind::MarkUpdated => "MARK_UPDATED",
+        LifecycleKind::FundingScaleUpdated => "FUNDING_SCALE_UPDATED",
         LifecycleKind::MakerFill => "MAKER_FILL",
         LifecycleKind::TakerFill => "TAKER_FILL",
         LifecycleKind::OrderRequest => "ORDER_REQUEST",
@@ -1134,6 +1408,14 @@ impl<'a> Payload<'a> {
         Self { event_name, values }
     }
 
+    fn boolean(&self, field: &str) -> Result<bool> {
+        self.values
+            .get(field)
+            .and_then(serde_json::Value::as_bool)
+            .ok_or_else(|| {
+                DataQualityError::msg(format!("{}.{} must be boolean", self.event_name, field))
+            })
+    }
     fn signed(&self, field: &str) -> Result<i128> {
         let value = self.values.get(field).ok_or_else(|| {
             DataQualityError::msg(format!("{}.{} is missing", self.event_name, field))
@@ -1242,6 +1524,9 @@ fn validate_provenance_tuple(row: &RawCanonicalEvent) -> Result<()> {
             LEGACY_CLASSIFIER_VERSION,
             LEGACY_INGESTION_PROFILE,
             LEGACY_ABI_FINGERPRINT,
+        ),
+        MARKET_SCHEMA_VERSION => (
+            MARKET_HANDLER_VERSION, MARKET_CLASSIFIER_VERSION, MARKET_INGESTION_PROFILE, MARKET_ABI_FINGERPRINT,
         ),
         CURRENT_SCHEMA_VERSION => (
             CURRENT_HANDLER_VERSION,
@@ -1418,7 +1703,7 @@ mod tests {
             provenance.schema_version = CURRENT_SCHEMA_VERSION.to_string();
             provenance.handler_version = CURRENT_HANDLER_VERSION.to_string();
             provenance.classifier_version = CURRENT_CLASSIFIER_VERSION.to_string();
-            provenance.ingestion_profile = LEDGER_ELIGIBLE_PROFILE.to_string();
+            provenance.ingestion_profile = CURRENT_INGESTION_PROFILE.to_string();
             provenance.abi_fingerprint = CURRENT_ABI_FINGERPRINT.to_string();
         }
         let result = eligible.replay_eligibility(&fixture.registry).unwrap();

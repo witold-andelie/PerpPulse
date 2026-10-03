@@ -20,6 +20,10 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 > selected historical SDK comparisons. Maintenance uses effective entry notional;
 > price PnL is separate from total PnL. Actual liquidation and equity stay null
 > until unsettled funding is reconstructed independently.
+> The [v3 canonical market path](docs/verification-2026-10-03-market-v3.md)
+> now ingests source-linked marks and effective-dated funding observations.
+> Local mock/fixture and browser checks pass; new v3 mainnet acceptance and
+> position funding checkpoints remain pending.
 > Licensed Apache-2.0. GCP foundation was provisioned
 > in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350;
 > its current state has not been rechecked.
@@ -83,9 +87,10 @@ The first vertical slice is a fixture-driven protocol-to-wallet-to-event path:
 - **TypeScript** (`envio/`) is the Envio HyperIndex indexer. HyperIndex handlers must be TypeScript; they write canonical events only and never compute PnL.
 - **SQLite** stands in for PostgreSQL locally. The event table shape is the same logical contract Envio will materialize.
 
-Envio's default `risk-hotpath-v2` profile scans from Exchange deployment and
+Envio's default `risk-hotpath-v3` profile scans from Exchange deployment and
 includes the low-frequency credit, transfer, and no-payment unwind transitions
-required for position reconstruction. It omits intent-only order requests and
+required for position reconstruction, plus canonical marks and funding scaling
+observations. It omits intent-only order requests and
 subjectless duplicate taker-fill logs. This keeps judge startup and the serving
 database small without dropping inputs used by position, PnL, or protocol
 metrics. Because a taker-fill balance cannot be attributed to an account from

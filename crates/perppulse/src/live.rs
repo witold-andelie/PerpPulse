@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::net::SocketAddr;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use serde_json::{json, Value};
 
 use crate::accounting::account_wallet;
-use crate::envio::EnvioClient;
+use crate::envio::{EnvioClient, MARKET_INGESTION_PROFILE};
 use crate::error::{DataQualityError, Result};
 use crate::evidence::manifest;
 use crate::ledger::replay;
@@ -96,27 +96,94 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
     let mut events = Vec::new();
     let mut wallets = Vec::new();
     let mut as_of = None;
+    let mut market_cache: BTreeMap<u32, Vec<crate::events::CanonicalEvent>> = BTreeMap::new();
+    let mut market_marks = BTreeMap::new();
     for account in &config.accounts {
         let slice = config.client.fetch_account_at(*account, &coverage)?;
         let eligibility = slice.replay_eligibility(&config.registry)?;
         let mut wallet = if eligibility.eligible {
-            let ledger = replay(&slice.events, &config.registry, &slice.as_of)?;
-            // Live marks have no proven event cutoff yet; never substitute the
-            // latest REST mark into historical accounting.
-            let wallet = account_wallet(&ledger, *account, &slice.as_of, &[], false)?;
-            wallet_value(&wallet, true)
+            let mut ledger = replay(&slice.events, &config.registry, &slice.as_of)?;
+            let market_profile = slice.events.iter().all(|e| {
+                e.provenance
+                    .as_ref()
+                    .is_some_and(|p| p.ingestion_profile == MARKET_INGESTION_PROFILE)
+            });
+            let open_markets: BTreeSet<_> = ledger
+                .open_positions()
+                .iter()
+                .map(|p| p.position_id.perpetual_id)
+                .collect();
+            if market_profile {
+                let uncached: Vec<_> = open_markets
+                    .iter()
+                    .filter(|id| !market_cache.contains_key(id))
+                    .copied()
+                    .collect();
+                if !uncached.is_empty() {
+                    let inputs = config.client.fetch_market_inputs_at(
+                        &uncached,
+                        &coverage,
+                        &slice.as_of,
+                        &config.registry,
+                    )?;
+                    for id in &uncached {
+                        market_cache.insert(
+                            *id,
+                            inputs
+                                .events
+                                .iter()
+                                .filter(|e| e.perpetual_id == Some(*id))
+                                .cloned()
+                                .collect(),
+                        );
+                    }
+                }
+                let mut canonical = slice.events.clone();
+                for id in &open_markets {
+                    canonical.extend(market_cache[id].iter().cloned());
+                }
+                ledger = replay(&canonical, &config.registry, &slice.as_of)?;
+            }
+            let marks: Vec<_> = ledger.market_marks.values().cloned().collect();
+            market_marks.extend(ledger.market_marks.clone());
+            let wallet = account_wallet(&ledger, *account, &slice.as_of, &marks, false)?;
+            let mut value = wallet_value(&wallet, true);
+            value["marketInputProfile"] = json!(if market_profile {
+                "canonical-v3"
+            } else {
+                "unavailable-legacy-profile"
+            });
+            value["marketInputs"] = json!(if market_profile {
+                open_markets
+                    .iter()
+                    .map(|id| crate::funding::timeline(&ledger.events, *id, &slice.as_of))
+                    .collect::<crate::Result<Vec<_>>>()?
+            } else {
+                Vec::new()
+            });
+            value["quality"] = json!(if market_profile
+                && wallet
+                    .positions
+                    .iter()
+                    .filter(|p| p.status == "open")
+                    .all(|p| p.mark.is_some())
+            {
+                "funding-checkpoint-unverified"
+            } else {
+                "marks-unavailable"
+            });
+            value
         } else {
             json!({"accountId": account, "owner": null, "freeBalance": null, "realizedPnl": null,
                 "unrealizedPnl": null, "fees": null, "realizedFunding": null, "positions": [], "warnings": [eligibility.reason]})
         };
         wallet["replayEligible"] = json!(eligibility.eligible);
         wallet["replayBasis"] = json!(eligibility.basis);
-        wallet["quality"] = json!(if eligibility.eligible {
-            "marks-unavailable"
-        } else {
-            "incomplete-history"
-        });
-        wallet["balanceNote"] = json!("Free balance is unavailable under risk-hotpath-v2.");
+        if !eligibility.eligible {
+            wallet["quality"] = json!("incomplete-history");
+        }
+        wallet["balanceNote"] =
+            json!("Exact free balance requires complete balance-event coverage.");
         wallet["context"] =
             if let (Some(client), Some(owner)) = (&config.nansen, wallet["owner"].as_str()) {
                 client.labels(owner, slice.as_of.timestamp_ms)
@@ -133,11 +200,33 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         }
     }
     let as_of = as_of.ok_or_else(|| DataQualityError::msg("live snapshot has no cutoff"))?;
+    for inputs in market_cache.values() {
+        events.extend(inputs.iter().cloned());
+    }
+    let mut unique = BTreeMap::new();
+    for event in events {
+        if let Some(previous) = unique.insert(event.event_id()?.key(), event.clone()) {
+            if previous != event {
+                return Err(DataQualityError::msg(
+                    "canonical market/account event identity has conflicting facts",
+                ));
+            }
+        }
+    }
+    let mut events: Vec<_> = unique.into_values().collect();
+    if events.len() > 100_000 {
+        return Err(DataQualityError::msg(
+            "combined canonical input bound exceeded",
+        ));
+    }
     events.sort_by_key(|e| (e.block_number, e.log_index));
     let evidence = events.iter().map(|event| Ok(json!({
         "eventId": event.event_id()?.key(), "abi": event.abi_event_name, "kind": format!("{:?}", event.kind),
         "blockNumber": event.block_number, "blockHash": event.block_hash, "txHash": event.tx_hash,
         "logIndex": event.log_index, "timestampMs": event.timestamp_ms, "accountId": event.account_id, "perpetualId": event.perpetual_id,
+        "markPricePns": event.mark_price_pns.map(|v| v.to_string()), "fundingEventBlock": event.funding_event_block,
+        "fundingPaymentPns": event.funding_payment_pns.map(|v| v.to_string()), "fundingSumPns": event.funding_sum_pns.map(|v| v.to_string()),
+        "fundingAllowOverwrite": event.funding_allow_overwrite, "fundingScalingExponent": event.funding_scaling_exp,
         "provenance": event.provenance.as_ref().map(|p| json!({"schemaVersion": p.schema_version, "handlerVersion": p.handler_version,
             "classifierVersion": p.classifier_version, "ingestionProfile": p.ingestion_profile, "abiFingerprint": p.abi_fingerprint}))
     }))).collect::<Result<Vec<_>>>()?;
@@ -148,7 +237,11 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         "Envio account watchlist",
     )?;
     manifest["registryInputsHash"] = json!(crate::evidence::digest(&config.registry)?);
-    manifest["marketMarksHash"] = Value::Null;
+    manifest["marketMarksHash"] = if market_marks.is_empty() {
+        Value::Null
+    } else {
+        json!(crate::evidence::digest(&market_marks)?)
+    };
     let context = if config.nansen.is_some() {
         json!({"source":"Nansen","status":"per-account","attribution":"Powered by Nansen API","affectsCanonicalFacts":false,
             "reason":"See each wallet's labels and observation time. Context can be observed after the ledger cutoff."})
@@ -160,7 +253,7 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         exchange_address: config.registry.exchange_address.clone(), as_of_block: as_of.block_number,
         as_of_timestamp_ms: as_of.timestamp_ms, start_block: coverage.evidence.start_block,
         processed_block: coverage.evidence.processed_block,
-        source_note: "Selected account events only. Global metrics require a complete protocol ledger. Live marks are unavailable.".to_string(),
+        source_note: "Selected account events only. Global metrics require a complete protocol ledger. Eligible v3 marks are source-linked; position funding checkpoints remain unverified.".to_string(),
         protocol: json!({"scope": "selected-accounts", "quality": "unavailable", "takerVolume": null, "openInterest": null,
             "tvl": null, "protocolFees": null, "liquidations": null, "activeAccounts": null, "markets": [],
             "warnings": ["A watchlist cannot prove protocol totals. Global metrics are unavailable."]}),

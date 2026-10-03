@@ -1,9 +1,9 @@
-export const SCHEMA_VERSION = "canonical-event-v4";
-export const HANDLER_VERSION = "envio-handlers-v4";
-export const CLASSIFIER_VERSION = "exchange-classifier-v3";
-export const INGESTION_PROFILE = "risk-hotpath-v2";
+export const SCHEMA_VERSION = "canonical-event-v5";
+export const HANDLER_VERSION = "envio-handlers-v5";
+export const CLASSIFIER_VERSION = "exchange-classifier-v4";
+export const INGESTION_PROFILE = "risk-hotpath-v3";
 export const ABI_FINGERPRINT =
-  "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1";
+  "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6";
 
 export type LifecycleKind =
   | "ACCOUNT_CREATED"
@@ -23,6 +23,8 @@ export type LifecycleKind =
   | "COLLATERAL_INCREASED"
   | "COLLATERAL_DECREASED"
   | "MARKET_FUNDING"
+  | "MARK_UPDATED"
+  | "FUNDING_SCALE_UPDATED"
   | "MAKER_FILL"
   | "CONTRACT_ADDED"
   | "PROTOCOL_TO_ACCOUNT_TRANSFER";
@@ -65,6 +67,8 @@ const EVENT_RULES = {
   PositionUnwoundV2: { kind: "POSITION_UNWOUND", ...POSITION },
   PositionUnwoundWithoutPayment: { kind: "POSITION_UNWOUND", ...POSITION },
   PositionUnwoundWithoutPaymentV2: { kind: "POSITION_UNWOUND", ...POSITION },
+  MarkUpdated: { kind: "MARK_UPDATED", ...MARKET },
+  FundingSumScalingExpUpdated: { kind: "FUNDING_SCALE_UPDATED", ...MARKET },
   FundingEventCompleted: { kind: "MARKET_FUNDING", ...MARKET },
   MakerOrderFilled: { kind: "MAKER_FILL", ...ACCOUNT, ...MARKET },
   MakerOrderFilledV2: { kind: "MAKER_FILL", ...ACCOUNT, ...MARKET },
@@ -112,6 +116,9 @@ export type CanonicalProjection = {
   fundingPricePns?: bigint;
   fundingPaymentPns?: bigint;
   fundingSumPns?: bigint;
+  fundingEventBlock?: bigint;
+  fundingAllowOverwrite?: boolean;
+  fundingScalingExp?: bigint;
   positionFmvCns?: bigint;
   paymentCns?: bigint;
   amountOwedCns?: bigint;
@@ -220,6 +227,16 @@ export function projectExchangeEvent(
   const unsigned = (field: string): bigint =>
     requireUnsignedBigInt(params, field, abiEventName);
   const signed = (field: string): bigint => requireSignedBigInt(params, field, abiEventName);
+  const signed48 = (field: string): bigint => {
+    const value = signed(field);
+    if (value < -(1n << 47n) || value >= (1n << 47n)) throw new Error(`${abiEventName}.${field} exceeds int48`);
+    return value;
+  };
+  const boolean = (field: string): boolean => {
+    const value = params[field];
+    if (typeof value !== "boolean") throw new Error(`${abiEventName}.${field} must be boolean`);
+    return value;
+  };
 
   switch (abiEventName) {
     case "AccountCreated":
@@ -351,12 +368,24 @@ export function projectExchangeEvent(
         positionFmvCns: signed("positionFmvCNS"),
         amountOwedCns: unsigned("amountOwedCNS"),
       };
+    case "MarkUpdated": {
+      const price = unsigned("pricePNS");
+      if (price === 0n) throw new Error("MarkUpdated.pricePNS must be positive");
+      return { markPricePns: price };
+    }
+    case "FundingSumScalingExpUpdated": {
+      const exp = unsigned("newExp");
+      if (exp > 18n) throw new Error("Funding scaling exponent exceeds supported range");
+      return { fundingScalingExp: exp };
+    }
     case "FundingEventCompleted":
       return {
         fundingRatePct100k: signed("actualRatePct100k"),
         fundingPricePns: unsigned("fundingPricePNS"),
-        fundingPaymentPns: signed("fundingPaymentPNS"),
-        fundingSumPns: signed("fundingSumPNS"),
+        fundingPaymentPns: signed48("fundingPaymentPNS"),
+        fundingSumPns: signed48("fundingSumPNS"),
+        fundingEventBlock: unsigned("fundingEventBlock"),
+        fundingAllowOverwrite: boolean("allowOverwrite"),
       };
     case "MakerOrderFilled":
     case "MakerOrderFilledV2":

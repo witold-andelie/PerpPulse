@@ -1,0 +1,31 @@
+{
+  "version": "risk-browser-acceptance-v1",
+  "observedAt": "2026-10-03T10:39:23.522568Z",
+  "mode": "synthetic-fixture",
+  "fixture": "fixtures/golden/canonical-market-inputs.json",
+  "markEvidenceChecked": true,
+  "pendingFundingBlockChecked": 54773040,
+  "accountId": 42,
+  "asOfBlock": 54773030,
+  "pricePnl": "1000.000000",
+  "actualLiquidationPrice": null,
+  "zeroFundingLiquidationPrice": "62800.0",
+  "checks": [
+    "price component labeled funding excluded",
+    "total PnL and unsettled funding unavailable",
+    "actual liquidation unavailable",
+    "zero-funding scenario separate in API",
+    "writes rejected with 405",
+    "source failure clears financial rows and disables export",
+    "no JavaScript errors",
+    "canonical mark identity and native price inspected",
+    "future funding remains pending in API and wallet note"
+  ],
+  "sourceArtifacts": {
+    "web/app.js": "sha256:bf459fc69a86f8871e36a7c612f8e120b205c4d6a7d6a5abf3857cd1111a4a55",
+    "web/index.html": "sha256:fd510edd2e33f1142a88660f23c53499b3dceeb66164e2f9d0e0dc96bf7fd700",
+    "crates/perppulse/src/serve.rs": "sha256:4ba68b17aabb2025b901df5b5cd08d9ddc80902411dde963fd678fc87be5a0cf",
+    "scripts/verify_risk_browser.py": "sha256:63ea5dd36b43197922e731a73e532003fb760cd53efa1afb384c52236dca3def",
+    "fixtures/golden/canonical-market-inputs.json": "sha256:4c4e1c6cc9d65eac7eb67497109549f094c7c9db7e5fc7e8768350588641111d"
+  }
+}

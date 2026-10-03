@@ -28,6 +28,8 @@ pub enum LifecycleKind {
     CollateralIncreased,
     CollateralDecreased,
     MarketFunding,
+    MarkUpdated,
+    FundingScaleUpdated,
     MakerFill,
     TakerFill,
     OrderRequest,
@@ -35,7 +37,7 @@ pub enum LifecycleKind {
     ProtocolToAccountTransfer,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct CanonicalProvenance {
     pub envio_id: String,
     pub parent_hash: String,
@@ -47,7 +49,7 @@ pub struct CanonicalProvenance {
     pub abi_fingerprint: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct CanonicalEvent {
     pub chain_id: u64,
     pub block_hash: String,
@@ -114,6 +116,12 @@ pub struct CanonicalEvent {
     pub funding_payment_pns: Option<i128>,
     #[serde(default)]
     pub funding_sum_pns: Option<i128>,
+    #[serde(default)]
+    pub funding_event_block: Option<u64>,
+    #[serde(default)]
+    pub funding_allow_overwrite: Option<bool>,
+    #[serde(default)]
+    pub funding_scaling_exp: Option<u32>,
     #[serde(default)]
     pub position_fmv_cns: Option<i128>,
     #[serde(default)]
@@ -284,6 +292,8 @@ impl CanonicalEvent {
                 "end_deposit_cns",
             ],
             LifecycleKind::MarketFunding => &["perpetual_id", "funding_rate_pct100k"],
+            LifecycleKind::MarkUpdated => &["perpetual_id", "mark_price_pns"],
+            LifecycleKind::FundingScaleUpdated => &["perpetual_id", "funding_scaling_exp"],
             LifecycleKind::MakerFill => &[
                 "account_id",
                 "perpetual_id",
@@ -313,6 +323,36 @@ impl CanonicalEvent {
                 "event {} requires an explicit long or short position_type",
                 event_id.key()
             )));
+        }
+        if self.kind == LifecycleKind::MarkUpdated && self.mark_price_pns.is_none_or(|p| p <= 0) {
+            return Err(DataQualityError::msg("MarkUpdated price must be positive"));
+        }
+        if self.funding_scaling_exp.is_some_and(|exp| exp > 18) {
+            return Err(DataQualityError::msg(
+                "unsupported funding scaling exponent",
+            ));
+        }
+        if self
+            .funding_payment_pns
+            .into_iter()
+            .chain(self.funding_sum_pns)
+            .any(|v| !(-(1i128 << 47)..(1i128 << 47)).contains(&v))
+        {
+            return Err(DataQualityError::msg(
+                "funding payment or sum exceeds int48",
+            ));
+        }
+        if let Some(block) = self.funding_event_block {
+            if self.kind != LifecycleKind::MarketFunding
+                || block <= self.block_number
+                || self.funding_allow_overwrite.is_none()
+                || self.funding_payment_pns.is_none()
+                || self.funding_sum_pns.is_none()
+            {
+                return Err(DataQualityError::msg(
+                    "funding must be completely specified and scheduled for a later block",
+                ));
+            }
         }
         if let Some(provenance) = &self.provenance {
             provenance.validate(&event_id.key())?;
@@ -349,6 +389,7 @@ impl CanonicalEvent {
             "funding_price_pns" => self.funding_price_pns.is_some(),
             "funding_payment_pns" => self.funding_payment_pns.is_some(),
             "funding_sum_pns" => self.funding_sum_pns.is_some(),
+            "funding_scaling_exp" => self.funding_scaling_exp.is_some(),
             "position_fmv_cns" => self.position_fmv_cns.is_some(),
             "payment_cns" => self.payment_cns.is_some(),
             "amount_owed_cns" => self.amount_owed_cns.is_some(),
@@ -392,7 +433,7 @@ impl CanonicalProvenance {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct MarketMark {
     pub perpetual_id: u32,
     pub mark_pns: i128,

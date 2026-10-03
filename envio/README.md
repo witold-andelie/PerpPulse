@@ -21,13 +21,13 @@ Envio supports Windows through WSL. Docker Desktop must be running with WSL
 integration enabled. Run the indexer from the Linux filesystem view rather than
 from native PowerShell:
 
-The commands below are for a new local index. For a retained v1 index, prepare
-the v2 source and generated code separately. Use a different Compose project,
+The commands below are for a new local index. For a retained v1 or v2 index, prepare
+the v3 source and generated code separately. Use a different Compose project,
 named database volume, explicit Docker network name, and loopback-bound
 PostgreSQL/Hasura ports. Set both `ENVIO_PG_PORT` and
 `HASURA_GRAPHQL_ENDPOINT` for the selected runtime. The generated Compose file
 hardcodes its network name, so `COMPOSE_PROJECT_NAME` alone is insufficient.
-Do not run a v2 rebuild against the retained v1 database. For initialization use
+Do not run a v3 rebuild against a retained v1/v2 database. For initialization use
 `envio local db-migrate up`; resume with `envio start` and the preserved quick
 config. The `start --restart`, `db-migrate setup`, `db-migrate down`, and `envio stop`
 paths are destructive and are outside normal restart/resume verification.
@@ -89,14 +89,15 @@ pnpm test
 is `(chainId, blockHash, txHash, logIndex)`. Each row retains the parent block
 hash, block timestamp, raw deterministic payload, schema version, handler
 version, classifier version, and indexed ABI fingerprint.
-The `ingestionProfile` field is `risk-hotpath-v2`.
+The current `ingestionProfile` field is `risk-hotpath-v3`.
 
 The default profile scans from the Exchange deployment block while excluding
 `OrderRequest`/`V2` and `TakerOrderFilled`/`V2`. Requests are intents rather than
 state changes; taker fills lack account and perpetual identifiers and duplicate
 the execution counted from the corresponding maker fill. The v2 profile adds
 the low-frequency account and position liquidation credits, account/protocol
-transfers, and both no-payment unwind variants. Position lifecycle, PnL,
+transfers, and both no-payment unwind variants. V3 adds canonical marks and
+funding scaling observations. Position lifecycle, PnL,
 liquidation, funding, flow, open-interest, TVL, skew, active-user, fee, and
 per-market volume inputs remain indexed. In a live historical prefix sampled
 on 2026-09-06, the high-volume exclusions removed approximately 99% of matched
@@ -137,3 +138,16 @@ The probe emits one JSON observation and classifies it as:
 The underlying probe exits `0` only for the two caught-up states, `2` for other
 valid classifications, and `1` for fetch or response-validation failures. A
 package manager may surface any nonzero script result as a lifecycle failure.
+
+
+## Canonical market profile v3
+
+The default config now includes MarkUpdated and FundingSumScalingExpUpdated.
+Funding observations preserve fundingEventBlock and allowOverwrite; mark input
+provenance is canonical-event-v5 / envio-handlers-v5 / exchange-classifier-v4 /
+risk-hotpath-v3. Full bounded mark/funding acquisition is described in the
+[verification document](../docs/verification-2026-10-03-market-v3.md).
+Old v2 indexes remain valid for selected lifecycle verification, but cannot
+prove mark coverage. Use a fresh isolated runtime for v3 and retain account
+births or deployment history when choosing a start block. Funding checkpoint
+reconstruction and new mainnet acceptance remain pending.

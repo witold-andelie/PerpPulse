@@ -186,3 +186,36 @@ fn closed_positions_have_no_unsettled_position_funding() {
     assert_eq!(wallet.unrealized_funding, Some(Decimal::ZERO));
     assert_eq!(wallet.unrealized_price_pnl, Some(Decimal::ZERO));
 }
+
+#[test]
+fn canonical_mark_fixture_has_one_price_source_and_preserves_pending_funding() {
+    let pulse = run_fixture(
+        repo_root().join("fixtures/golden/canonical-market-inputs.json"),
+        Some(0),
+    )
+    .unwrap();
+    let snapshot = build_snapshot(&pulse).unwrap();
+    let wallet = snapshot
+        .wallets
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["accountId"] == 42)
+        .unwrap();
+    assert_eq!(
+        dec(wallet["unrealizedPricePnl"].as_str().unwrap()),
+        dec("1000")
+    );
+    let mark_id = wallet["positions"][0]["markEventId"].as_str().unwrap();
+    assert!(pulse
+        .ledger
+        .events
+        .iter()
+        .any(|e| e.abi_event_name == "MarkUpdated" && e.event_id().unwrap().key() == mark_id));
+    assert_eq!(
+        wallet["marketInputs"][0]["pending"][0]["effectiveBlock"],
+        54773040
+    );
+    assert!(wallet["marketInputs"][0]["active"].is_null());
+    assert!(wallet["unrealizedFunding"].is_null());
+}

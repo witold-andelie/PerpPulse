@@ -41,6 +41,10 @@ function writeCanonical(
 ): void {
   const classified = classifyExchangeEvent(abiEventName, event.params);
   const projection = projectExchangeEvent(abiEventName, event.params);
+  if (abiEventName === "FundingEventCompleted" && projection.fundingEventBlock !== undefined
+      && projection.fundingEventBlock <= nonNegativeBigInt(event.block.number, "block.number")) {
+    throw new Error("FundingEventCompleted must schedule a later effective block");
+  }
   context.CanonicalEvent.set({
     id: canonicalEventId({
       chainId: event.chainId,
@@ -85,6 +89,9 @@ function writeCanonical(
     fundingPricePns: projection.fundingPricePns,
     fundingPaymentPns: projection.fundingPaymentPns,
     fundingSumPns: projection.fundingSumPns,
+    fundingEventBlock: projection.fundingEventBlock,
+    fundingAllowOverwrite: projection.fundingAllowOverwrite,
+    fundingScalingExp: projection.fundingScalingExp,
     positionFmvCns: projection.positionFmvCns,
     paymentCns: projection.paymentCns,
     amountOwedCns: projection.amountOwedCns,
@@ -207,4 +214,12 @@ Exchange.TransferAccountToProtocol.handler(async ({ event, context }) => {
 
 Exchange.TransferProtocolToAccount.handler(async ({ event, context }) => {
   writeCanonical(context, event, "TransferProtocolToAccount");
+});
+
+Exchange.MarkUpdated.handler(async ({ event, context }) => {
+  writeCanonical(context, event, "MarkUpdated");
+});
+
+Exchange.FundingSumScalingExpUpdated.handler(async ({ event, context }) => {
+  writeCanonical(context, event, "FundingSumScalingExpUpdated");
 });

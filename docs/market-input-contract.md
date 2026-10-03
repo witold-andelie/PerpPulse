@@ -1,6 +1,6 @@
 # Market input observation and accounting eligibility
 
-Version: market-input-contract-v1. This contract adds local validation and a
+Version: market-input-contract-v2. This contract adds local validation and a
 public metadata observation path. It does not establish live mark verification,
 complete wallet history, or protocol-wide coverage.
 
@@ -52,11 +52,10 @@ inputs still need source verification before use in live accounting.
 
 The 60-second freshness limit is an application quality rule. It does not claim
 to be the live Perpl `refPriceMaxAgeSec`. Native fixture marks remain synthetic.
-The live watchlist still supplies no marks and retains null mark-derived facts.
+The v3 watchlist can consume canonical MarkUpdated inputs with source event IDs. Legacy profiles retain null mark-derived facts. New mainnet v3 acceptance remains pending.
 Supplying malformed or stale marks fails the accounting request visibly.
 
-Wallet aggregates, price PnL, fair market value, maintenance margin, liquidation
-buffer and liquidation price use checked decimal arithmetic. Values outside
+Price PnL and entry-based maintenance use checked decimal arithmetic. Actual equity and liquidation remain null while unsettled funding checkpoints are unverified; conditional zero-funding scenarios have separate fields. Values outside
 the supported finite decimal range return errors instead of wrapping or
 panicking. Registry validation rejects invalid addresses, decimal scales above
 18, inconsistent exclusions, and margin fractions below the supported domain.
@@ -71,3 +70,21 @@ source manifest. An end-of-block SDK/RPC snapshot must not be used for a
 mid-block log cutoff without proving that intervening relevant logs are absent.
 Then compare eligible open-position facts against an independently obtained
 Perpl SDK state. These requirements remain open.
+
+
+## Canonical market inputs
+
+The v3 Envio profile adds MarkUpdated and FundingSumScalingExpUpdated and types
+the funding effective block and overwrite flag. The adapter selects the latest
+mark at or before the same block/hash/log cutoff as every account, and pages
+funding/scale observations within retained coverage. Returned subjects, event
+kinds, provenance, native ranges, cursor advancement and final watermarks are
+checked. Missing marks stay unavailable; stale or inconsistent inputs fail.
+No oracle/REST/SDK observation substitutes for a mark event. Canonical inputs
+are deduplicated into the same lifecycle ledger and covered by its manifest.
+
+Funding schedules retain signed native payments and sums. Future effective
+blocks stay pending; unauthorized replacement or discontinuous sums fail.
+Scale updates remain explicit. This timeline does not prove a position funding
+checkpoint or transform raw sums into collateral amounts. See
+[implementation and verification](verification-2026-10-03-market-v3.md).

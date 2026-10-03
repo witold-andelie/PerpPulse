@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::error::{DataQualityError, Result};
-use crate::events::{CanonicalEvent, LifecycleKind};
+use crate::events::{CanonicalEvent, LifecycleKind, MarketMark};
 use crate::identity::{AsOf, EventId, PositionId};
 use crate::registry::{ProtocolRegistry, SIDE_LONG, SIDE_SHORT};
 
@@ -57,6 +57,8 @@ pub struct Ledger {
     pub positions: BTreeMap<String, PositionState>,
     pub fills: Vec<FillRecord>,
     pub events: Vec<CanonicalEvent>,
+    pub market_marks: BTreeMap<u32, MarketMark>,
+    pub mark_event_ids: BTreeMap<u32, String>,
 }
 
 impl Ledger {
@@ -83,6 +85,8 @@ pub fn replay(
         positions: BTreeMap::new(),
         fills: Vec::new(),
         events: Vec::new(),
+        market_marks: BTreeMap::new(),
+        mark_event_ids: BTreeMap::new(),
     };
     let mut seen = BTreeSet::new();
     let mut previous: Option<(u64, u32)> = None;
@@ -154,6 +158,24 @@ fn apply(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
         }
     }
     match event.kind {
+        LifecycleKind::MarkUpdated => {
+            let id = event
+                .perpetual_id
+                .ok_or_else(|| DataQualityError::msg("MarkUpdated perpetual_id is required"))?;
+            ledger.market_marks.insert(
+                id,
+                MarketMark {
+                    perpetual_id: id,
+                    mark_pns: required(event.mark_price_pns, "mark_price_pns")?,
+                    oracle_pns: None,
+                    block_number: event.block_number,
+                    timestamp_ms: event.timestamp_ms,
+                    log_index: Some(event.log_index),
+                    block_hash: Some(event.block_hash.clone()),
+                },
+            );
+            ledger.mark_event_ids.insert(id, event.event_id()?.key());
+        }
         LifecycleKind::AccountCreated => {
             let account = account(ledger, event)?;
             account.owner = event.owner.clone();
@@ -198,6 +220,7 @@ fn apply(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
         | LifecycleKind::AccountToProtocolTransfer
         | LifecycleKind::ProtocolToAccountTransfer
         | LifecycleKind::MarketFunding
+        | LifecycleKind::FundingScaleUpdated
         | LifecycleKind::OrderRequest
         | LifecycleKind::ContractAdded => {}
     }

@@ -52,6 +52,8 @@ const cases: ClassificationCase[] = [
   { abiEventName: "PositionUnwoundV2", kind: "POSITION_UNWOUND", accountId: 12n, perpetualId: 14, positionType: 1 },
   { abiEventName: "PositionUnwoundWithoutPayment", kind: "POSITION_UNWOUND", accountId: 12n, perpetualId: 14, positionType: 1 },
   { abiEventName: "PositionUnwoundWithoutPaymentV2", kind: "POSITION_UNWOUND", accountId: 12n, perpetualId: 14, positionType: 1 },
+  { abiEventName: "MarkUpdated", kind: "MARK_UPDATED", perpetualId: 14 },
+  { abiEventName: "FundingSumScalingExpUpdated", kind: "FUNDING_SCALE_UPDATED", perpetualId: 14 },
   { abiEventName: "FundingEventCompleted", kind: "MARKET_FUNDING", perpetualId: 14 },
   { abiEventName: "MakerOrderFilled", kind: "MAKER_FILL", accountId: 12n, perpetualId: 14 },
   { abiEventName: "MakerOrderFilledV2", kind: "MAKER_FILL", accountId: 12n, perpetualId: 14 },
@@ -78,7 +80,7 @@ test("the risk hot path excludes intent-only and duplicate fill evidence", async
     (match) => match[1],
   );
   assert.deepEqual(new Set(configuredEvents), new Set(SUPPORTED_ABI_EVENTS));
-  assert.equal(INGESTION_PROFILE, "risk-hotpath-v2");
+  assert.equal(INGESTION_PROFILE, "risk-hotpath-v3");
   assert.doesNotMatch(config, /(?:OrderRequest|TakerOrderFilled)/);
 });
 
@@ -125,6 +127,22 @@ test("projects exact state fields and preserves signed financial values", () => 
     () => projectExchangeEvent("PositionClosed", { pricePNS: 1n, deltaPnlCNS: "NaN", fundingCNS: 0n }),
     /must be an integer/,
   );
+});
+
+test("mark and funding projections retain causal units and reject malformed values", () => {
+  assert.deepEqual(projectExchangeEvent("MarkUpdated", { pricePNS: 710000n }), { markPricePns: 710000n });
+  assert.throws(() => projectExchangeEvent("MarkUpdated", { pricePNS: 0n }), /positive/);
+  assert.deepEqual(projectExchangeEvent("FundingSumScalingExpUpdated", { newExp: 2n }), { fundingScalingExp: 2n });
+  assert.throws(() => projectExchangeEvent("FundingSumScalingExpUpdated", { newExp: 19n }), /range/);
+  const params = { actualRatePct100k: -2n, fundingPricePNS: 700000n,
+    fundingPaymentPNS: -5n, fundingSumPNS: -9n, fundingEventBlock: 123n, allowOverwrite: true };
+  assert.deepEqual(projectExchangeEvent("FundingEventCompleted", params), {
+    fundingRatePct100k: -2n, fundingPricePns: 700000n, fundingPaymentPns: -5n,
+    fundingSumPns: -9n, fundingEventBlock: 123n, fundingAllowOverwrite: true,
+  });
+  assert.throws(() => projectExchangeEvent("FundingEventCompleted", {...params, fundingSumPNS: 1n << 47n}), /int48/);
+  assert.throws(() => projectExchangeEvent("FundingEventCompleted", {...params, allowOverwrite: "false"}), /boolean/);
+  assert.throws(() => classifyExchangeEvent("LinkPriceUpdated", {}), /Unsupported/);
 });
 
 test("fails closed for unknown events and invalid subject values", () => {

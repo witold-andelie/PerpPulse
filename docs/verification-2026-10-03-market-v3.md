@@ -84,6 +84,13 @@ using Node 22.23.3, pnpm 10.5.2 and Envio 2.32.6 passed code generation, frozen
 installation, type checking and all 19 Envio tests. The root and nested
 lockfiles are unchanged. CI independently runs fresh PostgreSQL and DOT checks.
 
+Implementation `9e0a3673c8bbfc8c5ccc4a34bdacab4c5ff60269` was pushed and its
+remote main SHA independently matched. [Analytics CI](https://github.com/witold-andelie/PerpPulse/actions/runs/37117208681)
+passed Rust/fresh PostgreSQL/DOT, Envio and SDK jobs;
+[repository policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37117208715)
+also passed. Exact run/job identities are recorded in
+[CI acceptance](evidence/ci-9e0a367-2026-10-03.json).
+
 New regressions prove mark-driven price PnL and source IDs, pending funding,
 overwrite rules, native ranges, historical causality, missing marks, stale
 prices, wrong subjects, old provenance, malformed booleans, lookahead,
@@ -107,9 +114,24 @@ py -3 scripts/verify_risk_browser.py --expect-mark-event --expect-pending-fundin
 
 ## Pending mainnet acceptance
 
-Prepare a fresh isolated v3 index with a start covering the selected accounts'
-births. Supply an Envio HyperSync token only through the hidden terminal input;
-the prepared local launch is capped at thirty minutes. Then record fresh
+The local isolated runtime is now prepared from the exact implementation SHA.
+It uses a separate v3 network, volume and PostgreSQL/Hasura ports, and preserves
+start block 109944714 covering the selected account births. Source verification
+checked all 18 Git-exported Envio files; quick-config reuse, code generation,
+fresh database migration, local health and synthetic hidden-input transport
+passed. The actual empty Hasura schema accepted all three queries: latest mark,
+bounded ascending funding/scale and the new typed entity fields. No provider
+token, provider ingestion or simulated canonical row was used during this
+preparation. [Preparation evidence](evidence/market-v3-preparation-2026-10-03.json)
+records its limits.
+
+The local owner entry point is `.scratch/start-live-indexer-v3.ps1` (ignored
+operational state). Its `-CheckOnly` and `-SelfTest` modes need no token. The
+normal launch accepts an Envio HyperSync token through masked terminal input,
+passes it through stdin, redacts output and retains it only in process memory.
+Its authenticated ingestion window is capped at thirty minutes. It resumes
+the source/config-bound initialized database without a restart/reset migration.
+After owner input, record fresh
 coverage/head, source hashes, one shared cutoff, MarkUpdated provenance and
 independent SDK mark/time/price-PnL comparisons. Published future schedules must
 remain pending and failures must stay visible. The retained v2 archive does not

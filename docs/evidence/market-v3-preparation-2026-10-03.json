@@ -1,0 +1,25 @@
+{
+  "version": "isolated-v3-preparation-v1",
+  "observedAt": "2026-10-03T15:41:11.407401Z",
+  "sourceCommit": "9e0a3673c8bbfc8c5ccc4a34bdacab4c5ff60269",
+  "ingestionProfile": "risk-hotpath-v3",
+  "chainId": 143,
+  "abiFingerprint": "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6",
+  "startBlock": 109944714,
+  "runtime": "perppulse-envio-v3-20261003",
+  "localSchemaChecks": [
+    "latest mark query",
+    "bounded ascending funding/scale query",
+    "typed new entity fields"
+  ],
+  "databaseState": "fresh empty schema; no canonical events",
+  "liveAcceptance": "pending",
+  "offlineSourceFilesVerified": 18,
+  "hiddenInputTransport": "synthetic marker passed; zero provider requests",
+  "providerCredentialUsed": false,
+  "retainedV2Modified": false,
+  "maxIngestionMinutes": 30,
+  "sourceArtifacts": {
+    "crates/perppulse/src/envio.rs": "sha256:1e2e9d587e0d2e697e581d755b3b57b17f36e3bd5b641595bf417f6c062b3819"
+  }
+}

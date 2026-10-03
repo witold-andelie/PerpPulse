@@ -1,0 +1,25 @@
+{
+  "version": "publication-ci-acceptance-v1",
+  "observedAt": "2026-10-03T15:34:31Z",
+  "implementationCommit": "9e0a3673c8bbfc8c5ccc4a34bdacab4c5ff60269",
+  "remoteMainShaMatched": true,
+  "analytics": {
+    "runId": 37117208681,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37117208681",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {"name": "rust", "jobId": 111186197507, "conclusion": "success", "checks": ["format", "71 Rust tests", "fresh PostgreSQL integration", "clippy", "tracked publication policy", "diff whitespace", "DOT validation"]},
+      {"name": "envio", "jobId": 111186197595, "conclusion": "success", "checks": ["frozen installation", "code generation", "type checking", "19 Envio tests"]},
+      {"name": "sdk-reference", "jobId": 111186197596, "conclusion": "success", "checks": ["two read-only RPC gate tests", "format", "locked SDK build", "two SDK precision tests", "clippy"]}
+    ]
+  },
+  "repositoryPolicy": {
+    "runId": 37117208715,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37117208715",
+    "jobId": 111186197617,
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "scope": "Published v3 implementation and local/mock/fixture acceptance. CI does not establish new v3 mainnet ingestion or position funding checkpoints."
+}

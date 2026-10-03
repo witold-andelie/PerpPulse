@@ -7,6 +7,11 @@ against the Envio canonical replay for accounts 5382, 5383, 5384 and 5385,
 restricted to BTC (1), MON (10) and HYPE (40). The selected result is
 [here](evidence/sdk-execution-2026-10-03.json), observed at 08:22:07 UTC.
 
+Implementation `9b644168ac65760203f915ec542774a61fafcff4` is published and
+remote-SHA verified. Its Rust/PostgreSQL, Envio, SDK-operator and policy jobs
+all passed; [the selected CI record](evidence/ci-9b64416-2026-10-03.json)
+links the exact runs and jobs.
+
 Both acquisitions used Monad chain 143, block **110018014**, hash
 `0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447`,
 timestamp **1790981535000 ms**, and the **end-of-block** cutoff
@@ -92,3 +97,9 @@ contract, registry validation and comparison of risk/PnL semantics before the
 live frontend may consume derived risk values. No SDK balance, mark or
 order-book state entered the canonical ledger. Continuous hosting, global
 aggregation and live Nansen remain open.
+
+The next risk check must resolve an observed model difference: the pinned SDK
+uses entry notional for maintenance margin and includes premium PnL in its
+liquidation-price expression; the existing fixture model uses mark notional and
+excludes unsettled funding. No equivalence is claimed. Position matches do not
+authorize adopting either expression as verified live risk accounting.

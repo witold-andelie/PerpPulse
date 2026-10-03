@@ -1,0 +1,29 @@
+{
+  "version": "implementation-ci-acceptance-v1",
+  "verifiedAt": "2026-10-03T08:34:21Z",
+  "repository": "witold-andelie/PerpPulse",
+  "implementationSha": "9b644168ac65760203f915ec542774a61fafcff4",
+  "remoteMainShaVerified": "9b644168ac65760203f915ec542774a61fafcff4",
+  "analytics": {
+    "runId": 37109890058,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37109890058",
+    "conclusion": "success",
+    "jobs": [
+      {"name": "rust", "jobId": 111165585151, "conclusion": "success", "checks": ["format", "54 passing Rust tests", "disposable PostgreSQL integration", "clippy", "publication policy", "diff", "DOT rendering"]},
+      {"name": "envio", "jobId": 111165585245, "conclusion": "success", "checks": ["frozen installation", "code generation", "typecheck", "handler and coverage tests"]},
+      {"name": "sdk-reference", "jobId": 111165585244, "conclusion": "success", "checks": ["two read-only RPC gate tests", "operator format", "locked SDK operator build", "operator clippy"]}
+    ]
+  },
+  "repositoryPolicy": {
+    "runId": 37109890057,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37109890057",
+    "jobId": 111165585063,
+    "conclusion": "success"
+  },
+  "mainnetReferenceEvidence": "docs/evidence/sdk-execution-2026-10-03.json",
+  "limits": [
+    "CI compiles the SDK reference and tests its boundaries without live RPC calls; actual historical mainnet execution is separate evidence.",
+    "Selected position verification does not verify lifetime account totals, accounting marks, global analytics or current source freshness.",
+    "No new cloud, paid provider or trading action was performed."
+  ]
+}

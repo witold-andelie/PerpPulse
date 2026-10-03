@@ -294,6 +294,16 @@ fn market_mock(failure: &'static str) -> Mock {
     ));
     funding["accountId"] = Value::Null;
     funding["positionType"] = Value::Null;
+    if failure == "funding-covered" {
+        funding["blockNumber"] = json!("54773020");
+        funding["blockHash"] = json!("0xearlier");
+        funding["timestampMs"] = json!("1770000500000");
+        funding["id"] = json!("143:0xearlier:0xtx:3");
+        let mut payload: Value =
+            serde_json::from_str(funding["payloadJson"].as_str().unwrap()).unwrap();
+        payload["fundingEventBlock"] = json!("54773025");
+        funding["payloadJson"] = json!(payload.to_string());
+    }
     let point = json!({"id":"143:0xblock:0xtx:3","blockNumber":"54773030","blockHash":"0xblock","logIndex":3,"timestampMs":"1770000600000"});
     if failure == "future-log" {
         mark["logIndex"] = json!(4);
@@ -429,6 +439,29 @@ fn missing_v3_mark_is_visible_without_suppressing_canonical_history() {
     assert_eq!(snapshot.wallets[0]["quality"], "marks-unavailable");
     assert!(snapshot.wallets[0]["unrealizedPricePnl"].is_null());
     assert_eq!(snapshot.wallets[0]["positions"][0]["status"], "open");
+}
+
+#[test]
+fn complete_v3_market_pages_prove_a_postbaseline_reset_and_hash_its_checkpoint() {
+    let server = market_mock("funding-covered");
+    let snapshot = fetch_snapshot(&config(&server)).unwrap();
+    let wallet = &snapshot.wallets[0];
+    let p = &wallet["positions"][0];
+    assert_eq!(wallet["quality"], "canonical-funding-covered");
+    assert_eq!(p["riskStatus"], "canonical-funding-covered");
+    assert_eq!(p["unrealizedFunding"], "0");
+    assert_eq!(p["unrealizedPnl"], p["unrealizedPricePnl"]);
+    assert!(p["liquidationPrice"].is_string());
+    assert_eq!(p["fundingCheckpoint"]["baselineEffectiveBlock"], 54773025);
+    assert_eq!(p["fundingCheckpoint"]["throughBlock"], snapshot.as_of_block);
+    assert!(snapshot.manifest["fundingCheckpointsHash"].is_string());
+    let baseline = p["fundingCheckpoint"]["baselineEventId"].as_str().unwrap();
+    assert!(snapshot
+        .events
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|e| e["eventId"] == baseline));
 }
 
 #[test]

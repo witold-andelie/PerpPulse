@@ -111,8 +111,13 @@ Free account balance does not back a position.
 
 Official criterion: liquidation when `0 < FMV <= MMR`, with `MMR = N / MMF`
 ([Margin](https://docs.perpl.xyz/exchange/margin.md)). PerpPulse sets
-`FMV = deposit + unrealized price PnL` and solves for mark. Unrealized funding
-is not included; that limitation is attached to the snapshot.
+`MMR = effective entry * size / maintenance inverse`. With canonically proven
+unsettled funding `F`, `FMV = deposit + unrealized price PnL + F` and
+`liquidation = max(0, entry + sideSign * (MMR - deposit - F) / size)`.
+Unknown funding leaves actual equity, buffer and liquidation unavailable;
+conditional zero-funding scenarios are separate. See
+[funding verification](verification-2026-10-03-funding.md) for checkpoint
+coverage, lifecycle semantics and the accepted historical scope.
 
 ## Protocol metrics
 

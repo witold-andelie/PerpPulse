@@ -6,6 +6,7 @@ pub mod error;
 pub mod events;
 pub mod evidence;
 pub mod funding;
+pub mod funding_checkpoint;
 pub mod identity;
 pub mod ledger;
 pub mod live;

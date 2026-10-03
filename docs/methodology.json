@@ -1,5 +1,5 @@
 {
-  "version": "perppulse-methodology-v6",
+  "version": "perppulse-methodology-v7",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
@@ -10,20 +10,22 @@
     "entryPrice": "Preserve V2 Q16 residue: long with nonzero residue uses (stored PNS minus one plus residue/65536), short uses (stored PNS plus residue/65536), then apply the native price scale; integer decimal construction rejects inexact representations",
     "inversion": "Verify prior size and collateral; require the resulting side to differ before applying the post-event state",
     "realizedPnl": "Sum of lifecycle delta_pnl_cns; fees and settled funding are reported separately",
-    "unrealizedPnl": "Total price plus unsettled funding PnL; null for open positions until funding is independently reconstructed; zero only with no open position",
+    "unrealizedPnl": "Price PnL plus canonically reconstructed unsettled funding; null if any required open-position mark or funding checkpoint is unknown",
     "freeBalance": "Unavailable under risk-hotpath-v2/v3 because subjectless taker balances are excluded",
     "openInterest": "Sum of mark-derived absolute notionals for proven open positions",
     "tvl": "Isolated position collateral only; not total protocol collateral",
     "volume": "Maker fill price times size, counted once",
     "protocolFees": "Insurance plus protocol fees from supported lifecycle transitions",
-    "liquidationPrice": "Actual equity, liquidation price and buffer are null while unsettled funding is unverified",
+    "liquidationPrice": "With proven funding F, max(0, entry + sideSign * (maintenance - deposit - F) / size); equity = deposit + price PnL + F and buffer = equity - maintenance. Unknown funding leaves all three null; missing marks leave equity and buffer null",
     "executableLiquidityRisk": "Unavailable until point-in-time order book depth and execution costs are independently captured",
     "unrealizedPricePnl": "Side-adjusted (mark minus effective entry) times size; wallet aggregate is null if any open position lacks an eligible mark",
-    "unrealizedFunding": "Null for open positions until cumulative funding and the position funding checkpoint are reconstructed from canonical history",
+    "unrealizedFunding": "One ledger applies signed native payment times pre-effective-block size using the scale at publication. Positive payment debits longs and credits shorts. Exact integer decimal construction rejects range or precision loss. Partial decrease/liquidation/deleveraging subtract the actual fundingCNS settlement; increase/inversion/open reset to zero; collateral changes preserve the balance",
     "maintenanceMargin": "Effective entry price times size divided by the registry maintenance inverse; independent of the current mark",
     "zeroFundingScenario": "Conditional equity = deposit + price PnL; buffer = equity - entry-based maintenance; liquidation = max(0, entry + sideSign * (maintenance - deposit) / size). These fields assume zero unsettled funding and are never actual risk facts",
     "sdkRiskDiagnostics": "Verifier only: compare maintenance exactly, price PnL truncated to collateral native units, and liquidation scenarios using SDK reference funding at market price ticks. SDK marks and funding observations never become canonical inputs",
-    "fundingTimeline": "Raw signed int48 payments/sums preserve native units, effective block, source ID, overwrite and scaling observations. Published future payments remain pending. Discontinuity and unauthorized replacement fail visibly; position amounts stay null until cumulative coverage and checkpoints are proven"
+    "fundingTimeline": "Raw signed int48 payments/sums preserve native units, effective block, source ID, overwrite and scaling observations. Published future payments remain pending. Discontinuity and unauthorized replacement fail visibly. This market timeline is separate from each position's checkpoint proof",
+    "fundingCheckpoint": "Requires explicit complete market-publication coverage and a reset at or after the first observed effective schedule, which bounds unknown pre-window pending funding under Perpl's single-pending-schedule rule. Earlier resets or absent baselines stay unknown. A later nonzero payment requires a canonical scaling anchor at publication; unknown scale invalidates the amount until another proven reset. Checkpoints retain reset, baseline, payment/scale and settlement event IDs, coverage start and cutoff. Bare replay never infers zero from absent events",
+    "sdkFundedRiskComparison": "Verifier only: project price and funding separately to collateral native units before adding total PnL/equity, because the SDK loads deltaPnlCNS and premiumPnlCNS separately. Buffer uses SDK-width canonical entry-based maintenance. Preserve exact canonical values alongside these projections; liquidation is compared at price ticks. Unknown funding scorecards contain zero checks and remain unverified"
   },
   "eligibility": {
     "positionReplay": "Exact risk-hotpath-v2 or risk-hotpath-v3 provenance and coverage from deployment or account creation; mixed profiles fail",

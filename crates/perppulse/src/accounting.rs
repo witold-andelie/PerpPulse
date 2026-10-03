@@ -89,6 +89,7 @@ pub struct PositionSnapshot {
     pub unrealized_pnl: Option<Decimal>,
     pub unrealized_price_pnl: Option<Decimal>,
     pub unrealized_funding: Option<Decimal>,
+    pub funding_checkpoint: crate::funding_checkpoint::FundingCheckpoint,
     pub realized_pnl: Decimal,
     pub realized_funding: Decimal,
     pub fees: Decimal,
@@ -139,7 +140,10 @@ pub fn account_wallet(
     let mut fees_total = Decimal::ZERO;
     let mut funding_total = Decimal::ZERO;
     let mut missing_price_pnl = false;
-    let mut open_position = false;
+    let mut unsettled_funding_total = Decimal::ZERO;
+    let mut total_pnl = Decimal::ZERO;
+    let mut missing_funding = false;
+    let mut missing_total_pnl = false;
     for position in ledger.positions.values() {
         if position.position_id.account_id != account_id {
             continue;
@@ -166,7 +170,17 @@ pub fn account_wallet(
                 snap.symbol
             ));
         }
-        open_position |= position.is_open();
+        if let Some(value) = snap.unrealized_funding {
+            unsettled_funding_total =
+                add(unsettled_funding_total, value, "wallet unsettled funding")?;
+        } else {
+            missing_funding = true;
+        }
+        if let Some(value) = snap.unrealized_pnl {
+            total_pnl = add(total_pnl, value, "wallet total unrealized PnL")?;
+        } else {
+            missing_total_pnl = true;
+        }
         snapshots.push(snap);
     }
     snapshots.sort_by_key(|item| item.perpetual_id);
@@ -176,9 +190,9 @@ pub fn account_wallet(
         free_balance: from_native(account.balance_cns, decimals, "free_balance")?,
         positions: snapshots,
         realized_pnl: realized_total,
-        unrealized_pnl: (!open_position).then_some(Decimal::ZERO),
+        unrealized_pnl: (!missing_total_pnl).then_some(total_pnl),
         unrealized_price_pnl: (!missing_price_pnl).then_some(unrealized_total),
-        unrealized_funding: (!open_position).then_some(Decimal::ZERO),
+        unrealized_funding: (!missing_funding).then_some(unsettled_funding_total),
         fees: fees_total,
         realized_funding: funding_total,
         warnings,
@@ -273,9 +287,20 @@ pub fn position_snapshot(
     let mut zero_equity = None;
     let mut zero_liq = None;
     let mut zero_buffer = None;
+    let unsettled = if position.is_open() {
+        position.funding_checkpoint.unsettled_pnl
+    } else {
+        Some(Decimal::ZERO)
+    };
+    let mut total_upnl = (!position.is_open()).then_some(Decimal::ZERO);
+    let mut actual_liq = None;
+    let mut equity = None;
+    let mut buffer = None;
 
     if position.is_open() {
-        warnings.push("Unsettled funding is unverified; total unrealized PnL, equity and actual liquidation risk are unavailable. Zero-funding fields are conditional scenarios.".into());
+        if unsettled.is_none() {
+            warnings.push(format!("Unsettled funding is unverified: {} Total unrealized PnL, equity and actual liquidation risk are unavailable. Zero-funding fields are conditional scenarios.", position.funding_checkpoint.reason.as_deref().unwrap_or("Funding inputs are unavailable.")));
+        }
         let maintenance_inverse =
             margin_fraction(market.maint_margin_frac_hdths, "maint_margin_frac")?;
         mmr = Some(div(
@@ -291,6 +316,16 @@ pub fn position_snapshot(
             maintenance_inverse,
             Decimal::ZERO,
         )?);
+        if let Some(premium) = unsettled {
+            actual_liq = Some(isolated_liquidation_price(
+                position.side,
+                entry,
+                size,
+                deposit,
+                maintenance_inverse,
+                premium,
+            )?);
+        }
         match marks
             .iter()
             .find(|mark| mark.perpetual_id == position.position_id.perpetual_id)
@@ -317,6 +352,12 @@ pub fn position_snapshot(
                 notion = Some(notional_value);
                 zero_equity = Some(fair);
                 zero_buffer = Some(sub(fair, maintenance, "zero-funding liquidation buffer")?);
+                if let Some(premium) = unsettled {
+                    total_upnl = Some(add(pnl, premium, "total unrealized PnL")?);
+                    let funded_equity = add(fair, premium, "funded equity")?;
+                    equity = Some(funded_equity);
+                    buffer = Some(sub(funded_equity, maintenance, "liquidation buffer")?);
+                }
             }
         }
     } else {
@@ -337,17 +378,18 @@ pub fn position_snapshot(
         mark_event_id: None,
         deposit,
         leverage,
-        unrealized_pnl: (!position.is_open()).then_some(Decimal::ZERO),
+        unrealized_pnl: total_upnl,
         unrealized_price_pnl: upnl,
-        unrealized_funding: (!position.is_open()).then_some(Decimal::ZERO),
+        unrealized_funding: unsettled,
+        funding_checkpoint: position.funding_checkpoint.clone(),
         realized_pnl: realized,
         realized_funding: funding,
         fees,
         notional_value: notion,
         maintenance_margin: mmr,
-        fair_market_value: None,
-        liquidation_price: None,
-        liquidation_buffer: None,
+        fair_market_value: equity,
+        liquidation_price: actual_liq,
+        liquidation_buffer: buffer,
         zero_funding_equity: zero_equity,
         zero_funding_liquidation_price: zero_liq,
         zero_funding_liquidation_buffer: zero_buffer,

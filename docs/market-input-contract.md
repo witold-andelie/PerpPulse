@@ -77,7 +77,9 @@ Perpl SDK state. This has been accepted for the six explicitly scoped markets
 at block 110245407, with a separate actual-browser cutoff at 110247586/log 74.
 No end-of-block SDK reference is represented as a mid-block UI reconciliation.
 The dated registry adds only verified VVV (70); broader metadata adoption and
-unsettled position funding remain open.
+nonzero mainnet funding and older checkpoints remain open. The later
+[covered funding proof](verification-2026-10-03-funding.md) accepts three
+zero-funding positions without adopting reference scaling metadata.
 
 
 ## Canonical market inputs
@@ -96,3 +98,12 @@ blocks stay pending; unauthorized replacement or discontinuous sums fail.
 Scale updates remain explicit. This timeline does not prove a position funding
 checkpoint or transform raw sums into collateral amounts. See
 [implementation and verification](verification-2026-10-03-market-v3.md).
+
+Complete bounded market pages can additionally feed `FundingCoverage` into
+the same ledger. Position checkpoints independently record a post-baseline
+reset, effective payments with publication units, and lifecycle settlements.
+Missing pre-window pending schedules or scale anchors preserve unknown
+amounts. Per-position funded facts and wallet aggregates are enabled only
+when their required inputs are proven; the raw market timeline alone never
+establishes that eligibility. Methodology v7 records the arithmetic and
+SDK comparison representation. Live freshness checks remain unchanged.

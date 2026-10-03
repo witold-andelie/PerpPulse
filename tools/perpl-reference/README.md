@@ -114,7 +114,19 @@ use block 110240124/hash
 and `--markets 1`. The [mainnet evidence](../../docs/verification-2026-10-03-market-mainnet.md)
 records scope, counts, precision, pending-to-active identity and remaining limits.
 An offline artifact/source audit is `py -3 scripts/check_market_evidence.py`
-from the evidence publication checkout.
+against the recorded implementation commits; later accounting changes do not
+rewrite the historical source fingerprints.
+
+Add `--funding-checkpoints` alongside both diagnostic flags to replay complete
+market funding publications into the canonical position ledger. The operator
+exports a separate funding scorecard per open position: eligible checkpoints
+compare unsettled funding, total PnL, equity and buffer at collateral units and
+liquidation at price ticks. Unknown checkpoints have an explicit `unverified`
+status and zero checks; they are never counted as matching financial facts.
+SDK funding units and balances remain reference inputs. The canonical proof
+includes its reset/baseline/payment/settlement source IDs and coverage bounds;
+each manifest includes a checkpoint hash. See methodology v7 for the exact
+coverage, reset, publication-scale and effective-block rules.
 
 ```powershell
 cargo fmt --manifest-path tools/perpl-reference/Cargo.toml --check

@@ -7,6 +7,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "docs/evidence"
 INDEXER_COMMIT = "9e0a3673c8bbfc8c5ccc4a34bdacab4c5ff60269"
+SDK_EVIDENCE_COMMIT = "6653513fd54aa2bf89e2be3b5e61dfbc7b46ef8e"
 
 
 def read(name):
@@ -43,7 +44,8 @@ def main():
         for name, expected_hash in item["sourceArtifacts"].items():
             assert name.startswith(("crates/perppulse/src/", "tools/perpl-reference/", "scripts/", "docs/"))
             assert ".." not in Path(name).parts
-            assert digest((ROOT/name).read_bytes()) == expected_hash, name
+            raw = subprocess.check_output(["git", "show", f"{SDK_EVIDENCE_COMMIT}:{name}"], cwd=ROOT)
+            assert digest(raw) == expected_hash, name
         for market in item["marketObservations"]:
             spec = specs[market["perpetualId"]]
             # Perpl's contract labels the replacement SOL market SOL_v2;
@@ -80,8 +82,42 @@ def main():
     source = read("live-market-source-2026-10-03.json")
     assert source["coverage"]["isReady"] and source["coverage"]["eventsProcessed"] == 357925
     assert source["independentHeadLagBlocks"] == 3
+    funding = read("sdk-funding-checkpoints-2026-10-03.json")
+    assert funding["status"] == "matched" and funding["asOfBlock"] == primary["asOfBlock"]
+    assert funding["asOfBlockHash"] == primary["asOfBlockHash"] and funding["asOfLogIndex"] is None
+    assert funding["sdkCommit"] == primary["sdkCommit"] and funding["chainId"] == 143
+    assert funding["marketInputsHash"] == primary["marketInputsHash"]
+    assert funding["marketInputEventCount"] == primary["marketInputEventCount"] == 180
+    assert funding["rpcGate"]["requests"] == 58 and not funding["rpcGate"]["rejections"]
+    assert funding["rpcGate"]["rpcErrorResponses"] == 0
+    cards = {(c["accountId"], c["perpetualId"]): c for c in funding["fundingScorecards"]}
+    assert set(cards) == {(5382, 1), (5383, 70), (5383, 90), (5384, 1)}
+    unknown = cards[(5382, 1)]
+    assert unknown["status"] == "unverified" and unknown["checks"] == []
+    assert unknown["checkpoint"]["unsettledPnl"] is None and unknown["checkpoint"]["reason"]
+    for key in [(5383, 70), (5383, 90), (5384, 1)]:
+        card = cards[key]
+        assert card["status"] == "matched" and len(card["checks"]) == 5
+        assert all(c["status"] == "matched" and c["canonicalExactValue"] is not None for c in card["checks"])
+        checkpoint = card["checkpoint"]
+        assert checkpoint["unsettledPnl"] == "0" and checkpoint["reason"] is None
+        assert checkpoint["coverageStartBlock"] == 109944714 and checkpoint["throughBlock"] == 110245407
+        assert checkpoint["resetEventId"] and checkpoint["baselineEventId"]
+        assert checkpoint["baselineEffectiveBlock"] == 109948788 and not checkpoint["paymentEventIds"]
+    for group in ["scorecards", "riskScorecards", "marketScorecards"]:
+        assert all(c["status"] == "matched" and all(v["status"] == "matched" for v in c["checks"]) for c in funding[group])
+    assert all(m["fundingCheckpointsHash"].startswith("sha256:") for m in funding["canonicalManifests"])
+    # Before publication, validate current reviewed sources. A separate CI
+    # record binds the immutable implementation after publication.
+    acceptance = EVIDENCE / "ci-funding-checkpoints-2026-10-03.json"
+    commit = json.loads(acceptance.read_text())["implementationCommit"] if acceptance.exists() else None
+    for name, expected_hash in funding["sourceArtifacts"].items():
+        assert ".." not in Path(name).parts
+        raw = subprocess.check_output(["git", "show", f"{commit}:{name}"], cwd=ROOT) if commit else (ROOT/name).read_bytes()
+        assert digest(raw) == expected_hash, name
     print(json.dumps({"status": "passed", "sameCutoffPositionChecks": 80, "markChecks": 12,
-                      "riskChecks": 16, "liveBrowserChecks": 10, "futureFundingPendingToActive": True}))
+                      "riskChecks": 16, "liveBrowserChecks": 10, "futureFundingPendingToActive": True,
+                      "fundingRiskChecks": 15, "unknownFundingPositions": 1}))
 
 
 if __name__ == "__main__":

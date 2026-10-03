@@ -3,7 +3,7 @@ Copyright 2026 witold-andelie
 
 This product includes a subset of Exchange event definitions extracted from
 Perpl dex-sdk and an independent implementation of its effective-entry Q16
-semantics (MIT License, Copyright (c) 2025 Perpl Foundation.):
+and funding application/settlement semantics (MIT License, Copyright (c) 2025 Perpl Foundation.):
 https://github.com/PerplFoundation/dex-sdk
 
 The upstream license is retained in LICENSES/Perpl-dex-sdk.txt. The pinned

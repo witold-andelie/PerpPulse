@@ -19,9 +19,9 @@ The bounty is track-agnostic. Envio Cloud and self-hosted pipelines are accepted
 
 | Supplied requirement | Current evidence | Remaining acceptance work |
 | --- | --- | --- |
-| Meaningful Envio use with real onchain data | HyperIndex lifecycle and MarkUpdated inputs drive positions, price PnL and source inspection; [v3 mainnet proof](verification-2026-10-03-market-mainnet.md) has 80 matching SDK position checks and 12 exact mark/time checks across six markets | Lifetime account totals and position funding/funded risk remain unverified |
+| Meaningful Envio use with real onchain data | HyperIndex lifecycle and MarkUpdated inputs drive positions, price PnL and source inspection; [v3 mainnet proof](verification-2026-10-03-market-mainnet.md) has 80 matching position and 12 mark/time checks; [covered funding](verification-2026-10-03-funding.md) adds 15 SDK checks for three positions | Lifetime account totals, older checkpoints and nonzero mainnet funding remain unverified |
 | Working indexer or pipeline, deployed to Envio Cloud or self-hosted | Public [config](../envio/config.yaml), [schema](../envio/schema.graphql), [handlers](../envio/src/EventHandlers.ts), [run instructions](../envio/README.md); isolated self-hosted mainnet run with preserved restart and independent one-block lag observation | Continuous public availability remains pending; 26.25-second marker-to-ready timing excludes setup and is not full cold-start timing |
-| Useful frontend, dashboard, agent, bot, or API consuming the data | Ten actual v3 browser checks: four covered accounts, canonical mark-driven price PnL, source inspection, preserved export cutoff and visible failure boundaries | Account-total verification, position funding and global analytics remain pending |
+| Useful frontend, dashboard, agent, bot, or API consuming the data | Ten actual v3 browser checks; covered funding now enables eligible funded risk and checkpoint inspection, with separate HTTP/SDK verification | New funding UI has no new mainnet browser acceptance; lifetime totals and global analytics remain pending |
 | Short end-to-end video or live link | [80-second real operating recording](demo/README.md), English captions and [recording provenance](demo/recording.json) | Check submission-portal codec acceptance or publish a hosted player; no continuous public app URL is claimed |
 | Submission explanation of meaningful use | Owner-provided catalog URL, updated draft, source/mainnet evidence and [verified implementation 4b9135b](evidence/ci-4b9135b-2026-10-03.json) | Current catalog revision, final form and owner submission |
 | Optional Envio demo video, at most two minutes | VP8 WebM duration 80.20 seconds; actual mainnet event-to-feature workflow | Confirm the main competition and Envio forms accept the same recording |
@@ -64,8 +64,11 @@ recorded in [v3 mainnet verification](verification-2026-10-03-market-mainnet.md)
 
 An [80-second recording](demo/README.md) shows positions, event evidence,
 manifest export and advancing coverage from the earlier v2 run; it does not
-show the newer v3 marks. Lifetime totals, global historical analytics, position
-funding/funded risk and continuous public hosting remain pending. The video implementation is
+show the newer v3 marks or funding checkpoints. The later
+[funding proof](verification-2026-10-03-funding.md) matches 15 SDK funding/risk
+checks for three positions with proven zero unsettled funding. The older BTC
+checkpoint, nonzero mainnet funding, lifetime totals, global historical
+analytics and continuous public hosting remain pending. The video implementation is
 `4b9135b4d9921ec1368d99c65f93ce83d4118ef3`; the indexer source was pinned to
 `a8e5254095496e90b32b15cc331782d7cadc11ef`. The owner-provided catalog link is
 recorded above. Final submission still needs the current form/revision check

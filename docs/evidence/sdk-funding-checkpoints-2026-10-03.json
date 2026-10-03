@@ -1,0 +1,1884 @@
+{
+  "asOfBlock": 110245407,
+  "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+  "asOfLogIndex": null,
+  "asOfTimestampMs": 1791050177000,
+  "canonicalManifests": [
+    {
+      "accountId": 5382,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "canonicalInputsHash": "sha256:7af336082dc6126299a1e8a42053982075e77e54a1e524ec6370be53ece5d361",
+      "chainId": 143,
+      "eventCount": 183,
+      "firstEventId": "143:0x05082078c025f4702d3dc0dbdf9ad43f6d514955305d0ee53550f70b9092dec9:0x411e5b4eedb883f6f6ee51c46509cb031a40094b7bd69aff8ec4c4ca37cb31c6:34",
+      "fundingCheckpointsHash": "sha256:df4663a227b5cf71726c4d32bd077e70298edbcb6b71952dff8c3478e2f78eb0",
+      "lastEventId": "143:0xd23742c7fca3b11e77f98d48eccccff98a83a14a1ea72ed2a50be1998b0c9985:0x824ef806913dd5dbbc11ef0332ebb0a67ffe3dbe6af158301f223e6d55af9094:58",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "marketMarksHash": "sha256:d3d32ade2f606105152d6cc700c269a214d1301823ab5470a9af81953969a3b1",
+      "methodologyHash": "sha256:e40f729478c6e12aeac6845083f2bacb87a00bae440b3315cb1ad4e3770a5f4f",
+      "observedIsReady": true,
+      "observedSourceBlock": 110249362,
+      "orderedEventIdsHash": "sha256:f0aa7fff1409c9be5a203432582c8b4cf43ce6f19b4050a33bbcf8175c1bd96d",
+      "processedBlock": 110249364,
+      "provenanceTuples": [
+        [
+          "canonical-event-v5",
+          "envio-handlers-v5",
+          "exchange-classifier-v4",
+          "risk-hotpath-v3",
+          "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:2fe77d70d970db4a919ccec0241b0f0da88884d90b7df748d6b266462f65a34f",
+        "role": "external verifier",
+        "scope": "Requested position state; enabled diagnostics separately compare marks, price PnL and eligible funding checkpoints. Unknown funding is explicitly unverified; lifetime totals and balances remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:67b3c7b5b871dbe76771c0f3ab99dc73bc1d5c2bf3a7fd3a176e2243a35c3c26",
+      "source": "envio-mainnet-archive",
+      "startBlock": 109944714,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 5383,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "canonicalInputsHash": "sha256:3d5362d83ae44ba6ef7140e2e47b96e578aec2b9e799168c1477db0573a5ba82",
+      "chainId": 143,
+      "eventCount": 8135,
+      "firstEventId": "143:0xc5581975068978882bbc33f5e874391d2fed1b2982b2d6d0573a93048adda0d7:0x207145cdfc47736802497ef5d45f3a6f650c83f241dde8e3e176f034f6ed94ec:155",
+      "fundingCheckpointsHash": "sha256:b3f5206378d8fb05b504480ed1195d2854244a99b8133e23e7479482106b39ca",
+      "lastEventId": "143:0xd23742c7fca3b11e77f98d48eccccff98a83a14a1ea72ed2a50be1998b0c9985:0x824ef806913dd5dbbc11ef0332ebb0a67ffe3dbe6af158301f223e6d55af9094:58",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "marketMarksHash": "sha256:d3d32ade2f606105152d6cc700c269a214d1301823ab5470a9af81953969a3b1",
+      "methodologyHash": "sha256:e40f729478c6e12aeac6845083f2bacb87a00bae440b3315cb1ad4e3770a5f4f",
+      "observedIsReady": true,
+      "observedSourceBlock": 110249362,
+      "orderedEventIdsHash": "sha256:c12f3a2009585ea0bad63171a0639cc519845466f96687f09359f672ba8c873d",
+      "processedBlock": 110249364,
+      "provenanceTuples": [
+        [
+          "canonical-event-v5",
+          "envio-handlers-v5",
+          "exchange-classifier-v4",
+          "risk-hotpath-v3",
+          "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:81533a9d7e6d26f142c5be260ba6a3767aadc0189144db5cf548cd0bfdab2662",
+        "role": "external verifier",
+        "scope": "Requested position state; enabled diagnostics separately compare marks, price PnL and eligible funding checkpoints. Unknown funding is explicitly unverified; lifetime totals and balances remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:67b3c7b5b871dbe76771c0f3ab99dc73bc1d5c2bf3a7fd3a176e2243a35c3c26",
+      "source": "envio-mainnet-archive",
+      "startBlock": 109944714,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 5384,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "canonicalInputsHash": "sha256:e58ec097d05cc0c29b05ec66696ae823db97896ba0ae26758d773c423b93e1cb",
+      "chainId": 143,
+      "eventCount": 732,
+      "firstEventId": "143:0xc5581975068978882bbc33f5e874391d2fed1b2982b2d6d0573a93048adda0d7:0x207145cdfc47736802497ef5d45f3a6f650c83f241dde8e3e176f034f6ed94ec:155",
+      "fundingCheckpointsHash": "sha256:c6b3f8a1301afc142abd07bba33740e0b0934849a0f5b911a234f6a7e5a0882b",
+      "lastEventId": "143:0xd23742c7fca3b11e77f98d48eccccff98a83a14a1ea72ed2a50be1998b0c9985:0x824ef806913dd5dbbc11ef0332ebb0a67ffe3dbe6af158301f223e6d55af9094:58",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "marketMarksHash": "sha256:d3d32ade2f606105152d6cc700c269a214d1301823ab5470a9af81953969a3b1",
+      "methodologyHash": "sha256:e40f729478c6e12aeac6845083f2bacb87a00bae440b3315cb1ad4e3770a5f4f",
+      "observedIsReady": true,
+      "observedSourceBlock": 110249362,
+      "orderedEventIdsHash": "sha256:814b7dbb56a1c4b9be611050b211011a15c8582d2d375d5fc5a2b79b7fe508bb",
+      "processedBlock": 110249364,
+      "provenanceTuples": [
+        [
+          "canonical-event-v5",
+          "envio-handlers-v5",
+          "exchange-classifier-v4",
+          "risk-hotpath-v3",
+          "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:ed073a0b9bb3e7e64c4c54b51b6fa707bce86b162f093ae0d7cfb2101269efe0",
+        "role": "external verifier",
+        "scope": "Requested position state; enabled diagnostics separately compare marks, price PnL and eligible funding checkpoints. Unknown funding is explicitly unverified; lifetime totals and balances remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:67b3c7b5b871dbe76771c0f3ab99dc73bc1d5c2bf3a7fd3a176e2243a35c3c26",
+      "source": "envio-mainnet-archive",
+      "startBlock": 109944714,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 5385,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "canonicalInputsHash": "sha256:5a7c0a843e1b7b4234e54bb4c673afcd6ddfe568404b7e8f63e1ab3419f5b1cc",
+      "chainId": 143,
+      "eventCount": 388,
+      "firstEventId": "143:0xc5581975068978882bbc33f5e874391d2fed1b2982b2d6d0573a93048adda0d7:0x207145cdfc47736802497ef5d45f3a6f650c83f241dde8e3e176f034f6ed94ec:155",
+      "fundingCheckpointsHash": "sha256:f417c8532b0e0ca8adfec4bfa11147df0a622c56accdacc72ac68fd111fa2c59",
+      "lastEventId": "143:0xcd1066e62e534a34ecee4207bbabb5c4b395a1c1cb714bceeb5ece4657131451:0x4a3f705df755121592b9b3b2d904025202f25b1289699e65b3b23eddde146a7c:57",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "marketMarksHash": "sha256:d3d32ade2f606105152d6cc700c269a214d1301823ab5470a9af81953969a3b1",
+      "methodologyHash": "sha256:e40f729478c6e12aeac6845083f2bacb87a00bae440b3315cb1ad4e3770a5f4f",
+      "observedIsReady": true,
+      "observedSourceBlock": 110249362,
+      "orderedEventIdsHash": "sha256:18906a818a8310e7e80031010aa3b1eefde7accdd6bf7feb1378fc621fe5c269",
+      "processedBlock": 110249364,
+      "provenanceTuples": [
+        [
+          "canonical-event-v5",
+          "envio-handlers-v5",
+          "exchange-classifier-v4",
+          "risk-hotpath-v3",
+          "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:23343fde4623bb63e65ae113fa405141b447c9ae9a591cc9d6817d328b8e699f",
+        "role": "external verifier",
+        "scope": "Requested position state; enabled diagnostics separately compare marks, price PnL and eligible funding checkpoints. Unknown funding is explicitly unverified; lifetime totals and balances remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:67b3c7b5b871dbe76771c0f3ab99dc73bc1d5c2bf3a7fd3a176e2243a35c3c26",
+      "source": "envio-mainnet-archive",
+      "startBlock": 109944714,
+      "version": "range-manifest-v1"
+    }
+  ],
+  "chainId": 143,
+  "fundingScorecards": [
+    {
+      "accountId": 5382,
+      "checkpoint": {
+        "baselineEffectiveBlock": 109948788,
+        "baselineEventId": "143:0xc5581975068978882bbc33f5e874391d2fed1b2982b2d6d0573a93048adda0d7:0x207145cdfc47736802497ef5d45f3a6f650c83f241dde8e3e176f034f6ed94ec:157",
+        "coverageStartBlock": 109944714,
+        "paymentEventIds": [
+          "143:0xc5581975068978882bbc33f5e874391d2fed1b2982b2d6d0573a93048adda0d7:0x207145cdfc47736802497ef5d45f3a6f650c83f241dde8e3e176f034f6ed94ec:157",
+          "143:0x4100481e8e16decebeff53a5ec464986768bb44826e0eb48ad109b85c0e5bb71:0x13ec5aa992b0752c36f36407491065bca2e587475606ea01d82c7fd7f6895e5d:282",
+          "143:0xa73a1f5febd6ecdec0a0bca2665e4920757e6a7b1262dd7bc9ee8fe41f654a2c:0xb22147c62d51fe944bec85ae392346bda8779eb674c932ad52bb20550ecf52b1:109",
+          "143:0x7f3d45904608072ab456b65503273d6ad295c1ffd7900369da4e7936425218b4:0x0269b6e6ed5c2b171c0be91710ec05578c0fc2c8d8382d69c04753716a6b7a8f:108",
+          "143:0xb876df2dfebcc57aaccf64c92e73ae690bdf10ea46d25848bf98823667866f3a:0x88214206aac73bba0d36635841e8e603ad1881f5fbc36cbffc2393555eada9e6:201",
+          "143:0x1fd690c7f4409a6b6a9bd1b2f8e375ec456f1be4a7a6ed0347f04b0e8125feaa:0x4926d85696ab16f5318fdba41e70d16caea10269525737c911916596b53dcf08:79",
+          "143:0x6d350e10bb701df18e787741c15765d7556472b867df1088c73b7b890fe9c44a:0x0a4d435e5b539770b4f5c422b4783691a6a56416803bd0bc90ea2854aec68905:85",
+          "143:0x6bae1d42763cc49c8089dec2f733fd25e73d290647608fcf0042d2da35479a09:0x6960de3f301d86a988d76ecfd8aa046238498d3c1dace567834bb5ab7c95ec4a:125",
+          "143:0x49d911eaf22a93c12c868ac60d343a6a3e2a67e8613b457bf824cde818b3e242:0x460a75d99f869a76dddc431a94fc26de41decc9ae2298545286607715c670617:59",
+          "143:0x0eb2b7b3db8b0f72e68e0b6d87014e5372954bdda92bb7c0912e959bc8ec6b06:0xccca0fcf85187721339ddbb27ec266cd83b0cb81df274b64b6d07083cc34cf49:109",
+          "143:0x13b16db366e8d50ee957e36dc8484b316c524d41feddd41a5c9845223da4248d:0xf0f47a60fd774aae946e6d371bee5e61b50fabbebd38c5f298b8e207ca9ae310:162",
+          "143:0x2633eb788f0e2f7c1dd2d24a6ecdd1c2a83561cba14f0719899e5d4f3d64e3e5:0x6f4da7c06966d606e4b3a17978e84790440ff25de5715e8b80ead03ac23f5c5c:178",
+          "143:0xabbc8377685cbdbe90c65e72f52073684d4c6ddc969248ebf942701013c64c41:0x96d9f631fcf7983dca9c686612df8182aeebf21cfafa8606e6a6afdc8af12a26:119",
+          "143:0x3eeac470b8aae017501a3b40e344a33e8ac4688f5023fcdab18157d9ae960d53:0x2cbc034a4e0f0ac4000cb9d7f96f56bf4c514e2ff78a05e2350465f81c67b74e:82",
+          "143:0x929667ac35a1ebdfe8d6ea084a63e69e2f6a49df40ec7b6dacd6cfc89b9e4547:0xaba1dea95e38fda1a62fe3da7e8b132946ef657cb24055db84a358e650abe755:108",
+          "143:0xc3efb31d4956c7046631b6c7ffadea8f98fd1e9ee6cf493ecb1e929008dfbe1e:0x7a08fa42b4113334e3bc8549fc707ac6e980f5b525f4145b6f9a37f4f24e0f62:74",
+          "143:0x746f207ad63cdc8ca63dd62e8cacdc57b2231397a7b5f0cfaadfe844cf0d460e:0xc91182933bd9f563893e9824b175a9b3d63d72feb80f0b7c6059202085899b48:126",
+          "143:0xd04fede5f3c8734659d72f1b2673e57975bea7b4ed847bf989824fcf32d31059:0xae39502ef65596381017d76ec0aa92ecd1aba866b679488ab271f45b1ca3d839:191",
+          "143:0x1d569f53f1010278f38c7740b39c8443689773760e869dad5d8cdc5fdf998112:0x0c27ce79768081bc58ad91f2a5a777502ca34203fd82471eae5147cf5daac7ee:25",
+          "143:0x60ec70faa09b55e13be90b6530297ca4b482c5040b9777774280576b61d99be3:0x70a46b5ea80edf600f00db8e5d42c940e454db5c68dbdef694cfd6b0c0ddd1f4:27",
+          "143:0xc80aa10b11a4e5f9c4c051634ade0be32f597a7a54aee45b85c9ab91ee03091a:0x218252fdb277fe78e0e8253345f2e66149784604519e9783ffe4de858c081ad1:81",
+          "143:0x700e14e636a5473b672d3d95f64df902d501d3cf5dce4ff46bc2cff92ae9570f:0x501fa19be71e6ec914da1adeef606126af9afa2441092004f7fed34dd62f1d82:99",
+          "143:0x8bd525aa777ce8b0e362b37c33080ce9246099149f31b30353d970c6bf258e1b:0x0a847f09988c18cef2538ba497f9c12eef8d4825281f7eeebbf351df0eb1d07c:106",
+          "143:0x515ed53ffc10e43865ac8b903f7650371c265fa9ae3a0f5bd5b3e4bc6131a6a8:0xb8e4e60dc017cb209f8b6a8749d9e5bdbb09c318e3cedafd40dc3ff8c1d59a25:117",
+          "143:0xd68d7d2825eae2ad82a1ba5b175b2a96a0cc5315abea9d3d85e67a0f6130fbae:0x3ae4b4ce1050409279cda849746fc76e2daa49798307a25d5f5c8dca7b9aaca0:109",
+          "143:0x320d8a892dec11665de5fc196b498414258110b2bb686683f67b1c152ddeba9e:0x4668949f1891685bd803a1a00968091f2d0db0e5964a0ebf75d145b9477f8e55:100",
+          "143:0xbb450f2421cf669c031688ab615ceee653d66ae5ac564cf42aef8c5cf1e5d6cd:0x8658b42ff46eb67e32ffc4fe9a427e1a31034340e901def78bf96cbc4c83fc1a:73",
+          "143:0xf261b9a57303c10b4a08d30c7d9f07abd9d091cd4331081476a7604540ae5154:0x094d452577df7c371863836e56ba3dbee322d43039ede2184f9f5da7ad462e83:66",
+          "143:0x36aa1972824b8660ae439935a96a1829533c34541ccfc9bbfe8da67b1b65e1a6:0x9c0efa7890e7951d2bccdf9fdf596151989667181f228f7df0d1a6281856f235:59",
+          "143:0xb6fdaf3344865f670f2ba59f6092dc0ca26061c4faf250c03c38abb3103d318d:0x2061b52111592c3340d4467e0ec2cefcef42a2c3e7887a6dc795fc02d8e917f3:77",
+          "143:0xc2b97f2c17b8c0333d1a78d0b0064045f1a3602bb54aefde0d03804998b8fd63:0xc3e8b81f10a68f9ef387537a5dbb6aba10aab54bfc621093df45ca3a49fe0357:116",
+          "143:0x2f785fc6cf8bbf47d66852853715f58e204268c1b8e4b4fd47c44332923ad6a6:0x146346b6582cc618ce61e5095c6202bc0d3975245a76fc32b19f6eba09ae0364:53",
+          "143:0x881d1463c915595647a3ec24f2982bab3094a7ec6273273e229d6bd9e1a8e1f0:0x7ba4bf0315d75f7ef85cfecf22688700d48a09478b8891a93b1fefa3e462f408:84",
+          "143:0xf6b345879d1a4db293b454d074f9e31e98ad25f96ac5dededae55fcde9bef15c:0xe8f16b4e8c233e8f64551ebbf7079f2dd4ed10cbac326beb825ec6f8a0416dff:131",
+          "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:88"
+        ],
+        "reason": "Reset precedes the first effective funding schedule; pre-window pending funding is unverified.",
+        "resetEventId": "143:0x56efefdff691ba94d0053664d38dc9c597412d6457eeeb5d557bfe910aaca471:0x86e961a1dc721abdc85565d0c5d7ada8ab03ed51c20d050402b075372e02adf5:162",
+        "settlementEventIds": [],
+        "throughBlock": 110245407,
+        "unsettledPnl": null
+      },
+      "checks": [],
+      "perpetualId": 1,
+      "role": "Canonical covered funding compared to independent SDK state; unknown checkpoints are not scored as matches.",
+      "status": "unverified"
+    },
+    {
+      "accountId": 5383,
+      "checkpoint": {
+        "baselineEffectiveBlock": 109948788,
+        "baselineEventId": "143:0xc5581975068978882bbc33f5e874391d2fed1b2982b2d6d0573a93048adda0d7:0x207145cdfc47736802497ef5d45f3a6f650c83f241dde8e3e176f034f6ed94ec:165",
+        "coverageStartBlock": 109944714,
+        "paymentEventIds": [],
+        "reason": null,
+        "resetEventId": "143:0x2af4203cca7797e14bb99b6e8dcf507656682c8dc875167a67a4e9462a56e56e:0xefbb48728d50e364e309b538b77d2ae873dabffcb88f4f492cf5af23c5c1d95d:368",
+        "settlementEventIds": [
+          "143:0x7964d73dd973c6be0b68dde8d4e2ab2ba373b5e7a123151d69eafec5d316e162:0x5e1dad7fc8e4931688626b82b07925177d41635ea07a902237d16160b841c32b:216"
+        ],
+        "throughBlock": 110245407,
+        "unsettledPnl": "0"
+      },
+      "checks": [
+        {
+          "canonicalExactValue": "0",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalUnsettledFundingAtCollateralUnits",
+          "formulaValue": "0.000000",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.000000",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "0.0872521497344970703125",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalTotalPnlAtCollateralUnits",
+          "formulaValue": "0.087252",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.087252",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "60.3355911497344970703125",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalEquityAtCollateralUnits",
+          "formulaValue": "60.335591",
+          "rounding": "truncate toward zero",
+          "sdkValue": "60.335591",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "42.26441896470794677734375",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalBufferAtCollateralUnits",
+          "formulaValue": "42.26441881497344970784",
+          "rounding": "truncate toward zero",
+          "sdkValue": "42.26441881497344970784",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "21.411832308391352893764489954",
+          "comparisonDecimals": 4,
+          "comparisonRepresentation": "Exact canonical funded liquidation compared at market price ticks",
+          "field": "canonicalFundedLiquidationAtPriceTicks",
+          "formulaValue": "21.411832308391352893764489954",
+          "rounding": "truncate toward zero",
+          "sdkValue": "21.41183230839135289",
+          "status": "matched"
+        }
+      ],
+      "perpetualId": 70,
+      "role": "Canonical covered funding compared to independent SDK state; unknown checkpoints are not scored as matches.",
+      "status": "matched"
+    },
+    {
+      "accountId": 5383,
+      "checkpoint": {
+        "baselineEffectiveBlock": 109948788,
+        "baselineEventId": "143:0xc5581975068978882bbc33f5e874391d2fed1b2982b2d6d0573a93048adda0d7:0x207145cdfc47736802497ef5d45f3a6f650c83f241dde8e3e176f034f6ed94ec:160",
+        "coverageStartBlock": 109944714,
+        "paymentEventIds": [],
+        "reason": null,
+        "resetEventId": "143:0xbb68c573eb0e98b1edd7dc4aa8a3c847ac60e02952a41957c0afa9b400a53d02:0x774e70d4013613fc7dea0aa3bef36d6803677ac9ff712f9f94de766f6d32faf0:192",
+        "settlementEventIds": [],
+        "throughBlock": 110245407,
+        "unsettledPnl": "0"
+      },
+      "checks": [
+        {
+          "canonicalExactValue": "0",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalUnsettledFundingAtCollateralUnits",
+          "formulaValue": "0.000000",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.000000",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "0.00056593243408203125",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalTotalPnlAtCollateralUnits",
+          "formulaValue": "0.000565",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.000565",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "8.19921693243408203125",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalEquityAtCollateralUnits",
+          "formulaValue": "8.199216",
+          "rounding": "truncate toward zero",
+          "sdkValue": "8.199216",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "4.116395939190673828125",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalBufferAtCollateralUnits",
+          "formulaValue": "4.116395006756591796875",
+          "rounding": "truncate toward zero",
+          "sdkValue": "4.116395006756591796875",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "0.0066357655306645022631219548",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Exact canonical funded liquidation compared at market price ticks",
+          "field": "canonicalFundedLiquidationAtPriceTicks",
+          "formulaValue": "0.0066357655306645022631219548",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.006635765530664502263",
+          "status": "matched"
+        }
+      ],
+      "perpetualId": 90,
+      "role": "Canonical covered funding compared to independent SDK state; unknown checkpoints are not scored as matches.",
+      "status": "matched"
+    },
+    {
+      "accountId": 5384,
+      "checkpoint": {
+        "baselineEffectiveBlock": 109948788,
+        "baselineEventId": "143:0xc5581975068978882bbc33f5e874391d2fed1b2982b2d6d0573a93048adda0d7:0x207145cdfc47736802497ef5d45f3a6f650c83f241dde8e3e176f034f6ed94ec:157",
+        "coverageStartBlock": 109944714,
+        "paymentEventIds": [],
+        "reason": null,
+        "resetEventId": "143:0xbc5ff802b1bc5debf6a8c16e9a949c16d12c849cf39991fff2fda7d9fbae5ba4:0x7547145ce9a45b9c13dcb1c728931ed7be495da2ae2cdd91986ce986af09b6f7:170",
+        "settlementEventIds": [],
+        "throughBlock": 110245407,
+        "unsettledPnl": "0"
+      },
+      "checks": [
+        {
+          "canonicalExactValue": "0",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalUnsettledFundingAtCollateralUnits",
+          "formulaValue": "0.000000",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.000000",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "-0.08951400421142578125",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalTotalPnlAtCollateralUnits",
+          "formulaValue": "-0.089514",
+          "rounding": "truncate toward zero",
+          "sdkValue": "-0.089514",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "39.91336199578857421875",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalEquityAtCollateralUnits",
+          "formulaValue": "39.913362",
+          "rounding": "truncate toward zero",
+          "sdkValue": "39.913362",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "23.91221183595703125000",
+          "comparisonDecimals": 6,
+          "comparisonRepresentation": "Separate collateral-native price/funding components before addition; SDK-width canonical maintenance for buffer. Exact ledger values are retained",
+          "field": "canonicalBufferAtCollateralUnits",
+          "formulaValue": "23.912211840168457032192",
+          "rounding": "truncate toward zero",
+          "sdkValue": "23.912211840168457032192",
+          "status": "matched"
+        },
+        {
+          "canonicalExactValue": "90027.70272525626990445859873",
+          "comparisonDecimals": 1,
+          "comparisonRepresentation": "Exact canonical funded liquidation compared at market price ticks",
+          "field": "canonicalFundedLiquidationAtPriceTicks",
+          "formulaValue": "90027.70272525626990445859873",
+          "rounding": "truncate toward zero",
+          "sdkValue": "90027.70272525626989",
+          "status": "matched"
+        }
+      ],
+      "perpetualId": 1,
+      "role": "Canonical covered funding compared to independent SDK state; unknown checkpoints are not scored as matches.",
+      "status": "matched"
+    }
+  ],
+  "fundingTimelines": [
+    {
+      "active": {
+        "effectiveBlock": 110240202,
+        "paymentPns": "-25",
+        "role": "raw native-unit funding observation; not a position funding amount",
+        "sourceBlock": 110240124,
+        "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:88",
+        "sumPns": "-36808"
+      },
+      "observationCount": 35,
+      "pending": [],
+      "perpetualId": 1,
+      "positionFundingAmount": null,
+      "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+      "replacementCount": 0,
+      "scalingExponent": null,
+      "scalingSourceEventId": null,
+      "status": "observed-checkpoint-unverified"
+    },
+    {
+      "active": {
+        "effectiveBlock": 110240202,
+        "paymentPns": "-32",
+        "role": "raw native-unit funding observation; not a position funding amount",
+        "sourceBlock": 110240124,
+        "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:89",
+        "sumPns": "80014"
+      },
+      "observationCount": 35,
+      "pending": [],
+      "perpetualId": 10,
+      "positionFundingAmount": null,
+      "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+      "replacementCount": 0,
+      "scalingExponent": null,
+      "scalingSourceEventId": null,
+      "status": "observed-checkpoint-unverified"
+    },
+    {
+      "active": {
+        "effectiveBlock": 110240202,
+        "paymentPns": "0",
+        "role": "raw native-unit funding observation; not a position funding amount",
+        "sourceBlock": 110240124,
+        "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:93",
+        "sumPns": "186871"
+      },
+      "observationCount": 35,
+      "pending": [],
+      "perpetualId": 40,
+      "positionFundingAmount": null,
+      "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+      "replacementCount": 0,
+      "scalingExponent": null,
+      "scalingSourceEventId": null,
+      "status": "observed-checkpoint-unverified"
+    },
+    {
+      "active": {
+        "effectiveBlock": 110240202,
+        "paymentPns": "1115",
+        "role": "raw native-unit funding observation; not a position funding amount",
+        "sourceBlock": 110240124,
+        "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:84",
+        "sumPns": "129870"
+      },
+      "observationCount": 35,
+      "pending": [],
+      "perpetualId": 70,
+      "positionFundingAmount": null,
+      "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+      "replacementCount": 0,
+      "scalingExponent": null,
+      "scalingSourceEventId": null,
+      "status": "observed-checkpoint-unverified"
+    },
+    {
+      "active": {
+        "effectiveBlock": 110240202,
+        "paymentPns": "0",
+        "role": "raw native-unit funding observation; not a position funding amount",
+        "sourceBlock": 110240124,
+        "sourceEventId": "143:0xdae4d43d111f8266631e0fb097e1204e66622960d2035b43ffed64b234000b44:0x7520ebf086bf8a27cd655aeb56cc8c8a77eb03c997bd47f736c948a7705d83b9:91",
+        "sumPns": "3744"
+      },
+      "observationCount": 35,
+      "pending": [],
+      "perpetualId": 90,
+      "positionFundingAmount": null,
+      "reason": "Position funding checkpoints and coverage before the first observed funding schedule remain unverified; raw sums are never assumed to be collateral units.",
+      "replacementCount": 0,
+      "scalingExponent": null,
+      "scalingSourceEventId": null,
+      "status": "observed-checkpoint-unverified"
+    }
+  ],
+  "limitations": [
+    "SDK calls pin the block number; its header hash is checked before and after acquisition, not EIP-1898 on every call.",
+    "Completeness is restricted to the selected markets and covered account histories.",
+    "Lifetime totals, balances and live freshness are not verified. Funding and funded risk are verified only for nonempty matched funding scorecards; unverified checkpoints remain unknown."
+  ],
+  "marketInputEventCount": 180,
+  "marketInputsHash": "sha256:251f758d6d4fdc3cff38660381c1b0b9d525fd8c878737d4131c83b677b10445",
+  "marketObservations": [
+    {
+      "initialMarginInverse": "15",
+      "maintenanceMarginInverse": "25",
+      "markPrice": "84950.8",
+      "markTimestampSeconds": 1791050150,
+      "perpetualId": 1,
+      "priceDecimals": 1,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 5,
+      "symbol": "BTC"
+    },
+    {
+      "initialMarginInverse": "10",
+      "maintenanceMarginInverse": "20",
+      "markPrice": "0.032179",
+      "markTimestampSeconds": 1791050166,
+      "perpetualId": 10,
+      "priceDecimals": 6,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 0,
+      "symbol": "MON"
+    },
+    {
+      "initialMarginInverse": "10",
+      "maintenanceMarginInverse": "20",
+      "markPrice": "89.0213",
+      "markTimestampSeconds": 1791050130,
+      "perpetualId": 40,
+      "priceDecimals": 4,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 2,
+      "symbol": "HYPE"
+    },
+    {
+      "initialMarginInverse": "3",
+      "maintenanceMarginInverse": "10",
+      "markPrice": "27.9442",
+      "markTimestampSeconds": 1791050134,
+      "perpetualId": 70,
+      "priceDecimals": 4,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 2,
+      "symbol": "VVV"
+    },
+    {
+      "initialMarginInverse": "5",
+      "maintenanceMarginInverse": "10",
+      "markPrice": "0.006028",
+      "markTimestampSeconds": 1791050165,
+      "perpetualId": 90,
+      "priceDecimals": 6,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 0,
+      "symbol": "PUMP"
+    }
+  ],
+  "marketScorecards": [
+    {
+      "checks": [
+        {
+          "comparisonDecimals": null,
+          "field": "markPricePns",
+          "formulaValue": "849508",
+          "rounding": "exact",
+          "sdkValue": "849508.0",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": null,
+          "field": "markTimestampMs",
+          "formulaValue": "1791050150000",
+          "rounding": "exact",
+          "sdkValue": "1791050150000",
+          "status": "matched"
+        }
+      ],
+      "markAgeMs": 27000,
+      "perpetualId": 1,
+      "sourceBlock": 110245318,
+      "sourceBlockHash": "0x14306c3f7f2e6d262e2c01483e621e91a0f37a541b100289a90e355ff5d37596",
+      "sourceEventId": "143:0x14306c3f7f2e6d262e2c01483e621e91a0f37a541b100289a90e355ff5d37596:0xb2515577d7995ce7f2750937bd2d36ec3bdf363d81ffd5fe4b1580455cb8de0b:99",
+      "sourceLogIndex": 99,
+      "status": "matched"
+    },
+    {
+      "checks": [
+        {
+          "comparisonDecimals": null,
+          "field": "markPricePns",
+          "formulaValue": "32179",
+          "rounding": "exact",
+          "sdkValue": "32179.000000",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": null,
+          "field": "markTimestampMs",
+          "formulaValue": "1791050166000",
+          "rounding": "exact",
+          "sdkValue": "1791050166000",
+          "status": "matched"
+        }
+      ],
+      "markAgeMs": 11000,
+      "perpetualId": 10,
+      "sourceBlock": 110245373,
+      "sourceBlockHash": "0xd23742c7fca3b11e77f98d48eccccff98a83a14a1ea72ed2a50be1998b0c9985",
+      "sourceEventId": "143:0xd23742c7fca3b11e77f98d48eccccff98a83a14a1ea72ed2a50be1998b0c9985:0x824ef806913dd5dbbc11ef0332ebb0a67ffe3dbe6af158301f223e6d55af9094:58",
+      "sourceLogIndex": 58,
+      "status": "matched"
+    },
+    {
+      "checks": [
+        {
+          "comparisonDecimals": null,
+          "field": "markPricePns",
+          "formulaValue": "890213",
+          "rounding": "exact",
+          "sdkValue": "890213.0000",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": null,
+          "field": "markTimestampMs",
+          "formulaValue": "1791050130000",
+          "rounding": "exact",
+          "sdkValue": "1791050130000",
+          "status": "matched"
+        }
+      ],
+      "markAgeMs": 47000,
+      "perpetualId": 40,
+      "sourceBlock": 110245251,
+      "sourceBlockHash": "0xa2e7352cb75e7c52988ff9efd2d1553eeba118a7c6b37c24931e3411d02fc1d0",
+      "sourceEventId": "143:0xa2e7352cb75e7c52988ff9efd2d1553eeba118a7c6b37c24931e3411d02fc1d0:0x2633e108db5d2bc33109bb95f523bd1f10d8da1cbcc952b779e68d0536a9c801:120",
+      "sourceLogIndex": 120,
+      "status": "matched"
+    },
+    {
+      "checks": [
+        {
+          "comparisonDecimals": null,
+          "field": "markPricePns",
+          "formulaValue": "279442",
+          "rounding": "exact",
+          "sdkValue": "279442.0000",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": null,
+          "field": "markTimestampMs",
+          "formulaValue": "1791050134000",
+          "rounding": "exact",
+          "sdkValue": "1791050134000",
+          "status": "matched"
+        }
+      ],
+      "markAgeMs": 43000,
+      "perpetualId": 70,
+      "sourceBlock": 110245267,
+      "sourceBlockHash": "0xba27d6060e6ef0a92c79c20f1fcceda547c1d5ec571a51dcf60be659cc45cd21",
+      "sourceEventId": "143:0xba27d6060e6ef0a92c79c20f1fcceda547c1d5ec571a51dcf60be659cc45cd21:0xc04cfe9ca64f41ba5a590512d913ede7c1c5d5896fe6499c3570634c68240ed4:11",
+      "sourceLogIndex": 11,
+      "status": "matched"
+    },
+    {
+      "checks": [
+        {
+          "comparisonDecimals": null,
+          "field": "markPricePns",
+          "formulaValue": "6028",
+          "rounding": "exact",
+          "sdkValue": "6028.000000",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": null,
+          "field": "markTimestampMs",
+          "formulaValue": "1791050165000",
+          "rounding": "exact",
+          "sdkValue": "1791050165000",
+          "status": "matched"
+        }
+      ],
+      "markAgeMs": 12000,
+      "perpetualId": 90,
+      "sourceBlock": 110245368,
+      "sourceBlockHash": "0x71b9cb9f4552ab6f5fd365a3c847b09040262c87673d07a9f743b60d09dca8a5",
+      "sourceEventId": "143:0x71b9cb9f4552ab6f5fd365a3c847b09040262c87673d07a9f743b60d09dca8a5:0x53c9e21ed7982699090bf6aa90cdaa9a8ee21ca475b95c3f3c8324f528b23fd5:181",
+      "sourceLogIndex": 181,
+      "status": "matched"
+    }
+  ],
+  "mode": "historical-end-of-block",
+  "referenceHash": "sha256:f065d229e397793fa9c8902b2f95e1388c168e4ab6835d41fe1f722440e0fcce",
+  "references": [
+    {
+      "accountId": 5382,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        1,
+        10,
+        40,
+        70,
+        90
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "952.497608",
+          "entryPrice": "85266.3",
+          "perpetualId": 1,
+          "side": "long",
+          "size": "0.16478",
+          "status": "open"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 10,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 40,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 70,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 90,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 5383,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        1,
+        10,
+        40,
+        70,
+        90
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 1,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 10,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 40,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "60.248339",
+          "entryPrice": "27.93071435089111328",
+          "perpetualId": 70,
+          "side": "long",
+          "size": "6.47",
+          "status": "open"
+        },
+        {
+          "deposit": "8.198651",
+          "entryPrice": "0.00602808355712890625",
+          "perpetualId": 90,
+          "side": "short",
+          "size": "6773",
+          "status": "open"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 5384,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        1,
+        10,
+        40,
+        70,
+        90
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "40.002876",
+          "entryPrice": "84931.79490356445312",
+          "perpetualId": 1,
+          "side": "short",
+          "size": "0.00471",
+          "status": "open"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 10,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 40,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 70,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 90,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 5385,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        1,
+        10,
+        40,
+        70,
+        90
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 1,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 10,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 40,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 70,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 90,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    }
+  ],
+  "riskReferences": [
+    {
+      "accountId": 5382,
+      "deltaPnl": "-51.98809",
+      "fundingSumDecimals": 1,
+      "liquidationPrice": "82923.73199757252093",
+      "maintenanceMargin": "562.00723656",
+      "markPrice": "84950.8",
+      "markTimestampSeconds": 1791050150,
+      "perpetualId": 1,
+      "premiumPnl": "-4.482016",
+      "role": "independent risk diagnostic only; no SDK risk inputs enter the canonical ledger",
+      "totalUnrealizedPnl": "-56.470106"
+    },
+    {
+      "accountId": 5383,
+      "deltaPnl": "0.087252",
+      "fundingSumDecimals": 6,
+      "liquidationPrice": "21.41183230839135289",
+      "maintenanceMargin": "18.07117218502655029216",
+      "markPrice": "27.9442",
+      "markTimestampSeconds": 1791050134,
+      "perpetualId": 70,
+      "premiumPnl": "0",
+      "role": "independent risk diagnostic only; no SDK risk inputs enter the canonical ledger",
+      "totalUnrealizedPnl": "0.087252"
+    },
+    {
+      "accountId": 5383,
+      "deltaPnl": "0.000565",
+      "fundingSumDecimals": 8,
+      "liquidationPrice": "0.006635765530664502263",
+      "maintenanceMargin": "4.082820993243408203125",
+      "markPrice": "0.006028",
+      "markTimestampSeconds": 1791050165,
+      "perpetualId": 90,
+      "premiumPnl": "0",
+      "role": "independent risk diagnostic only; no SDK risk inputs enter the canonical ledger",
+      "totalUnrealizedPnl": "0.000565"
+    },
+    {
+      "accountId": 5384,
+      "deltaPnl": "-0.089514",
+      "fundingSumDecimals": 1,
+      "liquidationPrice": "90027.70272525626989",
+      "maintenanceMargin": "16.001150159831542967808",
+      "markPrice": "84950.8",
+      "markTimestampSeconds": 1791050150,
+      "perpetualId": 1,
+      "premiumPnl": "0",
+      "role": "independent risk diagnostic only; no SDK risk inputs enter the canonical ledger",
+      "totalUnrealizedPnl": "-0.089514"
+    }
+  ],
+  "riskScorecards": [
+    {
+      "accountId": 5382,
+      "canonicalActualLiquidationPrice": null,
+      "checks": [
+        {
+          "canonicalExactValue": "562.00723656",
+          "comparisonDecimals": null,
+          "comparisonRepresentation": "Pinned SDK UD64 entry flooring followed by UD128 margin arithmetic; canonical exact arithmetic is unchanged",
+          "field": "entryMaintenanceMarginAtSdkArithmetic",
+          "formulaValue": "562.00723656",
+          "rounding": "exact",
+          "sdkValue": "562.00723656",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "pricePnlAtCollateralUnits",
+          "formulaValue": "-51.988090",
+          "rounding": "truncate toward zero",
+          "sdkValue": "-51.988090",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 1,
+          "field": "liquidationWithReferenceFundingAtPriceTicks",
+          "formulaValue": "82923.73199757252093700691832",
+          "rounding": "truncate toward zero",
+          "sdkValue": "82923.73199757252093",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "canonicalPricePnlAtCollateralUnits",
+          "formulaValue": "-51.988090",
+          "markSourceEventId": "143:0x14306c3f7f2e6d262e2c01483e621e91a0f37a541b100289a90e355ff5d37596:0xb2515577d7995ce7f2750937bd2d36ec3bdf363d81ffd5fe4b1580455cb8de0b:99",
+          "rounding": "truncate toward zero",
+          "sdkValue": "-51.988090",
+          "status": "matched"
+        }
+      ],
+      "conditionalFundedLiquidationPrice": "82923.73199757252093700691832",
+      "perpetualId": 1,
+      "referencePremiumPnl": "-4.482016",
+      "role": "SDK mark/funding scenarios are verifier inputs only; canonical price checks use indexed marks. Canonical checkpoint acceptance is reported separately in fundingScorecards; unsupported checkpoints remain unverified.",
+      "status": "matched",
+      "zeroFundingLiquidationPrice": "82896.53199757252093700691832"
+    },
+    {
+      "accountId": 5383,
+      "canonicalActualLiquidationPrice": "21.411832308391352893764489954",
+      "checks": [
+        {
+          "canonicalExactValue": "18.07117218502655029296875",
+          "comparisonDecimals": null,
+          "comparisonRepresentation": "Pinned SDK UD64 entry flooring followed by UD128 margin arithmetic; canonical exact arithmetic is unchanged",
+          "field": "entryMaintenanceMarginAtSdkArithmetic",
+          "formulaValue": "18.07117218502655029216",
+          "rounding": "exact",
+          "sdkValue": "18.07117218502655029216",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "pricePnlAtCollateralUnits",
+          "formulaValue": "0.0872521497344970703125",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.087252",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 4,
+          "field": "liquidationWithReferenceFundingAtPriceTicks",
+          "formulaValue": "21.411832308391352893764489954",
+          "rounding": "truncate toward zero",
+          "sdkValue": "21.41183230839135289",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "canonicalPricePnlAtCollateralUnits",
+          "formulaValue": "0.0872521497344970703125",
+          "markSourceEventId": "143:0xba27d6060e6ef0a92c79c20f1fcceda547c1d5ec571a51dcf60be659cc45cd21:0xc04cfe9ca64f41ba5a590512d913ede7c1c5d5896fe6499c3570634c68240ed4:11",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.087252",
+          "status": "matched"
+        }
+      ],
+      "conditionalFundedLiquidationPrice": "21.411832308391352893764489954",
+      "perpetualId": 70,
+      "referencePremiumPnl": "0.000000",
+      "role": "SDK mark/funding scenarios are verifier inputs only; canonical price checks use indexed marks. Canonical checkpoint acceptance is reported separately in fundingScorecards; unsupported checkpoints remain unverified.",
+      "status": "matched",
+      "zeroFundingLiquidationPrice": "21.411832308391352893764489954"
+    },
+    {
+      "accountId": 5383,
+      "canonicalActualLiquidationPrice": "0.0066357655306645022631219548",
+      "checks": [
+        {
+          "canonicalExactValue": "4.082820993243408203125",
+          "comparisonDecimals": null,
+          "comparisonRepresentation": "Pinned SDK UD64 entry flooring followed by UD128 margin arithmetic; canonical exact arithmetic is unchanged",
+          "field": "entryMaintenanceMarginAtSdkArithmetic",
+          "formulaValue": "4.082820993243408203125",
+          "rounding": "exact",
+          "sdkValue": "4.082820993243408203125",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "pricePnlAtCollateralUnits",
+          "formulaValue": "0.00056593243408203125",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.000565",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "liquidationWithReferenceFundingAtPriceTicks",
+          "formulaValue": "0.0066357655306645022631219548",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.006635765530664502263",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "canonicalPricePnlAtCollateralUnits",
+          "formulaValue": "0.00056593243408203125",
+          "markSourceEventId": "143:0x71b9cb9f4552ab6f5fd365a3c847b09040262c87673d07a9f743b60d09dca8a5:0x53c9e21ed7982699090bf6aa90cdaa9a8ee21ca475b95c3f3c8324f528b23fd5:181",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.000565",
+          "status": "matched"
+        }
+      ],
+      "conditionalFundedLiquidationPrice": "0.0066357655306645022631219548",
+      "perpetualId": 90,
+      "referencePremiumPnl": "0.000000",
+      "role": "SDK mark/funding scenarios are verifier inputs only; canonical price checks use indexed marks. Canonical checkpoint acceptance is reported separately in fundingScorecards; unsupported checkpoints remain unverified.",
+      "status": "matched",
+      "zeroFundingLiquidationPrice": "0.0066357655306645022631219548"
+    },
+    {
+      "accountId": 5384,
+      "canonicalActualLiquidationPrice": "90027.70272525626990445859873",
+      "checks": [
+        {
+          "canonicalExactValue": "16.00115015983154296875",
+          "comparisonDecimals": null,
+          "comparisonRepresentation": "Pinned SDK UD64 entry flooring followed by UD128 margin arithmetic; canonical exact arithmetic is unchanged",
+          "field": "entryMaintenanceMarginAtSdkArithmetic",
+          "formulaValue": "16.001150159831542967808",
+          "rounding": "exact",
+          "sdkValue": "16.001150159831542967808",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "pricePnlAtCollateralUnits",
+          "formulaValue": "-0.08951400421142578125",
+          "rounding": "truncate toward zero",
+          "sdkValue": "-0.089514",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 1,
+          "field": "liquidationWithReferenceFundingAtPriceTicks",
+          "formulaValue": "90027.70272525626990445859873",
+          "rounding": "truncate toward zero",
+          "sdkValue": "90027.70272525626989",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "canonicalPricePnlAtCollateralUnits",
+          "formulaValue": "-0.08951400421142578125",
+          "markSourceEventId": "143:0x14306c3f7f2e6d262e2c01483e621e91a0f37a541b100289a90e355ff5d37596:0xb2515577d7995ce7f2750937bd2d36ec3bdf363d81ffd5fe4b1580455cb8de0b:99",
+          "rounding": "truncate toward zero",
+          "sdkValue": "-0.089514",
+          "status": "matched"
+        }
+      ],
+      "conditionalFundedLiquidationPrice": "90027.70272525626990445859873",
+      "perpetualId": 1,
+      "referencePremiumPnl": "0.000000",
+      "role": "SDK mark/funding scenarios are verifier inputs only; canonical price checks use indexed marks. Canonical checkpoint acceptance is reported separately in fundingScorecards; unsupported checkpoints remain unverified.",
+      "status": "matched",
+      "zeroFundingLiquidationPrice": "90027.70272525626990445859873"
+    }
+  ],
+  "scorecards": [
+    {
+      "accountId": 5382,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "open",
+          "field": "status",
+          "perpetualId": 1,
+          "reference": "open",
+          "status": "matched"
+        },
+        {
+          "canonical": "0.16478",
+          "field": "size",
+          "perpetualId": 1,
+          "reference": "0.16478",
+          "status": "matched"
+        },
+        {
+          "canonical": "952.497608",
+          "field": "deposit",
+          "perpetualId": 1,
+          "reference": "952.497608",
+          "status": "matched"
+        },
+        {
+          "canonical": "long",
+          "field": "side",
+          "perpetualId": 1,
+          "reference": "long",
+          "status": "matched"
+        },
+        {
+          "canonical": "85266.3",
+          "canonicalEntryResiduePnsQ16": 0,
+          "canonicalSdkProjection": "85266.3",
+          "canonicalStoredEntryPns": "852663",
+          "comparisonRepresentation": "Pinned SDK UD64 Floor projection from canonical native entry/residue; exact ledger entry is retained",
+          "field": "entryPrice",
+          "perpetualId": 1,
+          "reference": "85266.3",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 10,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 40,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 70,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 70,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 70,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 90,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 90,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 90,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [],
+      "marketIds": [
+        1,
+        10,
+        40,
+        70,
+        90
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v2-sdk-width"
+    },
+    {
+      "accountId": 5383,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 1,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 10,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 40,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "open",
+          "field": "status",
+          "perpetualId": 70,
+          "reference": "open",
+          "status": "matched"
+        },
+        {
+          "canonical": "6.47",
+          "field": "size",
+          "perpetualId": 70,
+          "reference": "6.47",
+          "status": "matched"
+        },
+        {
+          "canonical": "60.248339",
+          "field": "deposit",
+          "perpetualId": 70,
+          "reference": "60.248339",
+          "status": "matched"
+        },
+        {
+          "canonical": "long",
+          "field": "side",
+          "perpetualId": 70,
+          "reference": "long",
+          "status": "matched"
+        },
+        {
+          "canonical": "27.93071435089111328125",
+          "canonicalEntryResiduePnsQ16": 9405,
+          "canonicalSdkProjection": "27.93071435089111328",
+          "canonicalStoredEntryPns": "279308",
+          "comparisonRepresentation": "Pinned SDK UD64 Floor projection from canonical native entry/residue; exact ledger entry is retained",
+          "field": "entryPrice",
+          "perpetualId": 70,
+          "reference": "27.93071435089111328",
+          "status": "matched"
+        },
+        {
+          "canonical": "open",
+          "field": "status",
+          "perpetualId": 90,
+          "reference": "open",
+          "status": "matched"
+        },
+        {
+          "canonical": "6773",
+          "field": "size",
+          "perpetualId": 90,
+          "reference": "6773",
+          "status": "matched"
+        },
+        {
+          "canonical": "8.198651",
+          "field": "deposit",
+          "perpetualId": 90,
+          "reference": "8.198651",
+          "status": "matched"
+        },
+        {
+          "canonical": "short",
+          "field": "side",
+          "perpetualId": 90,
+          "reference": "short",
+          "status": "matched"
+        },
+        {
+          "canonical": "0.00602808355712890625",
+          "canonicalEntryResiduePnsQ16": 5476,
+          "canonicalSdkProjection": "0.00602808355712890625",
+          "canonicalStoredEntryPns": "6028",
+          "comparisonRepresentation": "Pinned SDK UD64 Floor projection from canonical native entry/residue; exact ledger entry is retained",
+          "field": "entryPrice",
+          "perpetualId": 90,
+          "reference": "0.00602808355712890625",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [],
+      "marketIds": [
+        1,
+        10,
+        40,
+        70,
+        90
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v2-sdk-width"
+    },
+    {
+      "accountId": 5384,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "open",
+          "field": "status",
+          "perpetualId": 1,
+          "reference": "open",
+          "status": "matched"
+        },
+        {
+          "canonical": "0.00471",
+          "field": "size",
+          "perpetualId": 1,
+          "reference": "0.00471",
+          "status": "matched"
+        },
+        {
+          "canonical": "40.002876",
+          "field": "deposit",
+          "perpetualId": 1,
+          "reference": "40.002876",
+          "status": "matched"
+        },
+        {
+          "canonical": "short",
+          "field": "side",
+          "perpetualId": 1,
+          "reference": "short",
+          "status": "matched"
+        },
+        {
+          "canonical": "84931.794903564453125",
+          "canonicalEntryResiduePnsQ16": 62196,
+          "canonicalSdkProjection": "84931.79490356445312",
+          "canonicalStoredEntryPns": "849317",
+          "comparisonRepresentation": "Pinned SDK UD64 Floor projection from canonical native entry/residue; exact ledger entry is retained",
+          "field": "entryPrice",
+          "perpetualId": 1,
+          "reference": "84931.79490356445312",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 10,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 40,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 70,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 70,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 70,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 90,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 90,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 90,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [],
+      "marketIds": [
+        1,
+        10,
+        40,
+        70,
+        90
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v2-sdk-width"
+    },
+    {
+      "accountId": 5385,
+      "asOfBlock": 110245407,
+      "asOfBlockHash": "0x0cd0fdff14fe0a4a6b42ada5e4c33d2581ba103ef92f3fee6c7ddab72ba19c65",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1791050177000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 1,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 10,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 40,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 70,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 70,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 70,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 90,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 90,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 90,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [
+        31
+      ],
+      "marketIds": [
+        1,
+        10,
+        40,
+        70,
+        90
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v2-sdk-width"
+    }
+  ],
+  "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+  "status": "matched",
+  "version": "sdk-reference-execution-v1",
+  "observedAt": "2026-10-03T20:16:19.598847Z",
+  "rpcGate": {
+    "allowance": 96,
+    "requests": 58,
+    "methods": {
+      "eth_chainId": 1,
+      "eth_getBlockByNumber": 3,
+      "eth_call": 54
+    },
+    "rejections": {},
+    "rpcErrorResponses": 0,
+    "responseLimitBytes": 4194304,
+    "requestLimitBytes": 65536,
+    "overallTimeoutSeconds": 180
+  },
+  "sourceArtifacts": {
+    "crates/perppulse/src/envio.rs": "sha256:0b811e249f9a2bfacc4e82e5994b678780ec1c9e83b7d3fea45d108146ad0856",
+    "crates/perppulse/src/evidence.rs": "sha256:cddb669c3a505f321821814081d0bb9ec7d549e0dbc1275d08fb23d9ef026eea",
+    "crates/perppulse/src/accounting.rs": "sha256:520613e30f433a76e7acf57021c0d0e556677721cc0a6ac44e09edd59aa387c8",
+    "crates/perppulse/src/serve.rs": "sha256:aea2fcbac74af1baa424561749c2207b2be0e7c9d4968eccec7adf28e6e9bdcf",
+    "docs/methodology.json": "sha256:1ac1318a0dc15b231989236883f0102a10fdcf1658b790863e41f2c747d00995",
+    "crates/perppulse/src/funding.rs": "sha256:f779ee0dbdf38c0e84dadc39f65273c3b1b592b06a7ecc9791b949e90ca0c2f4",
+    "crates/perppulse/src/ledger.rs": "sha256:a944643e67a80ca343ed34d7d2a8aa92a52725d60ddd071d9a2ad2f11f7055e1",
+    "crates/perppulse/src/funding_checkpoint.rs": "sha256:65e5ff13274a5d142a19964b68cf4ab7f4f341a1de7dc21194d7fbdd6657b409",
+    "crates/perppulse/src/lib.rs": "sha256:44416b1c7baf0cb2431ac1b7ee099632d676165f12a76795c4ba3f2e447c2eb0",
+    "crates/perppulse/src/money.rs": "sha256:08634f58049ff2424bc8f6552f3ca702531677c395d62e0eabd5009e5a0a7ce6",
+    "crates/perppulse/src/registry.rs": "sha256:2f03f355f1e8b69484d541a5bf847a55b6b2acf12bd47ab89b24e20777d8c4a3",
+    "tools/perpl-reference/src/main.rs": "sha256:1450aa0aef926ae00823f592f3c7f284930c230e158bd1b75dd38fb1afd8af01",
+    "tools/perpl-reference/Cargo.toml": "sha256:dfc09621f69a333b438bcd791f55320fb906d9ae59e049618f00e854b9b14b5b",
+    "tools/perpl-reference/Cargo.lock": "sha256:858afcbfdb9f4f19d9f7e4941ee50a42bab200557660b4d6bb2cc79b9799bb24",
+    "scripts/run_sdk_reference.py": "sha256:c76cf1ab85ae81d50031dedd23ceb84d3ab3bda8fc582043bfb09447c9f3592d"
+  },
+  "operatorBinaryHash": "sha256:29a374ecbd972dd2a1623bd09639081cee2939f1dffde211684cd0be8f3f6f9f",
+  "registryArtifactName": "mainnet-registry-2026-10-03.json",
+  "registryArtifactHash": "sha256:321ab609354ed563ea6123877792b327ff78659d415d3cb7b2d34f6a729b5833"
+}

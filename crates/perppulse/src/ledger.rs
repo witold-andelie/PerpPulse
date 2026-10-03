@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::error::{DataQualityError, Result};
 use crate::events::{CanonicalEvent, LifecycleKind, MarketMark};
+use crate::funding_checkpoint::{FundingCheckpoint, FundingCoverage, FundingEngine};
 use crate::identity::{AsOf, EventId, PositionId};
 use crate::registry::{ProtocolRegistry, SIDE_LONG, SIDE_SHORT};
 
@@ -26,6 +27,7 @@ pub struct PositionState {
     pub realized_pnl_cns: i128,
     pub realized_funding_cns: i128,
     pub fees_cns: i128,
+    pub funding_checkpoint: FundingCheckpoint,
     pub opened_block: u64,
     pub closed_block: Option<u64>,
     pub last_event_id: Option<EventId>,
@@ -75,7 +77,27 @@ pub fn replay(
     registry: &ProtocolRegistry,
     as_of: &AsOf,
 ) -> Result<Ledger> {
+    replay_internal(events, registry, as_of, None)
+}
+
+/// Complete market publications must come from a coverage-bounded reader.
+pub fn replay_with_funding_coverage(
+    events: &[CanonicalEvent],
+    registry: &ProtocolRegistry,
+    as_of: &AsOf,
+    coverage: &FundingCoverage,
+) -> Result<Ledger> {
+    replay_internal(events, registry, as_of, Some(coverage))
+}
+
+fn replay_internal(
+    events: &[CanonicalEvent],
+    registry: &ProtocolRegistry,
+    as_of: &AsOf,
+    funding_coverage: Option<&FundingCoverage>,
+) -> Result<Ledger> {
     registry.require_chain(as_of.chain_id)?;
+    let mut funding = FundingEngine::prepare(events, registry, as_of, funding_coverage)?;
     let mut ordered = events.to_vec();
     ordered.sort_by_key(|event| (event.block_number, event.log_index, event.tx_hash.clone()));
 
@@ -139,7 +161,9 @@ pub fn replay(
                 registry.deployed_at_block
             )));
         }
+        funding.advance(&mut ledger, event.block_number)?;
         apply(&mut ledger, &event)?;
+        funding.after_lifecycle(&mut ledger, &event)?;
         ledger.events.push(event);
         previous = Some(current);
     }
@@ -148,6 +172,7 @@ pub fn replay(
             "no canonical events are included at the requested as-of cutoff",
         ));
     }
+    funding.advance(&mut ledger, as_of.block_number)?;
     Ok(ledger)
 }
 
@@ -296,6 +321,7 @@ fn open_position(ledger: &mut Ledger, event: &CanonicalEvent) -> Result<()> {
         opened_block: event.block_number,
         closed_block: None,
         last_event_id: Some(event.event_id()?),
+        funding_checkpoint: FundingCheckpoint::default(),
     };
     require_open_invariants(&position, event)?;
     ledger.positions.insert(position_id.key(), position);

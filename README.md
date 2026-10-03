@@ -18,14 +18,17 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 > deployment remain unverified.
 > [Risk formula verification](docs/verification-2026-10-03-risk.md) matches six
 > selected historical SDK comparisons. Maintenance uses effective entry notional;
-> price PnL is separate from total PnL. Actual liquidation and equity stay null
-> until unsettled funding is reconstructed independently.
+> price PnL is separate from total PnL. Unknown funding keeps actual risk null.
 > The [v3 mainnet market proof](docs/verification-2026-10-03-market-mainnet.md)
 > verifies canonical marks and price PnL in the actual four-account dashboard.
 > Same-cutoff SDK execution matches 80 position checks, 12 native mark/time
 > checks and 16 risk diagnostics across six selected markets. Real published
-> funding remains pending until its effective block. Position funding checkpoints,
-> global analytics and continuous public hosting remain pending.
+> funding remains pending until its effective block.
+> [Covered funding verification](docs/verification-2026-10-03-funding.md) adds
+> 15 matching SDK funding/risk checks for three positions with proven zero
+> unsettled funding. The older BTC position remains unknown. Nonzero mainnet
+> checkpoint reconstruction, global analytics and continuous public hosting
+> remain pending; the retained database does not certify current freshness.
 > Licensed Apache-2.0. GCP foundation was provisioned
 > in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350;
 > its current state has not been rechecked.
@@ -208,7 +211,8 @@ A watchlist cannot prove global protocol totals, so the live protocol endpoint
 returns 503. Each account exposes its replay eligibility. Eligible accounts have
 deterministic realized facts and position state; incomplete history blocks
 position replay. Canonical v3 MarkUpdated inputs drive price PnL and source
-inspection. Free balance and actual funded equity/liquidation remain null;
+inspection. Free balance remains null; funded equity/liquidation require a
+covered position funding checkpoint and stay null when it is unknown;
 legacy profiles retain unavailable marks. An old v1 index is inspection-only.
 
 ### Public market input inspection

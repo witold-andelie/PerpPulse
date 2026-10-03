@@ -113,7 +113,7 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
                 .iter()
                 .map(|p| p.position_id.perpetual_id)
                 .collect();
-            if market_profile {
+            if market_profile && !open_markets.is_empty() {
                 let uncached: Vec<_> = open_markets
                     .iter()
                     .filter(|id| !market_cache.contains_key(id))
@@ -142,7 +142,16 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
                 for id in &open_markets {
                     canonical.extend(market_cache[id].iter().cloned());
                 }
-                ledger = replay(&canonical, &config.registry, &slice.as_of)?;
+                ledger = crate::ledger::replay_with_funding_coverage(
+                    &canonical,
+                    &config.registry,
+                    &slice.as_of,
+                    &crate::funding_checkpoint::FundingCoverage {
+                        start_block: coverage.evidence.start_block,
+                        end_block: slice.as_of.block_number,
+                        market_ids: open_markets.iter().copied().collect(),
+                    },
+                )?;
             }
             let marks: Vec<_> = ledger.market_marks.values().cloned().collect();
             market_marks.extend(ledger.market_marks.clone());
@@ -168,7 +177,11 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
                     .filter(|p| p.status == "open")
                     .all(|p| p.mark.is_some())
             {
-                "funding-checkpoint-unverified"
+                if wallet.unrealized_funding.is_some() {
+                    "canonical-funding-covered"
+                } else {
+                    "funding-checkpoint-unverified"
+                }
             } else {
                 "marks-unavailable"
             });
@@ -237,6 +250,9 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         "Envio account watchlist",
     )?;
     manifest["registryInputsHash"] = json!(crate::evidence::digest(&config.registry)?);
+    let checkpoints: Vec<_> = wallets.iter().map(|w| json!({"accountId":w["accountId"],
+        "positions":w["positions"].as_array().map(|positions| positions.iter().map(|p| json!({"perpetualId":p["perpetualId"],"checkpoint":p["fundingCheckpoint"]})).collect::<Vec<_>>())})).collect();
+    manifest["fundingCheckpointsHash"] = json!(crate::evidence::digest(&checkpoints)?);
     manifest["marketMarksHash"] = if market_marks.is_empty() {
         Value::Null
     } else {
@@ -253,7 +269,7 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         exchange_address: config.registry.exchange_address.clone(), as_of_block: as_of.block_number,
         as_of_timestamp_ms: as_of.timestamp_ms, start_block: coverage.evidence.start_block,
         processed_block: coverage.evidence.processed_block,
-        source_note: "Selected account events only. Global metrics require a complete protocol ledger. Eligible v3 marks are source-linked; position funding checkpoints remain unverified.".to_string(),
+        source_note: "Selected account events only. Global metrics require a complete protocol ledger. Eligible v3 marks and covered funding checkpoints are source-linked; unknown checkpoints remain unavailable.".to_string(),
         protocol: json!({"scope": "selected-accounts", "quality": "unavailable", "takerVolume": null, "openInterest": null,
             "tvl": null, "protocolFees": null, "liquidations": null, "activeAccounts": null, "markets": [],
             "warnings": ["A watchlist cannot prove protocol totals. Global metrics are unavailable."]}),

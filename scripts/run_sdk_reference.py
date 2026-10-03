@@ -174,6 +174,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--risk-diagnostics", action="store_true")
     parser.add_argument("--market-diagnostics", action="store_true")
+    parser.add_argument("--funding-checkpoints", action="store_true")
     args = parser.parse_args()
     if (not 1 <= args.allowance <= 256 or not 0 < args.block <= 2**64 - 1
             or len(args.accounts) > 20 or len(args.markets) > 5
@@ -181,6 +182,8 @@ def main() -> int:
         parser.error("Invalid cutoff, scope or allowance (maximum 256 RPC requests)")
     if args.output.exists():
         parser.error("Output already exists; select a new evidence path")
+    if args.funding_checkpoints and not (args.market_diagnostics and args.risk_diagnostics):
+        parser.error("Funding checkpoints require both market and risk diagnostics")
     endpoint = os.environ.get("MONAD_RPC_URL", "https://rpc.monad.xyz")
     if not endpoint.startswith("https://"):
         parser.error("Remote RPC requires HTTPS")
@@ -193,7 +196,8 @@ def main() -> int:
     config = {"rpcUrl": f"http://127.0.0.1:{server.server_port}", "block": args.block,
               "blockHash": args.block_hash, "accountIds": args.accounts, "marketIds": args.markets,
               "graphqlUrl": args.graphql, "registryPath": str(args.registry.resolve()),
-              "riskDiagnostics": args.risk_diagnostics, "marketDiagnostics": args.market_diagnostics}
+              "riskDiagnostics": args.risk_diagnostics, "marketDiagnostics": args.market_diagnostics,
+              "fundingCheckpoints": args.funding_checkpoints}
     try:
         result = subprocess.run([str(args.binary.resolve())], input=json.dumps(config).encode(),
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180, check=False)
@@ -221,6 +225,8 @@ def main() -> int:
     artifacts = ["crates/perppulse/src/envio.rs", "crates/perppulse/src/evidence.rs",
                  "crates/perppulse/src/accounting.rs", "crates/perppulse/src/serve.rs", "docs/methodology.json",
                  "crates/perppulse/src/funding.rs", "crates/perppulse/src/ledger.rs",
+                 "crates/perppulse/src/funding_checkpoint.rs", "crates/perppulse/src/lib.rs",
+                 "crates/perppulse/src/money.rs", "crates/perppulse/src/registry.rs",
                  "tools/perpl-reference/src/main.rs", "tools/perpl-reference/Cargo.toml",
                  "tools/perpl-reference/Cargo.lock", "scripts/run_sdk_reference.py"]
     # Git normalizes tracked text to LF; hash that publication representation.

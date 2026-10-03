@@ -1,0 +1,30 @@
+{
+  "version": "publication-ci-acceptance-v1",
+  "observedAt": "2026-10-03T19:13:08Z",
+  "implementationCommit": "6653513fd54aa2bf89e2be3b5e61dfbc7b46ef8e",
+  "indexerImplementationCommit": "9e0a3673c8bbfc8c5ccc4a34bdacab4c5ff60269",
+  "remoteMainShaMatched": true,
+  "analytics": {
+    "runId": 37146838048,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37146838048",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {"name": "rust", "jobId": 111272441973, "conclusion": "success", "checks": ["format", "72 Rust tests", "fresh PostgreSQL integration", "clippy", "tracked publication policy", "diff whitespace", "DOT validation"]},
+      {"name": "envio", "jobId": 111272442024, "conclusion": "success", "checks": ["frozen installation", "code generation", "type checking", "19 Envio tests"]},
+      {"name": "sdk-reference", "jobId": 111272442092, "conclusion": "success", "checks": ["three RPC gate/redaction tests", "format", "locked SDK build", "four SDK precision tests", "clippy"]}
+    ]
+  },
+  "repositoryPolicy": {
+    "runId": 37146838050,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37146838050",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "publicArtifact": {
+    "url": "https://raw.githubusercontent.com/witold-andelie/PerpPulse/6653513fd54aa2bf89e2be3b5e61dfbc7b46ef8e/docs/evidence/sdk-market-execution-2026-10-03.json",
+    "credentialFreeDownloadMatched": true,
+    "sha256": "891f172c5a48f083937de2fe6f60c4b0ffadbfb1d53e626bf185b20fdb39346a"
+  },
+  "scope": "Published archival market-reader/SDK precision corrections, dated VVV registry and bounded v3 mainnet browser/position/mark/price-PnL/scheduling evidence. Position funding checkpoints, lifetime totals, global analytics and continuous hosting remain unverified."
+}

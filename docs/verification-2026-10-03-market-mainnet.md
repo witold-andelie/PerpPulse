@@ -124,3 +124,12 @@ and OPM diagrams did not change; their previous 19-test Linux acceptance remains
 recorded, and publication CI independently repeats Envio, PostgreSQL and DOT
 checks. No wallet, order, custody, Nansen, cloud or billable action occurred.
 Global analytics, lifetime totals, continuous hosting and live Nansen remain open.
+
+Implementation and selected evidence publication
+`6653513fd54aa2bf89e2be3b5e61dfbc7b46ef8e` is remote-SHA verified.
+[Analytics CI](https://github.com/witold-andelie/PerpPulse/actions/runs/37146838048)
+passed Rust/fresh PostgreSQL/DOT, Envio and SDK jobs;
+[publication policy](https://github.com/witold-andelie/PerpPulse/actions/runs/37146838050)
+also succeeded. An anonymous pinned download of the primary SDK artifact
+matched its local SHA-256. Exact identifiers and scope are in
+[the acceptance record](evidence/ci-6653513-2026-10-03.json).

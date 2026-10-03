@@ -98,38 +98,7 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
 
     let wallets_json = json!(wallets
         .iter()
-        .map(|wallet| json!({
-            "accountId": wallet.account_id,
-            "owner": wallet.owner,
-            "freeBalance": wallet.free_balance.to_string(),
-            "realizedPnl": wallet.realized_pnl.to_string(),
-            "unrealizedPnl": wallet.unrealized_pnl.to_string(),
-            "fees": wallet.fees.to_string(),
-            "realizedFunding": wallet.realized_funding.to_string(),
-            "warnings": wallet.warnings,
-            "positions": wallet.positions.iter().map(|position| json!({
-                "perpetualId": position.perpetual_id,
-                "symbol": position.symbol,
-                "side": position.side,
-                "status": position.status,
-                "size": position.size.to_string(),
-                "entry": position.entry.to_string(),
-                "entryPricePNS": position.stored_entry_pns.to_string(),
-                "entryResiduePNSQ16": position.entry_residue_pnsq16.to_string(),
-                "mark": position.mark.map(|value| value.to_string()),
-                "deposit": position.deposit.to_string(),
-                "leverage": position.leverage.map(|value| value.to_string()),
-                "unrealizedPnl": position.unrealized_pnl.map(|value| value.to_string()),
-                "realizedPnl": position.realized_pnl.to_string(),
-                "realizedFunding": position.realized_funding.to_string(),
-                "fees": position.fees.to_string(),
-                "notionalValue": position.notional_value.map(|value| value.to_string()),
-                "liquidationPrice": position.liquidation_price.map(|value| value.to_string()),
-                "liquidationBuffer": position.liquidation_buffer.map(|value| value.to_string()),
-                "lastEventId": position.last_event_id,
-                "warnings": position.warnings,
-            })).collect::<Vec<_>>(),
-        }))
+        .map(|wallet| wallet_value(wallet, false))
         .collect::<Vec<_>>());
 
     let mut evidence = Vec::with_capacity(pulse.ledger.events.len());
@@ -403,15 +372,13 @@ pub fn unavailable_context() -> Value {
 }
 
 pub fn wallet_value(wallet: &crate::accounting::WalletSnapshot, incomplete_balance: bool) -> Value {
-    let open_mark_missing = wallet
-        .positions
-        .iter()
-        .any(|p| p.status == "open" && p.mark.is_none());
     json!({
         "accountId": wallet.account_id, "owner": wallet.owner,
         "freeBalance": if incomplete_balance { None } else { Some(wallet.free_balance.to_string()) },
         "realizedPnl": wallet.realized_pnl.to_string(),
-        "unrealizedPnl": if open_mark_missing { None } else { Some(wallet.unrealized_pnl.to_string()) },
+        "unrealizedPnl": wallet.unrealized_pnl.map(|v| v.to_string()),
+        "unrealizedPricePnl": wallet.unrealized_price_pnl.map(|v| v.to_string()),
+        "unrealizedFunding": wallet.unrealized_funding.map(|v| v.to_string()),
         "fees": wallet.fees.to_string(), "realizedFunding": wallet.realized_funding.to_string(),
         "warnings": wallet.warnings,
         "positions": wallet.positions.iter().map(|p| json!({
@@ -420,6 +387,14 @@ pub fn wallet_value(wallet: &crate::accounting::WalletSnapshot, incomplete_balan
             "entryPricePNS": p.stored_entry_pns.to_string(), "entryResiduePNSQ16": p.entry_residue_pnsq16.to_string(),
             "realizedPnl": p.realized_pnl.to_string(), "realizedFunding": p.realized_funding.to_string(), "fees": p.fees.to_string(),
             "mark": p.mark.map(|v| v.to_string()), "unrealizedPnl": p.unrealized_pnl.map(|v| v.to_string()),
+            "unrealizedPricePnl": p.unrealized_price_pnl.map(|v| v.to_string()),
+            "unrealizedFunding": p.unrealized_funding.map(|v| v.to_string()),
+            "riskStatus": if p.status == "open" { "funding-unverified" } else { "closed" },
+            "maintenanceMargin": p.maintenance_margin.map(|v| v.to_string()),
+            "fairMarketValue": p.fair_market_value.map(|v| v.to_string()),
+            "zeroFundingEquity": p.zero_funding_equity.map(|v| v.to_string()),
+            "zeroFundingLiquidationPrice": p.zero_funding_liquidation_price.map(|v| v.to_string()),
+            "zeroFundingLiquidationBuffer": p.zero_funding_liquidation_buffer.map(|v| v.to_string()),
             "notionalValue": p.notional_value.map(|v| v.to_string()), "liquidationPrice": p.liquidation_price.map(|v| v.to_string()),
             "liquidationBuffer": p.liquidation_buffer.map(|v| v.to_string()), "lastEventId": p.last_event_id, "warnings": p.warnings
         })).collect::<Vec<_>>()

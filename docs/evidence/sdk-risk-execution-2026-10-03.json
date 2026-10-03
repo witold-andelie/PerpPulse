@@ -1,0 +1,905 @@
+{
+  "asOfBlock": 110018014,
+  "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+  "asOfLogIndex": null,
+  "asOfTimestampMs": 1790981535000,
+  "canonicalManifests": [
+    {
+      "accountId": 5382,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "canonicalInputsHash": "sha256:4666c66f645220d1c9f7d37c7d44117327d0a2c0d97a0f031cd1bfd2d379a5e1",
+      "chainId": 143,
+      "eventCount": 3,
+      "firstEventId": "143:0x05082078c025f4702d3dc0dbdf9ad43f6d514955305d0ee53550f70b9092dec9:0x411e5b4eedb883f6f6ee51c46509cb031a40094b7bd69aff8ec4c4ca37cb31c6:34",
+      "lastEventId": "143:0x56efefdff691ba94d0053664d38dc9c597412d6457eeeb5d557bfe910aaca471:0x86e961a1dc721abdc85565d0c5d7ada8ab03ed51c20d050402b075372e02adf5:162",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "methodologyHash": "sha256:2e74402d277eb26f458c1388fe9b2dafa3e29c44bd5cd3570ea2091fe9d7b0c3",
+      "observedIsReady": true,
+      "observedSourceBlock": 110019606,
+      "orderedEventIdsHash": "sha256:f00312802ce14ecb7217683e0f9625bf73afcd2dec7d2afef3174c474d4a3a70",
+      "processedBlock": 110019606,
+      "provenanceTuples": [
+        [
+          "canonical-event-v4",
+          "envio-handlers-v4",
+          "exchange-classifier-v3",
+          "risk-hotpath-v2",
+          "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:6d1420cae64a8772d474b6de51538494faceb666cbec00e95fa32b5d58b8f99c",
+        "role": "external verifier",
+        "scope": "Requested position state only; lifetime totals, balances and mark-derived facts remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:03bab77b773bfecda7c480a7880de94224cd8a7e7d3563959e8078b4faeab993",
+      "source": "envio-mainnet-archive",
+      "startBlock": 109944714,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 5383,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "canonicalInputsHash": "sha256:c70145eed712c3cf8d800f5f287e7066510d39c2305002e24bee035f44aa5608",
+      "chainId": 143,
+      "eventCount": 2725,
+      "firstEventId": "143:0xa1b85102661f89758f793d5de0eb7aabec7d6f8f8e2308dd022ee1444a829062:0xa9389d95ef60bdbeb3ac914082e27794372669596d712144c8accb43658a0876:118",
+      "lastEventId": "143:0x36b52c9bc9ef6d39e80a29d11085461268188a4e5576cadb1fb3dae6a5aef9af:0xc470fc8cd0c32747320ea31b7c5a7da51fc2911fde8f7a2ebd7a3281241df091:3",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "methodologyHash": "sha256:2e74402d277eb26f458c1388fe9b2dafa3e29c44bd5cd3570ea2091fe9d7b0c3",
+      "observedIsReady": true,
+      "observedSourceBlock": 110019606,
+      "orderedEventIdsHash": "sha256:89f4f4a702eca475cec371b751731770c4c5ea51806675bd5e6378f7301e52a9",
+      "processedBlock": 110019606,
+      "provenanceTuples": [
+        [
+          "canonical-event-v4",
+          "envio-handlers-v4",
+          "exchange-classifier-v3",
+          "risk-hotpath-v2",
+          "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:39dd8f3b555e150b1691e8fa267cc7fc4fae3243cec33b6a476e769b284c459f",
+        "role": "external verifier",
+        "scope": "Requested position state only; lifetime totals, balances and mark-derived facts remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:03bab77b773bfecda7c480a7880de94224cd8a7e7d3563959e8078b4faeab993",
+      "source": "envio-mainnet-archive",
+      "startBlock": 109944714,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 5384,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "canonicalInputsHash": "sha256:3529a08f3e5891b9727682f766388013d346947940d8886991cd66e67d1daa78",
+      "chainId": 143,
+      "eventCount": 55,
+      "firstEventId": "143:0x05da502b706377707325a482473adde8cff4c22bb2c07657c6e0ccc7fab0d4d1:0x4ced59ea543ee5f418101ede0495fe6c64350a871bb35325c9154ce6cd79dd59:173",
+      "lastEventId": "143:0x2877310810e3c3a6082e873569c5dd6ca52a8710c440021cc52cd2f99aca7e9d:0x73ce3cd50575c92d36046ca11edeeb90afbeb34fc3c99b8d018045e8ae3a659b:8",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "methodologyHash": "sha256:2e74402d277eb26f458c1388fe9b2dafa3e29c44bd5cd3570ea2091fe9d7b0c3",
+      "observedIsReady": true,
+      "observedSourceBlock": 110019606,
+      "orderedEventIdsHash": "sha256:1c428c72fb474711f2bcf13fddeb20d27260956a9778f7f3a791355fabfb9e1f",
+      "processedBlock": 110019606,
+      "provenanceTuples": [
+        [
+          "canonical-event-v4",
+          "envio-handlers-v4",
+          "exchange-classifier-v3",
+          "risk-hotpath-v2",
+          "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:fb357081e6325724a9b751fa3d7ade2a4fcb31546fc5a24fc0f5d61f98aa7843",
+        "role": "external verifier",
+        "scope": "Requested position state only; lifetime totals, balances and mark-derived facts remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:03bab77b773bfecda7c480a7880de94224cd8a7e7d3563959e8078b4faeab993",
+      "source": "envio-mainnet-archive",
+      "startBlock": 109944714,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 5385,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "canonicalInputsHash": "sha256:183db82f8f5a5837c8a1fce929a6aa09c4175a3a957504bd967f340dc229d1f1",
+      "chainId": 143,
+      "eventCount": 37,
+      "firstEventId": "143:0xfa65108c461314f782059fb94e093fdf46f2e7ba21f08c237ce5366b42a67328:0x1e58fbec61877f6e3946debca85546447e341ce9911486c52872488e85a44c97:102",
+      "lastEventId": "143:0x515260de83dcb9787839108bf873dada4324916473a8e6e8ee2e98e873e2454a:0x1c802150187bce617ebbf650fc20a7bd6c894d0004abff777e4a1628e261eb8d:136",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "methodologyHash": "sha256:2e74402d277eb26f458c1388fe9b2dafa3e29c44bd5cd3570ea2091fe9d7b0c3",
+      "observedIsReady": true,
+      "observedSourceBlock": 110019606,
+      "orderedEventIdsHash": "sha256:e58447494619a8b681c34a0d3d310a18f18f84fb4d095b6d71d48c8cade5361c",
+      "processedBlock": 110019606,
+      "provenanceTuples": [
+        [
+          "canonical-event-v4",
+          "envio-handlers-v4",
+          "exchange-classifier-v3",
+          "risk-hotpath-v2",
+          "sha256:b98e14a49e4201d71feeae380261784fc8872aa45b201d193194c6c5d56adbf1"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:3e1f49d5c34d505dea30b38469952b19fef5a7507ed51c191672e3065669646c",
+        "role": "external verifier",
+        "scope": "Requested position state only; lifetime totals, balances and mark-derived facts remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:03bab77b773bfecda7c480a7880de94224cd8a7e7d3563959e8078b4faeab993",
+      "source": "envio-mainnet-archive",
+      "startBlock": 109944714,
+      "version": "range-manifest-v1"
+    }
+  ],
+  "chainId": 143,
+  "limitations": [
+    "SDK calls pin the block number; its header hash is checked before and after acquisition, not EIP-1898 on every call.",
+    "Completeness is restricted to the selected markets and covered account histories.",
+    "Lifetime totals, balances, mark-derived accounting and live freshness are not verified."
+  ],
+  "marketObservations": [
+    {
+      "initialMarginInverse": "15",
+      "maintenanceMarginInverse": "25",
+      "markPrice": "84490",
+      "markTimestampSeconds": 1790981507,
+      "perpetualId": 1,
+      "priceDecimals": 1,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 5,
+      "symbol": "BTC"
+    },
+    {
+      "initialMarginInverse": "10",
+      "maintenanceMarginInverse": "20",
+      "markPrice": "0.032243",
+      "markTimestampSeconds": 1790981501,
+      "perpetualId": 10,
+      "priceDecimals": 6,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 0,
+      "symbol": "MON"
+    },
+    {
+      "initialMarginInverse": "10",
+      "maintenanceMarginInverse": "20",
+      "markPrice": "87.6768",
+      "markTimestampSeconds": 1790981533,
+      "perpetualId": 40,
+      "priceDecimals": 4,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 2,
+      "symbol": "HYPE"
+    }
+  ],
+  "mode": "historical-end-of-block",
+  "referenceHash": "sha256:e0531d64bde52ca6d2d298e7f3c7da0981fc8db90ad12c552940d2ec1c7eabe1",
+  "references": [
+    {
+      "accountId": 5382,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        1,
+        10,
+        40
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "952.497608",
+          "entryPrice": "85266.3",
+          "perpetualId": 1,
+          "side": "long",
+          "size": "0.16478",
+          "status": "open"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 10,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 40,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 5383,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        1,
+        10,
+        40
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 1,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "349.519242",
+          "entryPrice": "0.03208550299072265625",
+          "perpetualId": 10,
+          "side": "long",
+          "size": "108932",
+          "status": "open"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 40,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 5384,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        1,
+        10,
+        40
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 1,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 10,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 40,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 5385,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        1,
+        10,
+        40
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 1,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 10,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        },
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 40,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    }
+  ],
+  "riskReferences": [
+    {
+      "accountId": 5382,
+      "deltaPnl": "-127.918714",
+      "fundingSumDecimals": 1,
+      "liquidationPrice": "82913.83199757252093",
+      "maintenanceMargin": "562.00723656",
+      "markPrice": "84490",
+      "markTimestampSeconds": 1790981507,
+      "perpetualId": 1,
+      "premiumPnl": "-2.850694",
+      "role": "independent risk diagnostic only; no SDK risk inputs enter the canonical ledger",
+      "totalUnrealizedPnl": "-130.769408"
+    },
+    {
+      "accountId": 5383,
+      "deltaPnl": "17.156464",
+      "fundingSumDecimals": 8,
+      "liquidationPrice": "0.03048117789423374591",
+      "maintenanceMargin": "174.75690058927001953125",
+      "markPrice": "0.032243",
+      "markTimestampSeconds": 1790981501,
+      "perpetualId": 10,
+      "premiumPnl": "0",
+      "role": "independent risk diagnostic only; no SDK risk inputs enter the canonical ledger",
+      "totalUnrealizedPnl": "17.156464"
+    }
+  ],
+  "riskScorecards": [
+    {
+      "accountId": 5382,
+      "canonicalActualLiquidationPrice": null,
+      "checks": [
+        {
+          "comparisonDecimals": null,
+          "field": "entryMaintenanceMargin",
+          "formulaValue": "562.00723656",
+          "rounding": "exact",
+          "sdkValue": "562.00723656",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "pricePnlAtCollateralUnits",
+          "formulaValue": "-127.918714",
+          "rounding": "truncate toward zero",
+          "sdkValue": "-127.918714",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 1,
+          "field": "liquidationWithReferenceFundingAtPriceTicks",
+          "formulaValue": "82913.83199757252093700691832",
+          "rounding": "truncate toward zero",
+          "sdkValue": "82913.83199757252093",
+          "status": "matched"
+        }
+      ],
+      "conditionalFundedLiquidationPrice": "82913.83199757252093700691832",
+      "perpetualId": 1,
+      "referencePremiumPnl": "-2.850694",
+      "role": "reference-input scenario only; canonical mark and unsettled funding provenance remain unverified",
+      "status": "matched",
+      "zeroFundingLiquidationPrice": "82896.53199757252093700691832"
+    },
+    {
+      "accountId": 5383,
+      "canonicalActualLiquidationPrice": null,
+      "checks": [
+        {
+          "comparisonDecimals": null,
+          "field": "entryMaintenanceMargin",
+          "formulaValue": "174.75690058927001953125",
+          "rounding": "exact",
+          "sdkValue": "174.75690058927001953125",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "pricePnlAtCollateralUnits",
+          "formulaValue": "17.15646421459960937500",
+          "rounding": "truncate toward zero",
+          "sdkValue": "17.156464",
+          "status": "matched"
+        },
+        {
+          "comparisonDecimals": 6,
+          "field": "liquidationWithReferenceFundingAtPriceTicks",
+          "formulaValue": "0.0304811778942337459163170602",
+          "rounding": "truncate toward zero",
+          "sdkValue": "0.03048117789423374591",
+          "status": "matched"
+        }
+      ],
+      "conditionalFundedLiquidationPrice": "0.0304811778942337459163170602",
+      "perpetualId": 10,
+      "referencePremiumPnl": "0.000000",
+      "role": "reference-input scenario only; canonical mark and unsettled funding provenance remain unverified",
+      "status": "matched",
+      "zeroFundingLiquidationPrice": "0.0304811778942337459163170602"
+    }
+  ],
+  "scorecards": [
+    {
+      "accountId": 5382,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "open",
+          "field": "status",
+          "perpetualId": 1,
+          "reference": "open",
+          "status": "matched"
+        },
+        {
+          "canonical": "0.16478",
+          "field": "size",
+          "perpetualId": 1,
+          "reference": "0.16478",
+          "status": "matched"
+        },
+        {
+          "canonical": "952.497608",
+          "field": "deposit",
+          "perpetualId": 1,
+          "reference": "952.497608",
+          "status": "matched"
+        },
+        {
+          "canonical": "long",
+          "field": "side",
+          "perpetualId": 1,
+          "reference": "long",
+          "status": "matched"
+        },
+        {
+          "canonical": "85266.3",
+          "field": "entryPrice",
+          "perpetualId": 1,
+          "reference": "85266.3",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 10,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 40,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [],
+      "marketIds": [
+        1,
+        10,
+        40
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v1"
+    },
+    {
+      "accountId": 5383,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 1,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "open",
+          "field": "status",
+          "perpetualId": 10,
+          "reference": "open",
+          "status": "matched"
+        },
+        {
+          "canonical": "108932",
+          "field": "size",
+          "perpetualId": 10,
+          "reference": "108932",
+          "status": "matched"
+        },
+        {
+          "canonical": "349.519242",
+          "field": "deposit",
+          "perpetualId": 10,
+          "reference": "349.519242",
+          "status": "matched"
+        },
+        {
+          "canonical": "long",
+          "field": "side",
+          "perpetualId": 10,
+          "reference": "long",
+          "status": "matched"
+        },
+        {
+          "canonical": "0.03208550299072265625",
+          "field": "entryPrice",
+          "perpetualId": 10,
+          "reference": "0.03208550299072265625",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 40,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [],
+      "marketIds": [
+        1,
+        10,
+        40
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v1"
+    },
+    {
+      "accountId": 5384,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 1,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 10,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 40,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [],
+      "marketIds": [
+        1,
+        10,
+        40
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v1"
+    },
+    {
+      "accountId": 5385,
+      "asOfBlock": 110018014,
+      "asOfBlockHash": "0x4bfb8da1589c2f8d1eb49adf854c371febe112c63257115eacc06d5b1abcb447",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1790981535000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 1,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 1,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 10,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 10,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 40,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 40,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [],
+      "marketIds": [
+        1,
+        10,
+        40
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v1"
+    }
+  ],
+  "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+  "status": "matched",
+  "version": "sdk-reference-execution-v1",
+  "observedAt": "2026-10-03T09:32:57.160784Z",
+  "rpcGate": {
+    "allowance": 96,
+    "requests": 43,
+    "methods": {
+      "eth_chainId": 1,
+      "eth_getBlockByNumber": 3,
+      "eth_call": 39
+    },
+    "rejections": {},
+    "rpcErrorResponses": 0,
+    "responseLimitBytes": 4194304,
+    "requestLimitBytes": 65536,
+    "overallTimeoutSeconds": 180
+  },
+  "sourceArtifacts": {
+    "crates/perppulse/src/envio.rs": "sha256:be515bcd3027941ce84c8358b9c2c8475d13e9b8df5982f7251160f012e13dc0",
+    "crates/perppulse/src/evidence.rs": "sha256:cddb669c3a505f321821814081d0bb9ec7d549e0dbc1275d08fb23d9ef026eea",
+    "crates/perppulse/src/accounting.rs": "sha256:7abb4a15c81f8e2591d05dc4ee51b1d95814d5874dd0b16153a70a9a3c2a9bea",
+    "crates/perppulse/src/serve.rs": "sha256:a278ed40c0a8910928bcb46f8e3ec479d2f00d335e9112c67791cdf3accb1692",
+    "docs/methodology.json": "sha256:6c7c217de98051a904cc74cba23b4b0a53664c5a15672e7f5e683e0f0aac8ee8",
+    "tools/perpl-reference/src/main.rs": "sha256:5b889d2ce158f01e2d1bc1861082af87d885eb05f7a29af6aa671f0f93b1af49",
+    "tools/perpl-reference/Cargo.toml": "sha256:e9ab3bcd4b97a9fcf77f50bb3b4b89c9e65d98ee7b78cf7811910d766df124f5",
+    "tools/perpl-reference/Cargo.lock": "sha256:1de6932a58a0648f668ff8a342e5491ef20d5863ed019fcbed60385f53cdc2e0",
+    "scripts/run_sdk_reference.py": "sha256:531ca668043cb0de2b9569231d1e873326954efa18f2747df244a02eca1ae241"
+  },
+  "operatorBinaryHash": "sha256:95261a16f8d915dd4be09fdd84fc58eaa5a7b2134e2d08ad548ad4c3382b9170"
+}

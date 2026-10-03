@@ -457,7 +457,10 @@ fn print_demo(pulse: &perppulse::pipeline::Pulse) -> Result<(), DataQualityError
             wallet.owner.as_deref().unwrap_or("unknown"),
             wallet.free_balance,
             wallet.realized_pnl,
-            wallet.unrealized_pnl,
+            wallet
+                .unrealized_pnl
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "unavailable".into()),
             wallet.fees,
             wallet.realized_funding
         );

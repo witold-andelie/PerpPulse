@@ -98,8 +98,9 @@ live frontend may consume derived risk values. No SDK balance, mark or
 order-book state entered the canonical ledger. Continuous hosting, global
 aggregation and live Nansen remain open.
 
-The next risk check must resolve an observed model difference: the pinned SDK
-uses entry notional for maintenance margin and includes premium PnL in its
-liquidation-price expression; the existing fixture model uses mark notional and
-excludes unsettled funding. No equivalence is claimed. Position matches do not
-authorize adopting either expression as verified live risk accounting.
+The subsequent [risk formula verification](verification-2026-10-03-risk.md)
+corrects the fixture model to entry-based maintenance and separates total PnL
+from its price component. Six selected scenario comparisons match at explicit
+native precision. Canonical marks and unsettled funding remain unverified;
+actual liquidation and equity remain null. Position or scenario matches do not
+establish a complete live funding/risk pipeline.

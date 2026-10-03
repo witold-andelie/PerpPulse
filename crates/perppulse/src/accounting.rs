@@ -4,7 +4,7 @@ use crate::error::{DataQualityError, Result};
 use crate::events::MarketMark;
 use crate::identity::AsOf;
 use crate::ledger::{Ledger, PositionState};
-use crate::money::{from_native, margin_fraction, margin_rate, notional};
+use crate::money::{from_native, margin_fraction, notional};
 use crate::registry::{MarketSpec, ProtocolRegistry, SIDE_LONG, SIDE_SHORT};
 
 /// Conservative application freshness limit; live protocol limits still need
@@ -86,6 +86,8 @@ pub struct PositionSnapshot {
     pub deposit: Decimal,
     pub leverage: Option<Decimal>,
     pub unrealized_pnl: Option<Decimal>,
+    pub unrealized_price_pnl: Option<Decimal>,
+    pub unrealized_funding: Option<Decimal>,
     pub realized_pnl: Decimal,
     pub realized_funding: Decimal,
     pub fees: Decimal,
@@ -94,6 +96,9 @@ pub struct PositionSnapshot {
     pub fair_market_value: Option<Decimal>,
     pub liquidation_price: Option<Decimal>,
     pub liquidation_buffer: Option<Decimal>,
+    pub zero_funding_equity: Option<Decimal>,
+    pub zero_funding_liquidation_price: Option<Decimal>,
+    pub zero_funding_liquidation_buffer: Option<Decimal>,
     pub last_event_id: String,
     pub warnings: Vec<String>,
 }
@@ -105,7 +110,9 @@ pub struct WalletSnapshot {
     pub free_balance: Decimal,
     pub positions: Vec<PositionSnapshot>,
     pub realized_pnl: Decimal,
-    pub unrealized_pnl: Decimal,
+    pub unrealized_pnl: Option<Decimal>,
+    pub unrealized_price_pnl: Option<Decimal>,
+    pub unrealized_funding: Option<Decimal>,
     pub fees: Decimal,
     pub realized_funding: Decimal,
     pub warnings: Vec<String>,
@@ -130,6 +137,8 @@ pub fn account_wallet(
     let mut realized_total = Decimal::ZERO;
     let mut fees_total = Decimal::ZERO;
     let mut funding_total = Decimal::ZERO;
+    let mut missing_price_pnl = false;
+    let mut open_position = false;
     for position in ledger.positions.values() {
         if position.position_id.account_id != account_id {
             continue;
@@ -139,14 +148,16 @@ pub fn account_wallet(
         realized_total = add(realized_total, snap.realized_pnl, "wallet realized PnL")?;
         fees_total = add(fees_total, snap.fees, "wallet fees")?;
         funding_total = add(funding_total, snap.realized_funding, "wallet funding")?;
-        if let Some(upnl) = snap.unrealized_pnl {
+        if let Some(upnl) = snap.unrealized_price_pnl {
             unrealized_total = add(unrealized_total, upnl, "wallet unrealized PnL")?;
         } else if position.is_open() {
+            missing_price_pnl = true;
             warnings.push(format!(
                 "unrealized PnL unavailable for {} because mark data is missing",
                 snap.symbol
             ));
         }
+        open_position |= position.is_open();
         snapshots.push(snap);
     }
     snapshots.sort_by_key(|item| item.perpetual_id);
@@ -156,7 +167,9 @@ pub fn account_wallet(
         free_balance: from_native(account.balance_cns, decimals, "free_balance")?,
         positions: snapshots,
         realized_pnl: realized_total,
-        unrealized_pnl: unrealized_total,
+        unrealized_pnl: (!open_position).then_some(Decimal::ZERO),
+        unrealized_price_pnl: (!missing_price_pnl).then_some(unrealized_total),
+        unrealized_funding: (!open_position).then_some(Decimal::ZERO),
         fees: fees_total,
         realized_funding: funding_total,
         warnings,
@@ -248,11 +261,27 @@ pub fn position_snapshot(
     let mut upnl = None;
     let mut notion = None;
     let mut mmr = None;
-    let mut fmv = None;
-    let mut liq = None;
-    let mut buffer = None;
+    let mut zero_equity = None;
+    let mut zero_liq = None;
+    let mut zero_buffer = None;
 
     if position.is_open() {
+        warnings.push("Unsettled funding is unverified; total unrealized PnL, equity and actual liquidation risk are unavailable. Zero-funding fields are conditional scenarios.".into());
+        let maintenance_inverse =
+            margin_fraction(market.maint_margin_frac_hdths, "maint_margin_frac")?;
+        mmr = Some(div(
+            notional(entry, size, "entry notional")?,
+            maintenance_inverse,
+            "maintenance margin",
+        )?);
+        zero_liq = Some(isolated_liquidation_price(
+            position.side,
+            entry,
+            size,
+            deposit,
+            maintenance_inverse,
+            Decimal::ZERO,
+        )?);
         match marks
             .iter()
             .find(|mark| mark.perpetual_id == position.position_id.perpetual_id)
@@ -272,23 +301,13 @@ pub fn position_snapshot(
                 let mark_value = from_native(mark.mark_pns, market.price_decimals, "mark")?;
                 let pnl = unrealized_pnl(position.side, entry, mark_value, size)?;
                 let notional_value = notional(mark_value, size, "notional")?;
-                let maintenance = div(
-                    notional_value,
-                    margin_fraction(market.maint_margin_frac_hdths, "maint_margin_frac")?,
-                    "maintenance margin",
-                )?;
+                let maintenance = mmr.expect("open position maintenance calculated above");
                 let fair = add(deposit, pnl, "fair market value")?;
                 mark_px = Some(mark_value);
                 upnl = Some(pnl);
                 notion = Some(notional_value);
-                mmr = Some(maintenance);
-                fmv = Some(fair);
-                buffer = Some(sub(fair, maintenance, "liquidation buffer")?);
-                liq = liquidation_price(position.side, entry, size, deposit, market)?;
-                warnings.push(
-                    "unrealized funding is not applied to open positions; only funding settled on lifecycle events is included"
-                        .to_string(),
-                );
+                zero_equity = Some(fair);
+                zero_buffer = Some(sub(fair, maintenance, "zero-funding liquidation buffer")?);
             }
         }
     } else {
@@ -308,15 +327,20 @@ pub fn position_snapshot(
         mark: mark_px,
         deposit,
         leverage,
-        unrealized_pnl: upnl,
+        unrealized_pnl: (!position.is_open()).then_some(Decimal::ZERO),
+        unrealized_price_pnl: upnl,
+        unrealized_funding: (!position.is_open()).then_some(Decimal::ZERO),
         realized_pnl: realized,
         realized_funding: funding,
         fees,
         notional_value: notion,
         maintenance_margin: mmr,
-        fair_market_value: fmv,
-        liquidation_price: liq,
-        liquidation_buffer: buffer,
+        fair_market_value: None,
+        liquidation_price: None,
+        liquidation_buffer: None,
+        zero_funding_equity: zero_equity,
+        zero_funding_liquidation_price: zero_liq,
+        zero_funding_liquidation_buffer: zero_buffer,
         last_event_id: position
             .last_event_id
             .as_ref()
@@ -345,63 +369,44 @@ fn unrealized_pnl(side: u8, entry: Decimal, mark: Decimal, size: Decimal) -> Res
     notional(difference, size, "unrealized PnL")
 }
 
-fn liquidation_price(
+/// Isolated liquidation scenario with an explicitly supplied, signed funding PnL.
+/// The caller must prove funding independently before presenting an actual risk fact.
+pub fn isolated_liquidation_price(
     side: u8,
     entry: Decimal,
     size: Decimal,
     deposit: Decimal,
-    market: &MarketSpec,
-) -> Result<Option<Decimal>> {
-    if size <= Decimal::ZERO {
-        return Ok(None);
+    maintenance_inverse: Decimal,
+    premium_pnl: Decimal,
+) -> Result<Decimal> {
+    if !matches!(side, SIDE_LONG | SIDE_SHORT)
+        || entry <= Decimal::ZERO
+        || size <= Decimal::ZERO
+        || deposit < Decimal::ZERO
+        || maintenance_inverse <= Decimal::ONE
+    {
+        return Err(DataQualityError::msg("invalid isolated liquidation inputs"));
     }
-    let mm_rate = margin_rate(market.maint_margin_frac_hdths, "maint_margin_frac")?;
+    let maintenance = div(
+        notional(entry, size, "entry notional")?,
+        maintenance_inverse,
+        "maintenance margin",
+    )?;
+    let gap = div(
+        sub(
+            sub(maintenance, deposit, "margin less deposit")?,
+            premium_pnl,
+            "margin less funding",
+        )?,
+        size,
+        "liquidation distance",
+    )?;
     let price = if side == SIDE_LONG {
-        let denominator = notional(
-            size,
-            sub(Decimal::ONE, mm_rate, "long margin rate")?,
-            "long liquidation denominator",
-        )?;
-        if denominator.is_zero() {
-            return Err(DataQualityError::msg(
-                "long liquidation denominator is zero",
-            ));
-        }
-        div(
-            sub(
-                notional(entry, size, "entry notional")?,
-                deposit,
-                "long liquidation numerator",
-            )?,
-            denominator,
-            "long liquidation price",
-        )?
+        add(entry, gap, "long liquidation price")?
     } else {
-        let denominator = notional(
-            size,
-            add(Decimal::ONE, mm_rate, "short margin rate")?,
-            "short liquidation denominator",
-        )?;
-        if denominator.is_zero() {
-            return Err(DataQualityError::msg(
-                "short liquidation denominator is zero",
-            ));
-        }
-        div(
-            add(
-                notional(entry, size, "entry notional")?,
-                deposit,
-                "short liquidation numerator",
-            )?,
-            denominator,
-            "short liquidation price",
-        )?
+        sub(entry, gap, "short liquidation price")?
     };
-    if price <= Decimal::ZERO {
-        Ok(None)
-    } else {
-        Ok(Some(price))
-    }
+    Ok(price.max(Decimal::ZERO))
 }
 
 fn side_name(side: u8) -> Result<String> {

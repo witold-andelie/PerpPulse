@@ -1,5 +1,5 @@
 {
-  "version": "perppulse-methodology-v4",
+  "version": "perppulse-methodology-v5",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
@@ -10,14 +10,19 @@
     "entryPrice": "Preserve V2 Q16 residue: long with nonzero residue uses (stored PNS minus one plus residue/65536), short uses (stored PNS plus residue/65536), then apply the native price scale; integer decimal construction rejects inexact representations",
     "inversion": "Verify prior size and collateral; require the resulting side to differ before applying the post-event state",
     "realizedPnl": "Sum of lifecycle delta_pnl_cns; fees and settled funding are reported separately",
-    "unrealizedPnl": "Side-adjusted (mark minus entry) times size; unavailable without an eligible point-in-time mark",
+    "unrealizedPnl": "Total price plus unsettled funding PnL; null for open positions until funding is independently reconstructed; zero only with no open position",
     "freeBalance": "Unavailable under risk-hotpath-v2 because subjectless taker balances are excluded",
     "openInterest": "Sum of mark-derived absolute notionals for proven open positions",
     "tvl": "Isolated position collateral only; not total protocol collateral",
     "volume": "Maker fill price times size, counted once",
     "protocolFees": "Insurance plus protocol fees from supported lifecycle transitions",
-    "liquidationPrice": "Isolated margin formula using registry maintenance parameters; excludes unsettled funding",
-    "executableLiquidityRisk": "Unavailable until point-in-time order book depth and execution costs are independently captured"
+    "liquidationPrice": "Actual equity, liquidation price and buffer are null while unsettled funding is unverified",
+    "executableLiquidityRisk": "Unavailable until point-in-time order book depth and execution costs are independently captured",
+    "unrealizedPricePnl": "Side-adjusted (mark minus effective entry) times size; wallet aggregate is null if any open position lacks an eligible mark",
+    "unrealizedFunding": "Null for open positions until cumulative funding and the position funding checkpoint are reconstructed from canonical history",
+    "maintenanceMargin": "Effective entry price times size divided by the registry maintenance inverse; independent of the current mark",
+    "zeroFundingScenario": "Conditional equity = deposit + price PnL; buffer = equity - entry-based maintenance; liquidation = max(0, entry + sideSign * (maintenance - deposit) / size). These fields assume zero unsettled funding and are never actual risk facts",
+    "sdkRiskDiagnostics": "Verifier only: compare maintenance exactly, price PnL truncated to collateral native units, and liquidation scenarios using SDK reference funding at market price ticks. SDK marks and funding observations never become canonical inputs"
   },
   "eligibility": {
     "positionReplay": "Exact risk-hotpath-v2 provenance and coverage from deployment or account creation",

@@ -70,9 +70,21 @@ selected reference observations only; they do not enter canonical accounting.
 See [mainnet verification](../../docs/verification-2026-10-03-sdk.md) for the
 accepted execution and remaining limits.
 
+Add `--risk-diagnostics` to export selected SDK price PnL, premium PnL,
+maintenance and liquidation observations plus a scenario scorecard. The
+canonical entry, size and deposit are combined with SDK reference marks solely
+inside the verifier, after native scales and margin parameters match the
+registry. Maintenance is compared exactly; price PnL is compared after
+truncation toward zero to collateral native units; liquidation with SDK
+reference premium PnL is compared at market price ticks. Raw values and the
+precision contract are retained. These reference inputs never become canonical
+marks or funding. Actual canonical liquidation remains null. See the
+[risk verification](../../docs/verification-2026-10-03-risk.md).
+
 ```powershell
 cargo fmt --manifest-path tools/perpl-reference/Cargo.toml --check
 cargo clippy --manifest-path tools/perpl-reference/Cargo.toml --locked --all-targets -- -D warnings
+cargo test --manifest-path tools/perpl-reference/Cargo.toml --locked
 py -3 scripts/test_sdk_reference.py
 cargo test --locked --test position_reference --test live_adapter
 ```

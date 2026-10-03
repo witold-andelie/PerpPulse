@@ -16,6 +16,10 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 > position fields at the identical end-of-block cutoff for four covered accounts
 > and three selected markets. Lifetime totals, accounting marks and public live
 > deployment remain unverified.
+> [Risk formula verification](docs/verification-2026-10-03-risk.md) matches six
+> selected historical SDK comparisons. Maintenance uses effective entry notional;
+> price PnL is separate from total PnL. Actual liquidation and equity stay null
+> until unsettled funding is reconstructed independently.
 > Licensed Apache-2.0. GCP foundation was provisioned
 > in `europe-west3` on project `project-5e761e8c-65aa-4033-8cb`, ceiling EUR 350;
 > its current state has not been rechecked.

@@ -148,6 +148,7 @@ def main() -> int:
     parser.add_argument("--registry", type=Path, default=ROOT / "fixtures/protocol/mainnet-registry.json")
     parser.add_argument("--allowance", type=int, default=96)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--risk-diagnostics", action="store_true")
     args = parser.parse_args()
     if (not 1 <= args.allowance <= 256 or not 0 < args.block <= 2**64 - 1
             or len(args.accounts) > 20 or len(args.markets) > 5
@@ -166,7 +167,8 @@ def main() -> int:
     worker.start()
     config = {"rpcUrl": f"http://127.0.0.1:{server.server_port}", "block": args.block,
               "blockHash": args.block_hash, "accountIds": args.accounts, "marketIds": args.markets,
-              "graphqlUrl": args.graphql, "registryPath": str(args.registry.resolve())}
+              "graphqlUrl": args.graphql, "registryPath": str(args.registry.resolve()),
+              "riskDiagnostics": args.risk_diagnostics}
     try:
         result = subprocess.run([str(args.binary.resolve())], input=json.dumps(config).encode(),
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180, check=False)
@@ -191,6 +193,7 @@ def main() -> int:
     selected["observedAt"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     selected["rpcGate"] = stats
     artifacts = ["crates/perppulse/src/envio.rs", "crates/perppulse/src/evidence.rs",
+                 "crates/perppulse/src/accounting.rs", "crates/perppulse/src/serve.rs", "docs/methodology.json",
                  "tools/perpl-reference/src/main.rs", "tools/perpl-reference/Cargo.toml",
                  "tools/perpl-reference/Cargo.lock", "scripts/run_sdk_reference.py"]
     # Git normalizes tracked text to LF; hash that publication representation.

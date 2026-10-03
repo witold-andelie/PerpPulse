@@ -58,4 +58,5 @@ jobs:
       - run: python3 scripts/test_sdk_reference.py
       - run: cargo fmt --manifest-path tools/perpl-reference/Cargo.toml --check
       - run: cargo build --manifest-path tools/perpl-reference/Cargo.toml --locked
+      - run: cargo test --manifest-path tools/perpl-reference/Cargo.toml --locked
       - run: cargo clippy --manifest-path tools/perpl-reference/Cargo.toml --locked --all-targets -- -D warnings

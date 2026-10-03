@@ -15,9 +15,16 @@ use perpl_sdk::{
     types::AccountAddressOrID,
 };
 use perppulse::{
-    AsOf, accounting::account_wallet, envio::EnvioClient, evidence, load_registry, replay,
+    AsOf,
+    accounting::{account_wallet, isolated_liquidation_price, position_snapshot},
+    envio::EnvioClient,
+    events::MarketMark,
+    evidence, load_registry,
+    money::margin_fraction,
+    registry::{SIDE_LONG, SIDE_SHORT},
+    replay,
 };
-use rust_decimal::Decimal;
+use rust_decimal::{Decimal, prelude::ToPrimitive};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
@@ -33,12 +40,26 @@ struct Config {
     registry_path: String,
     account_ids: Vec<u32>,
     market_ids: Vec<u32>,
+    #[serde(default)]
+    risk_diagnostics: bool,
 }
 
 fn decimal(value: impl std::fmt::Display) -> Result<String, String> {
     Decimal::from_str_exact(&value.to_string())
         .map(|n| n.normalize().to_string())
         .map_err(|_| "SDK numeric value cannot be represented exactly".into())
+}
+
+fn number(value: impl std::fmt::Display) -> Result<Decimal, String> {
+    Decimal::from_str_exact(&value.to_string())
+        .map_err(|_| "SDK decimal exceeds exact range".into())
+}
+
+fn risk_check(name: &str, actual: Decimal, expected: Decimal, decimals: Option<u32>) -> Value {
+    let comparable = |value: Decimal| decimals.map_or(value, |scale| value.trunc_with_scale(scale));
+    json!({"field": name, "formulaValue": actual.to_string(), "sdkValue": expected.to_string(),
+        "comparisonDecimals": decimals, "rounding": if decimals.is_some() {"truncate toward zero"} else {"exact"},
+        "status": if comparable(actual) == comparable(expected) {"matched"} else {"mismatch"}})
 }
 
 async fn header<P: Provider>(provider: &P, block: u64) -> Result<AsOf, String> {
@@ -160,8 +181,16 @@ async fn run(config: Config) -> Result<Value, String> {
         let spec = registry.market(*id).map_err(|e| e.to_string())?;
         if u32::from(market.price_converter().decimals()) != spec.price_decimals
             || u32::from(market.size_converter().decimals()) != spec.size_decimals
+            || number(market.initial_margin())?
+                != margin_fraction(spec.init_margin_frac_hdths, "initial margin")
+                    .map_err(|e| e.to_string())?
+            || number(market.maintenance_margin())?
+                != margin_fraction(spec.maint_margin_frac_hdths, "maintenance margin")
+                    .map_err(|e| e.to_string())?
         {
-            return Err("SDK market decimals differ from the canonical registry".into());
+            return Err(
+                "SDK market scales or margin parameters differ from the canonical registry".into(),
+            );
         }
         metadata.push(json!({"perpetualId": id, "symbol": market.symbol(),
             "priceDecimals": market.price_converter().decimals(),
@@ -184,6 +213,8 @@ async fn run(config: Config) -> Result<Value, String> {
     let mut references = Vec::new();
     let mut scorecards = Vec::new();
     let mut manifests = Vec::new();
+    let mut risk_references = Vec::new();
+    let mut risk_scorecards = Vec::new();
     let mut total_events = 0usize;
     for id in &accounts {
         let slice = client
@@ -214,6 +245,100 @@ async fn run(config: Config) -> Result<Value, String> {
             .ok_or("SDK account is missing")?;
         let mut positions = Vec::new();
         for market_id in &markets {
+            if config.risk_diagnostics
+                && let Some(p) = account.positions().get(market_id)
+            {
+                let market = snapshot
+                    .perpetuals()
+                    .get(market_id)
+                    .ok_or("SDK market missing")?;
+                risk_references.push(json!({"accountId": id, "perpetualId": market_id,
+                        "deltaPnl": decimal(p.delta_pnl())?, "premiumPnl": decimal(p.premium_pnl())?,
+                        "totalUnrealizedPnl": decimal(p.pnl())?,
+                        "maintenanceMargin": decimal(p.maintenance_margin_requirement())?,
+                        "liquidationPrice": decimal(p.liquidation_price())?,
+                        "markPrice": decimal(market.mark_price())?,
+                        "markTimestampSeconds": market.mark_price_timestamp(),
+                        "fundingSumDecimals": market.funding_sum_converter().decimals(),
+                        "role": "independent risk diagnostic only; no SDK risk inputs enter the canonical ledger"}));
+                let canonical = ledger
+                    .positions
+                    .values()
+                    .find(|p| {
+                        p.position_id.account_id == u64::from(*id)
+                            && p.position_id.perpetual_id == *market_id
+                            && p.is_open()
+                    })
+                    .ok_or("SDK open risk diagnostic has no canonical open position")?;
+                let spec = registry.market(*market_id).map_err(|e| e.to_string())?;
+                let native = number(market.mark_price())?
+                    .checked_mul(Decimal::from(10u64.pow(spec.price_decimals)))
+                    .ok_or("SDK mark native scale overflow")?;
+                if !native.fract().is_zero() {
+                    return Err("SDK mark is not an exact native price".into());
+                }
+                let mark = MarketMark {
+                    perpetual_id: *market_id,
+                    mark_pns: native.to_i128().ok_or("SDK mark native range overflow")?,
+                    oracle_pns: None,
+                    block_number: as_of.block_number,
+                    block_hash: Some(as_of.block_hash.clone()),
+                    log_index: None,
+                    timestamp_ms: market
+                        .mark_price_timestamp()
+                        .checked_mul(1000)
+                        .and_then(|n| i64::try_from(n).ok())
+                        .ok_or("SDK mark timestamp overflow")?,
+                };
+                // This is a reference-input scenario. The mark block is the SDK
+                // observation cutoff, not independently indexed MarkUpdated provenance.
+                let scenario = position_snapshot(canonical, &registry, &as_of, &[mark], true)
+                    .map_err(|e| e.to_string())?;
+                let premium = number(p.premium_pnl())?;
+                let conditional_liq = isolated_liquidation_price(
+                    if scenario.side == "long" {
+                        SIDE_LONG
+                    } else {
+                        SIDE_SHORT
+                    },
+                    scenario.entry,
+                    scenario.size,
+                    scenario.deposit,
+                    number(market.maintenance_margin())?,
+                    premium,
+                )
+                .map_err(|e| e.to_string())?;
+                let checks = vec![
+                    risk_check(
+                        "entryMaintenanceMargin",
+                        scenario
+                            .maintenance_margin
+                            .ok_or("Maintenance scenario missing")?,
+                        number(p.maintenance_margin_requirement())?,
+                        None,
+                    ),
+                    risk_check(
+                        "pricePnlAtCollateralUnits",
+                        scenario
+                            .unrealized_price_pnl
+                            .ok_or("Price scenario missing")?,
+                        number(p.delta_pnl())?,
+                        Some(registry.collateral.decimals),
+                    ),
+                    risk_check(
+                        "liquidationWithReferenceFundingAtPriceTicks",
+                        conditional_liq,
+                        number(p.liquidation_price())?,
+                        Some(spec.price_decimals),
+                    ),
+                ];
+                risk_scorecards.push(json!({"accountId": id, "perpetualId": market_id,
+                        "status": if checks.iter().all(|v| v["status"] == "matched") {"matched"} else {"mismatch"}, "checks": checks,
+                        "zeroFundingLiquidationPrice": scenario.zero_funding_liquidation_price.map(|v| v.to_string()),
+                        "referencePremiumPnl": premium.to_string(), "conditionalFundedLiquidationPrice": conditional_liq.to_string(),
+                        "canonicalActualLiquidationPrice": scenario.liquidation_price.map(|v| v.to_string()),
+                        "role": "reference-input scenario only; canonical mark and unsettled funding provenance remain unverified"}));
+            }
             positions.push(if let Some(p) = account.positions().get(market_id) {
                 json!({"perpetualId": market_id, "status": "open",
                     "size": decimal(p.size())?, "deposit": decimal(p.deposit())?,
@@ -257,7 +382,10 @@ async fn run(config: Config) -> Result<Value, String> {
     if header(&provider, config.block).await? != as_of {
         return Err("Pinned block header changed during reference acquisition".into());
     }
-    let matched = scorecards.iter().all(|v| v["status"] == "matched");
+    let matched = scorecards
+        .iter()
+        .chain(&risk_scorecards)
+        .all(|v| v["status"] == "matched");
     Ok(
         json!({"version": "sdk-reference-execution-v1", "sdkCommit": SDK_COMMIT,
         "status": if matched {"matched"} else {"mismatch"}, "mode": "historical-end-of-block",
@@ -266,6 +394,8 @@ async fn run(config: Config) -> Result<Value, String> {
         "canonicalManifests": manifests, "references": references, "scorecards": scorecards,
         "referenceHash": evidence::digest(&references).map_err(|e| e.to_string())?,
         "marketObservations": metadata,
+        "riskReferences": risk_references,
+        "riskScorecards": risk_scorecards,
         "limitations": ["SDK calls pin the block number; its header hash is checked before and after acquisition, not EIP-1898 on every call.",
             "Completeness is restricted to the selected markets and covered account histories.",
             "Lifetime totals, balances, mark-derived accounting and live freshness are not verified."]}),
@@ -304,5 +434,48 @@ async fn main() {
             eprintln!("Reference verification failed: {error}");
             std::process::exit(1);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn comparison_contract_preserves_raw_values_and_rejects_native_unit_differences() {
+        let a = number("17.156464214599609375").unwrap();
+        let b = number("17.156464").unwrap();
+        let check = risk_check("price", a, b, Some(6));
+        assert_eq!(check["status"], "matched");
+        assert_eq!(check["formulaValue"], "17.156464214599609375");
+        assert_eq!(risk_check("price", a, b, None)["status"], "mismatch");
+        assert_eq!(
+            risk_check("price", a, number("17.156465").unwrap(), Some(6))["status"],
+            "mismatch"
+        );
+        assert_eq!(risk_check("price", -a, -b, Some(6))["status"], "matched");
+    }
+
+    #[test]
+    fn liquidation_compares_market_ticks_without_hiding_a_tick_difference() {
+        let formula = number("82913.83199757252093700691832").unwrap();
+        assert_eq!(
+            risk_check(
+                "liq",
+                formula,
+                number("82913.83199757252093").unwrap(),
+                Some(1)
+            )["status"],
+            "matched"
+        );
+        assert_eq!(
+            risk_check(
+                "liq",
+                formula,
+                number("82913.93199757252093").unwrap(),
+                Some(1)
+            )["status"],
+            "mismatch"
+        );
     }
 }

@@ -64,12 +64,17 @@ fn open_position_uses_as_of_mark_without_lookahead() {
     assert_eq!(position.size, dec("1"));
     assert_eq!(position.entry, dec("70000"));
     assert_eq!(position.mark, Some(dec("71000")));
-    assert_eq!(position.unrealized_pnl, Some(dec("1000")));
-    assert_eq!(position.fair_market_value, Some(dec("11000")));
+    assert_eq!(position.unrealized_pnl, None);
+    assert_eq!(position.unrealized_price_pnl, Some(dec("1000")));
+    assert_eq!(position.unrealized_funding, None);
+    assert_eq!(position.fair_market_value, None);
     assert_eq!(position.notional_value, Some(dec("71000")));
-    assert_eq!(position.maintenance_margin, Some(dec("2840")));
-    assert_eq!(position.liquidation_buffer, Some(dec("8160")));
-    assert_eq!(position.liquidation_price, Some(dec("62500")));
+    assert_eq!(position.maintenance_margin, Some(dec("2800")));
+    assert_eq!(position.liquidation_buffer, None);
+    assert_eq!(position.zero_funding_equity, Some(dec("11000")));
+    assert_eq!(position.zero_funding_liquidation_buffer, Some(dec("8200")));
+    assert_eq!(position.liquidation_price, None);
+    assert_eq!(position.zero_funding_liquidation_price, Some(dec("62800")));
     assert_eq!(pulse.metrics.open_interest, dec("71000"));
     assert_eq!(pulse.metrics.tvl, dec("10000"));
 }

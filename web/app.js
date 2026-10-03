@@ -43,12 +43,12 @@ function renderWallet() {
   if (!snapshot) return;
   const wallet = snapshot.wallets.find((w) => String(w.accountId) === byId("wallet-select").value);
   if (!wallet) return;
-  cards("wallet-summary",[["Realized PnL",wallet.realizedPnl,"AUSD / lifecycle facts"],["Unrealized PnL",wallet.unrealizedPnl,"AUSD / eligible marks only"],["Settled funding",wallet.realizedFunding,"AUSD / lifecycle settlements"],["Free balance",wallet.freeBalance,"AUSD / completeness required"]]);
+  cards("wallet-summary",[["Realized PnL",wallet.realizedPnl,"AUSD / lifecycle facts"],["Price PnL",wallet.unrealizedPricePnl,"AUSD / funding excluded"],["Total unrealized PnL",wallet.unrealizedPnl,"AUSD / verified funding required"],["Unsettled funding",wallet.unrealizedFunding,"AUSD / verification required"],["Settled funding",wallet.realizedFunding,"AUSD / lifecycle settlements"],["Free balance",wallet.freeBalance,"AUSD / completeness required"]]);
   byId("wallet-note").textContent = [wallet.quality,wallet.balanceNote,...(wallet.warnings || [])].filter(Boolean).join(" ");
   if (wallet.context) byId("wallet-note").textContent += ` Powered by Nansen API: ${wallet.context.status}. ${(wallet.context.labels || []).map((item) => item.label).join(", ")} ${wallet.context.pointInTimeEligible === false ? "Context was observed after the ledger cutoff." : ""}`;
   const positions = byId("positions"); positions.replaceChildren();
-  for (const p of wallet.positions || []) { const row = document.createElement("tr"); for (const value of [`${p.symbol} / ${p.side}`,p.status,p.size,p.entry,p.deposit,p.realizedPnl,p.unrealizedPnl]) row.append(cell(value)); const action = cell(""); const button = document.createElement("button"); button.textContent = "Evidence ↗"; button.addEventListener("click",() => inspect(p.lastEventId)); action.append(button); row.append(action); positions.append(row); }
-  if (!positions.children.length) empty(positions,wallet.replayEligible === false ? "Position replay is blocked by incomplete history." : "No position records in this account snapshot.",8);
+  for (const p of wallet.positions || []) { const row = document.createElement("tr"); for (const value of [`${p.symbol} / ${p.side}`,p.status,p.size,p.entry,p.deposit,p.realizedPnl,p.unrealizedPricePnl,p.liquidationPrice]) row.append(cell(value)); const action = cell(""); const button = document.createElement("button"); button.textContent = "Evidence ↗"; button.addEventListener("click",() => inspect(p.lastEventId)); action.append(button); row.append(action); positions.append(row); }
+  if (!positions.children.length) empty(positions,wallet.replayEligible === false ? "Position replay is blocked by incomplete history." : "No position records in this account snapshot.",9);
 }
 function inspect(id) { if (!snapshot) return; const event = snapshot.events.find((e) => e.eventId === id); byId("detail").textContent = event ? JSON.stringify(event,null,2) : "Event body is unavailable in compact serving mode. Resolve its ID against the canonical Envio source."; byId("event-detail").open = true; byId("event-detail").scrollIntoView({behavior:"smooth",block:"center"}); }
 function renderEvents() {

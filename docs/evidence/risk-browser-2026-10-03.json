@@ -1,0 +1,26 @@
+{
+  "version": "risk-browser-acceptance-v1",
+  "observedAt": "2026-10-03T09:31:56.182429Z",
+  "mode": "synthetic-fixture",
+  "fixture": "fixtures/golden/open-position-as-of.json",
+  "accountId": 42,
+  "asOfBlock": 54773030,
+  "pricePnl": "1000.000000",
+  "actualLiquidationPrice": null,
+  "zeroFundingLiquidationPrice": "62800.0",
+  "checks": [
+    "price component labeled funding excluded",
+    "total PnL and unsettled funding unavailable",
+    "actual liquidation unavailable",
+    "zero-funding scenario separate in API",
+    "writes rejected with 405",
+    "source failure clears financial rows and disables export",
+    "no JavaScript errors"
+  ],
+  "sourceArtifacts": {
+    "web/app.js": "sha256:9314ced19aa12f74430607246f6cf787715a0950a6994e08514d0a187b59a40b",
+    "web/index.html": "sha256:fd510edd2e33f1142a88660f23c53499b3dceeb66164e2f9d0e0dc96bf7fd700",
+    "crates/perppulse/src/serve.rs": "sha256:a278ed40c0a8910928bcb46f8e3ec479d2f00d335e9112c67791cdf3accb1692",
+    "scripts/verify_risk_browser.py": "sha256:f4df902ced54ddf31cfc4e5d0a647eb63f70bd055f447cc3e1c97f31f0625458"
+  }
+}

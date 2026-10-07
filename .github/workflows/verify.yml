@@ -5,6 +5,7 @@ permissions:
 jobs:
   rust:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:16-alpine
@@ -29,10 +30,12 @@ jobs:
       - run: python3 scripts/check_repository_policy.py --tracked
       - run: python3 -I scripts/build_cohort_fixture.py | diff - fixtures/golden/watchlist-cohort.json
       - run: git diff --check
-      - run: sudo apt-get update && sudo apt-get install -y graphviz
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends graphviz
+        timeout-minutes: 10
       - run: dot -Tsvg perppulse_opm.dot -o /tmp/perppulse_opm.svg
   envio:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -51,6 +54,7 @@ jobs:
         working-directory: envio
   sdk-reference:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.95.0

@@ -12,17 +12,18 @@ the supplied source and access limits.
 | Supplied requirement | Current evidence | Remaining work |
 | --- | --- | --- |
 | Meaningfully integrate at least one API endpoint, MCP tool or CLI command | Budgeted common-label API adapter and mock regression checks in [context.rs](../crates/perppulse/src/context.rs) | Verify permitted Monad requests and selected-field results with real data |
-| Nansen drives a core product feature | Optional observed wallet labels are implemented | Build and validate participant discovery/filtering and explanation using those labels; a decorative badge does not establish this requirement |
+| Nansen drives a core product feature | Label groups drive participant discovery and filtering in the wallet comparison (`snapshot-cohort-v1`), with per-member observation-time eligibility; verified with mock labels in [intelligence tests](../crates/perppulse/tests/intelligence.rs) | Validate the same workflow with real Monad labels; mock labels do not establish sponsor acceptance |
 | Working product, prototype or demo | Read-only fixture app and bounded live-account serving implementation | Complete the actual data-to-feature workflow |
 | Explain endpoints, data categories, tools or commands used | Endpoint and observation-time contract documented below | Add sanitized operating evidence, request allowance and verified cost/data-use terms |
 | Public repository or technical documentation | Public source and [serving contract](serving-and-evidence.md) | Publish the final feature and reproducible operating steps |
 | Short video or live demo; optional submission video at most two minutes | [Demo plan](demo-script.md) | Show the Nansen-driven interaction and its connection to actual Envio facts in the recording |
 
-## Core feature plan
+## Core feature
 
-Participant intelligence will let a user select a Nansen label or category and
-inspect the covered accounts associated with it, then drill into eligible
-position transitions and realized facts from Envio. Labels explain who is in the
+Participant intelligence lets a user select a Nansen label in the comparison
+panel and inspect the covered accounts associated with it, then drill into
+eligible position transitions and realized facts from Envio. It was implemented
+on 2026-10-07 and verified only with synthetic mock labels. Labels explain who is in the
 selected watchlist. They do not establish protocol-wide cohorts, profitability,
 or historical ownership and do not alter accounting. Partial label pages and
 missing context remain visible.

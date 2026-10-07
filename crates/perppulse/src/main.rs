@@ -79,6 +79,10 @@ enum Command {
         /// Explicit owner-approved allowance for optional billable Nansen requests.
         #[arg(long, default_value_t = 0)]
         nansen_max_requests: u32,
+        /// Read every canonical v3 event in coverage for protocol analytics,
+        /// bounded by this many events (0 disables; at most 1,000,000).
+        #[arg(long, default_value_t = 0)]
+        protocol_max_events: usize,
     },
     /// Export a reproducible fixture manifest, optionally comparing a Perpl reference.
     Evidence {
@@ -264,6 +268,7 @@ fn run() -> Result<(), DataQualityError> {
             max_events,
             publish_database,
             nansen_max_requests,
+            protocol_max_events,
         } => {
             let config = perppulse::live::LiveConfig {
                 client: EnvioClient::new(
@@ -285,6 +290,13 @@ fn run() -> Result<(), DataQualityError> {
                 },
                 database_url: if publish_database {
                     Some(database_url()?)
+                } else {
+                    None
+                },
+                protocol: if protocol_max_events > 0 {
+                    Some(std::sync::Mutex::new(
+                        perppulse::live::ProtocolAggregator::new(protocol_max_events)?,
+                    ))
                 } else {
                     None
                 },
@@ -405,8 +417,8 @@ fn print_demo(pulse: &perppulse::pipeline::Pulse) -> Result<(), DataQualityError
         pulse.fixture.registry.exchange_address
     );
     println!(
-        "As-of block {} / {} quality {}",
-        metrics.as_of_block, pulse.quality.status, pulse.quality.status
+        "As-of block {} / processed block {} / quality {}",
+        metrics.as_of_block, pulse.quality.processed_block, pulse.quality.status
     );
     println!();
     println!("1. Protocol Risk Pulse");

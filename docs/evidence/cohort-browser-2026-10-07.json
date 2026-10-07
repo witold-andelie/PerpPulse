@@ -1,0 +1,37 @@
+{
+  "version": "cohort-browser-acceptance-v1",
+  "observedAt": "2026-10-07T18:08:00Z",
+  "mode": "synthetic-fixture",
+  "fixture": "fixtures/golden/watchlist-cohort.json",
+  "runtime": "local production image perppulse:local, UID 10001, loopback port; headless installed Google Chrome through Playwright 1.63.0",
+  "localImageId": "sha256:742ff95058558986da61b807290ca562ecf9599a3fead3475121536c73afa66a",
+  "asOfBlock": 56933010,
+  "topSignalIds": [
+    "liquidation-distance:102:1",
+    "liquidation-activity:-:10",
+    "leverage-utilization:105:20"
+  ],
+  "checks": [
+    "fixture badge and shared cutoff rendered",
+    "three Risk Pulse signal cards rendered in rule order",
+    "signal evidence shows rule definition, rule hash and linked source events",
+    "Open account navigates to account 102 at the same cutoff",
+    "severity filter shows two critical signals; account filter shows three signals for account 102",
+    "four complete analytics windows with event-ID hash evidence",
+    "market skew, stress scenarios and wallet comparison with percentiles and overlap rendered",
+    "favicon request answered with 204; no JavaScript or console errors"
+  ],
+  "sourceArtifacts": {
+    "web/app.js": "sha256:bba45699df1fb08cd42740856c26dcfd3ad59d014e27c0065ea2989056a58b94",
+    "web/index.html": "sha256:486612f50a82281d3e825bc222b5a836e46c71bee9e882a5b4d78d538a2952f4",
+    "web/style.css": "sha256:29a61e43068b159ee63411a3efb2037ffdbfa54d95e59aeeab30abf80e4d2e2a",
+    "crates/perppulse/src/serve.rs": "sha256:102a8730dd30be394f00b302a8e5576de7c8e608f9bba23b28826654b93d71c3",
+    "crates/perppulse/src/signals.rs": "sha256:59d18fd07641104eba8fdaf33d517cf32dc79c5af2c79f5586a3da2edffd5ec9",
+    "crates/perppulse/src/analytics.rs": "sha256:ec66ee1ef7e82111bec6834d4f6f1b1e818f843fd9d3a894cb0412d1f36512a7",
+    "crates/perppulse/src/cohort.rs": "sha256:e12d1a5a97c49112dc83f775f644ba44367a10a6a68be3feb66448f3a0ed2e8d",
+    "fixtures/golden/watchlist-cohort.json": "sha256:54be05d1c1a200597b38d54e2b9591797a2aad4ecba032276ebb15cbf2430607",
+    "scripts/build_cohort_fixture.py": "sha256:1f115a684c1f562c609f1938413856a419b1fd26c63d3b48cf8e14d2c8262bd6"
+  },
+  "screenshot": "docs/evidence/cohort-dashboard-2026-10-07.png",
+  "limits": "Synthetic fixture only. Not mainnet operation, not a hosted deployment and not sponsor acceptance."
+}

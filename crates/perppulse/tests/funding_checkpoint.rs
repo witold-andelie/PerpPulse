@@ -70,6 +70,9 @@ fn cutoff(block: u64) -> AsOf {
     .unwrap()
 }
 fn run(events: &[CanonicalEvent], block: u64) -> Ledger {
+    run_from(events, block, START, vec![1])
+}
+fn run_from(events: &[CanonicalEvent], block: u64, start: u64, markets: Vec<u32>) -> Ledger {
     let registry =
         load_registry(repo_root().join("fixtures/protocol/mainnet-registry.json")).unwrap();
     replay_with_funding_coverage(
@@ -77,9 +80,9 @@ fn run(events: &[CanonicalEvent], block: u64) -> Ledger {
         &registry,
         &cutoff(block),
         &FundingCoverage {
-            start_block: START,
+            start_block: start,
             end_block: block,
-            market_ids: vec![1],
+            market_ids: markets,
         },
     )
     .unwrap()
@@ -165,10 +168,22 @@ fn no_complete_coverage_or_prebaseline_reset_remains_unknown() {
         amount(&replay(&events, &registry, &cutoff(START + 5)).unwrap()),
         None
     );
+    // Coverage that starts after deployment cannot see a pre-window schedule.
+    let mut window = base(1, false);
+    window[1].funding_event_block = Some(START + 4);
+    assert_eq!(
+        amount(&run_from(&window, START + 5, START + 1, vec![1])),
+        None
+    );
+    window.retain(|e| e.kind != perppulse::LifecycleKind::MarketFunding);
+    assert_eq!(
+        amount(&run_from(&window, START + 5, START + 1, vec![1])),
+        None
+    );
+    // A market outside declared funding coverage stays unknown even from deployment.
     events[1].funding_event_block = Some(START + 4);
-    assert_eq!(amount(&run(&events, START + 5)), None);
+    assert_eq!(amount(&run_from(&events, START + 5, START, vec![10])), None);
     events.retain(|e| e.kind != perppulse::LifecycleKind::MarketFunding);
-    assert_eq!(amount(&run(&events, START + 5)), None);
     assert!(replay_with_funding_coverage(
         &events,
         &registry,
@@ -180,6 +195,21 @@ fn no_complete_coverage_or_prebaseline_reset_remains_unknown() {
         }
     )
     .is_err());
+}
+
+#[test]
+fn deployment_coverage_proves_resets_before_the_first_schedule() {
+    let mut events = base(1, true);
+    events[1].funding_event_block = Some(START + 4);
+    let ledger = run(&events, START + 3);
+    let proof = &ledger.open_positions()[0].funding_checkpoint;
+    assert_eq!(proof.unsettled_pnl, Some(dec("0")));
+    assert!(proof.reason.is_none());
+    assert_eq!(proof.baseline_effective_block, Some(START + 4));
+    events.push(schedule(START + 5, START + 6, 100, 100, false));
+    assert_eq!(amount(&run(&events, START + 6)), Some(dec("-10")));
+    events.retain(|e| e.kind != perppulse::LifecycleKind::MarketFunding);
+    assert_eq!(amount(&run(&events, START + 6)), Some(dec("0")));
 }
 
 #[test]

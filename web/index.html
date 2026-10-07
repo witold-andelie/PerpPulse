@@ -7,9 +7,44 @@
     <div class="intro"><div><p class="eyebrow">PROTOCOL TO WALLET TO EVIDENCE</p><h1>Know the risk.<br><span>Follow the facts.</span></h1><p class="subtitle">A shared point in time. A deterministic ledger. Every number with a source.</p></div><aside id="status" aria-live="polite"><span class="dot"></span>Connecting to source</aside></div>
     <div id="error" class="error" role="alert" hidden></div>
     <div class="toolbar"><div><span id="mode" class="badge">Loading</span><span id="cutoff">Checking coverage</span></div><button id="refresh" type="button">Refresh snapshot <span aria-hidden="true">↻</span></button></div>
-    <section aria-labelledby="pulse-title"><div class="section-heading"><h2 id="pulse-title">Risk Pulse</h2><span id="scope">Covered range</span></div><div id="metrics" class="metrics"></div><div id="source-note" class="source-note"></div><div class="panel"><div class="panel-heading"><h3>Markets in this snapshot</h3><span>Amounts in AUSD</span></div><div class="table-scroll"><table><thead><tr><th>Market</th><th>Volume</th><th>Open interest</th><th>Position collateral</th><th>Fees</th><th>Liquidations</th></tr></thead><tbody id="markets"></tbody></table></div></div></section>
+
+    <section aria-labelledby="pulse-title">
+      <div class="section-heading"><h2 id="pulse-title">Risk Pulse</h2><span id="scope">Covered range</span></div>
+      <div id="top-signals" class="signal-cards" aria-live="polite"></div>
+      <p id="signal-summary" class="source-note"></p>
+      <div id="metrics" class="metrics"></div>
+      <div id="source-note" class="source-note"></div>
+    </section>
+
+    <section aria-labelledby="windows-title">
+      <div class="section-heading"><h2 id="windows-title">Protocol flows and state</h2><span id="analytics-scope">Analytics unavailable</span></div>
+      <div class="panel"><div class="panel-heading"><h3>Windows ending at the selected cutoff</h3><span>Amounts in AUSD</span></div><div class="table-scroll"><table><thead><tr><th>Window</th><th>Status</th><th>Volume</th><th>Trades</th><th>Protocol fees</th><th>Liquidations</th><th>Net collateral flow</th><th>Active accounts</th><th>Evidence</th></tr></thead><tbody id="windows"></tbody></table></div></div>
+      <p id="state-note" class="source-note"></p>
+      <div class="panel"><div class="panel-heading"><h3>Markets in this snapshot</h3><span>Amounts in AUSD</span></div><div class="table-scroll"><table><thead><tr><th>Market</th><th>Volume</th><th>Open interest</th><th>Long / short</th><th>Skew</th><th>Position collateral</th><th>Fees</th><th>Liquidations</th></tr></thead><tbody id="markets"></tbody></table></div></div>
+    </section>
+
+    <section aria-labelledby="signals-title">
+      <div class="section-heading"><h2 id="signals-title">Alerts and signals</h2><span id="rules-hash">Rules unavailable</span></div>
+      <div class="filters"><label>Severity <select id="signal-severity"><option value="">All severities</option><option value="critical">Critical</option><option value="warning">Warning or above</option><option value="watch">Watch or above</option></select></label><label>Category <select id="signal-category"><option value="">All categories</option><option value="risk">Risk</option><option value="activity">Activity</option><option value="concentration">Concentration</option><option value="data-quality">Data quality</option></select></label><label class="check"><input id="signal-wallet" type="checkbox"> Selected account only</label></div>
+      <p id="signal-count" class="source-note"></p>
+      <div class="panel"><div class="table-scroll"><table><thead><tr><th>Severity</th><th>Signal</th><th>Metric</th><th>Change</th><th>Basis</th><th>Rule</th><th>Inspect</th></tr></thead><tbody id="signals"></tbody></table></div></div>
+      <details id="resolved-detail"><summary>Recently resolved signals</summary><ul id="resolved" class="plain-list"></ul></details>
+      <div class="panel spaced"><div class="panel-heading"><h3>Mark-shock stress scenarios</h3><span id="stress-method">Deterministic, all eligible marks at once</span></div><div class="table-scroll"><table><thead><tr><th>Mark shock</th><th>Positions evaluated</th><th>At or below maintenance</th><th>Collateral at risk</th><th>Conditional</th><th>Positions</th></tr></thead><tbody id="stress"></tbody></table></div></div>
+    </section>
+
     <section aria-labelledby="wallet-title"><div class="section-heading"><h2 id="wallet-title">Wallet explorer</h2><label>Account <select id="wallet-select" aria-label="Select account"></select></label></div><div id="wallet-summary" class="metrics small"></div><p id="wallet-note" class="source-note"></p><div class="panel"><div class="table-scroll"><table><thead><tr><th>Position</th><th>State</th><th>Size</th><th>Entry</th><th>Collateral</th><th>Realized PnL</th><th>Price PnL</th><th>Liquidation price</th><th>Source</th></tr></thead><tbody id="positions"></tbody></table></div></div></section>
-    <section aria-labelledby="evidence-title"><div class="section-heading"><h2 id="evidence-title">Event evidence</h2><button id="export" type="button" disabled>Download manifest ↓</button></div><div class="filters"><label>From block <input id="from-block" inputmode="numeric" type="text"></label><label>Through block <input id="to-block" inputmode="numeric" type="text"></label><label>Market <select id="market-select"><option value="">All markets</option></select></label><label class="check"><input id="wallet-filter" type="checkbox"> Selected account only</label><button id="apply" type="button">Apply range</button></div><p id="event-count" class="source-note"></p><div class="panel"><div class="table-scroll"><table><thead><tr><th>Block / log</th><th>Event</th><th>Account</th><th>Market</th><th>Transaction</th><th>Inspect</th></tr></thead><tbody id="events"></tbody></table></div></div><details id="event-detail"><summary>Selected event and provenance</summary><pre id="detail">Choose an event to inspect its evidence.</pre></details></section>
-    <section class="foot-grid"><article class="panel"><h3>Coverage & methodology</h3><dl id="coverage"></dl><a href="/api/methodology" target="_blank" rel="noopener">Open machine-readable methodology ↗</a></article><article class="panel"><h3>Context & verification</h3><p id="context"></p><p>Perpl snapshots verify the canonical ledger at the same cutoff. No external reconciliation has been supplied for this snapshot.</p><p>Funding and risk require covered checkpoints; missing inputs remain unavailable. Executable liquidity is unavailable. AI does not calculate financial facts.</p></article></section>
+
+    <section aria-labelledby="compare-title">
+      <div class="section-heading"><h2 id="compare-title">Compare wallets</h2><label>Nansen label <select id="label-filter" aria-label="Filter by Nansen label"><option value="">All snapshot accounts</option></select></label></div>
+      <p id="label-note" class="source-note"></p>
+      <div id="compare-pick" class="chips" role="group" aria-label="Accounts to compare"></div>
+      <div class="panel"><div class="table-scroll"><table><thead id="compare-head"></thead><tbody id="compare"></tbody></table></div></div>
+      <p id="compare-note" class="source-note"></p>
+      <div class="panel"><div class="panel-heading"><h3>Open-market exposure overlap</h3><span>Selected pairs</span></div><div class="table-scroll"><table><thead><tr><th>Accounts</th><th>Shared markets</th><th>Jaccard</th><th>Same side</th><th>Opposing</th></tr></thead><tbody id="overlap"></tbody></table></div></div>
+    </section>
+
+    <section aria-labelledby="evidence-title"><div class="section-heading"><h2 id="evidence-title">Event evidence</h2><button id="export" type="button" disabled>Download manifest ↓</button></div><div class="filters"><label>From block <input id="from-block" inputmode="numeric" type="text"></label><label>Through block <input id="to-block" inputmode="numeric" type="text"></label><label>Market <select id="market-select"><option value="">All markets</option></select></label><label class="check"><input id="wallet-filter" type="checkbox"> Selected account only</label><button id="apply" type="button">Apply range</button></div><p id="event-count" class="source-note"></p><div class="panel"><div class="table-scroll"><table><thead><tr><th>Block / log</th><th>Event</th><th>Account</th><th>Market</th><th>Transaction</th><th>Inspect</th></tr></thead><tbody id="events"></tbody></table></div></div><details id="event-detail"><summary>Selected event, signal and provenance</summary><pre id="detail">Choose an event or signal to inspect its evidence.</pre></details></section>
+
+    <section class="foot-grid"><article class="panel"><h3>Coverage & methodology</h3><dl id="coverage"></dl><a href="/api/methodology" target="_blank" rel="noopener">Open machine-readable methodology ↗</a></article><article class="panel"><h3>Context & verification</h3><p id="context"></p><p>Perpl snapshots verify the canonical ledger at the same cutoff. No external reconciliation has been supplied for this snapshot.</p><p>Funding and risk require covered checkpoints; missing inputs remain unavailable. Signals compare served facts with published, hashed rules. Executable liquidity is unavailable. AI does not calculate financial facts.</p></article></section>
   </main><footer><span>PerpPulse</span><span>Traceable facts. Explicit limits. No order placement.</span></footer>
 </body></html>

@@ -253,6 +253,7 @@ fn config(mock: &Mock) -> LiveConfig {
         max_lag_blocks: 100,
         database_url: None,
         nansen: None,
+        protocol: None,
     }
 }
 
@@ -266,6 +267,12 @@ fn v3_row(mut value: Value) -> Value {
 }
 
 fn market_mock(failure: &'static str) -> Mock {
+    market_mock_with(failure, Arc::new(std::sync::Mutex::new(Vec::new())))
+}
+
+type Cursors = Arc<std::sync::Mutex<Vec<(Value, Value)>>>;
+
+fn market_mock_with(failure: &'static str, protocol_cursors: Cursors) -> Mock {
     let created = v3_row(row(
         "AccountCreated",
         0,
@@ -324,15 +331,82 @@ fn market_mock(failure: &'static str) -> Mock {
         p["allowOverwrite"] = json!("false");
         funding["payloadJson"] = json!(p.to_string());
     }
+    let mut fill = v3_row(row(
+        "MakerOrderFilled",
+        0,
+        json!({"accountId":"7","perpId":"1","pricePNS":"700000","lotLNS":"100000","feeCNS":"9000","amountCNS":"0","balanceCNS":"0"}),
+        "MAKER_FILL",
+    ));
+    fill["accountId"] = json!("7");
+    fill["blockNumber"] = json!("54773025");
+    fill["blockHash"] = json!("0xfill");
+    fill["timestampMs"] = json!("1770000550000");
+    fill["id"] = json!("143:0xfill:0xtx:0");
+    fill["positionType"] = Value::Null;
+    fill["perpetualId"] = json!(1);
+    let mut protocol_rows = [
+        fill,
+        created.clone(),
+        opened.clone(),
+        mark.clone(),
+        funding.clone(),
+    ];
+    if failure == "protocol-legacy" {
+        protocol_rows[0]["ingestionProfile"] = json!("risk-hotpath-v2");
+    }
+    let verifies = AtomicUsize::new(0);
     let market_reads = AtomicUsize::new(0);
     Mock::new(move |body| {
         if body["method"] == "eth_chainId" {
             return json!({"result":"0x8f"});
         }
+        if body["method"] == "eth_getBlockByNumber" {
+            assert_eq!(body["params"][0], "0x343c51c");
+            return json!({"result":{"number":"0x343c51c","timestamp":format!("0x{:x}", 1770000500u64)}});
+        }
+        let query = body["query"].as_str().unwrap_or_default();
+        if query.contains("PerpPulseRustProtocolEvents") {
+            protocol_cursors.lock().unwrap().push((
+                body["variables"]["cursorBlock"].clone(),
+                body["variables"]["cursorLog"].clone(),
+            ));
+            assert_eq!(body["variables"]["endBlock"], "54773030");
+            assert_eq!(body["variables"]["endLog"], 3);
+            let cursor = (
+                body["variables"]["cursorBlock"]
+                    .as_str()
+                    .unwrap()
+                    .parse::<u64>()
+                    .unwrap(),
+                body["variables"]["cursorLog"].as_i64().unwrap(),
+            );
+            let limit = body["variables"]["limit"].as_u64().unwrap() as usize;
+            let rows: Vec<Value> = protocol_rows
+                .iter()
+                .filter(|row| {
+                    let position = (
+                        row["blockNumber"].as_str().unwrap().parse::<u64>().unwrap(),
+                        row["logIndex"].as_i64().unwrap(),
+                    );
+                    position > cursor && position <= (54773030, 3)
+                })
+                .take(limit)
+                .cloned()
+                .collect();
+            return json!({"data":{"CanonicalEvent":rows}});
+        }
+        if query.contains("PerpPulseRustVerifyEvent") && failure == "protocol-rewrite" {
+            // The as-of point verifies, but a later reread of the last ingested
+            // event observes a rewritten block hash.
+            // Second refresh: account (3), market (4), then the aggregator's
+            // continuity check of its last ingested event (5).
+            if verifies.fetch_add(1, Ordering::SeqCst) == 5 {
+                return json!({"data":{"CanonicalEvent":[{"id":"143:0xblock:0xtx:3","blockNumber":"54773030","blockHash":"0xrewritten","logIndex":3,"timestampMs":"1770000600000"}]}});
+            }
+        }
         if body["method"] == "eth_blockNumber" {
             return json!({"result":format!("0x{:x}",54773040)});
         }
-        let query = body["query"].as_str().unwrap();
         if query.contains("PerpPulseRustCoverage") {
             let progress = if matches!(failure, "regression" | "archive-regression")
                 && market_reads.load(Ordering::SeqCst) > 1
@@ -346,7 +420,12 @@ fn market_mock(failure: &'static str) -> Mock {
                 "archive-lookahead" => "54773029",
                 _ => "54773040",
             };
-            json!({"data":{"_meta":[{"chainId":143,"startBlock":"54773010","progressBlock":progress.to_string(),"sourceBlock":source,"eventsProcessed":"4","isReady":failure!="stopped"}],"CanonicalEvent":[point]}})
+            let start = if matches!(failure, "bounded-start" | "protocol-bounded") {
+                "54773020"
+            } else {
+                "54773010"
+            };
+            json!({"data":{"_meta":[{"chainId":143,"startBlock":start,"progressBlock":progress.to_string(),"sourceBlock":source,"eventsProcessed":"4","isReady":failure!="stopped"}],"CanonicalEvent":[point]}})
         } else if query.contains("PerpPulseRustVerifyEvent") {
             json!({"data":{"CanonicalEvent":[point]}})
         } else if query.contains("PerpPulseRustMarketEvents") {
@@ -412,7 +491,8 @@ fn archived_market_inputs_accept_retained_coverage_but_never_bypass_live_gates()
 
 #[test]
 fn v3_live_marks_drive_price_pnl_and_source_evidence_while_funding_stays_unknown() {
-    let server = market_mock("");
+    // Coverage after deployment cannot see a schedule published before it.
+    let server = market_mock("bounded-start");
     let snapshot = fetch_snapshot(&config(&server)).unwrap();
     let wallet = &snapshot.wallets[0];
     let p = &wallet["positions"][0];
@@ -430,6 +510,22 @@ fn v3_live_marks_drive_price_pnl_and_source_evidence_while_funding_stays_unknown
     assert!(wallet["marketInputs"][0]["active"].is_null());
     assert!(snapshot.manifest["marketMarksHash"].is_string());
     assert_eq!(snapshot.events.as_array().unwrap().len(), 4);
+}
+
+#[test]
+fn deployment_coverage_proves_a_reset_before_the_first_effective_schedule() {
+    let server = market_mock("");
+    let snapshot = fetch_snapshot(&config(&server)).unwrap();
+    let p = &snapshot.wallets[0]["positions"][0];
+    assert_eq!(p["riskStatus"], "canonical-funding-covered");
+    assert_eq!(p["unrealizedFunding"], "0");
+    assert!(p["liquidationPrice"].is_string());
+    assert!(p["fundingCheckpoint"]["reason"].is_null());
+    assert_eq!(p["fundingCheckpoint"]["coverageStartBlock"], 54773010);
+    assert_eq!(
+        snapshot.wallets[0]["marketInputs"][0]["pending"][0]["effectiveBlock"],
+        54773040
+    );
 }
 
 #[test]
@@ -555,4 +651,104 @@ fn stale_coverage_wrong_subject_and_event_limit_never_return_partial_success() {
     let mut configuration = config(&limited);
     configuration.client = EnvioClient::new(&limited.endpoint, None, 500, 1).unwrap();
     assert!(fetch_snapshot(&configuration).is_err());
+}
+
+fn protocol_config(server: &Mock, max_events: usize) -> LiveConfig {
+    let mut cfg = config(server);
+    cfg.protocol = Some(std::sync::Mutex::new(
+        perppulse::live::ProtocolAggregator::new(max_events).unwrap(),
+    ));
+    cfg
+}
+
+#[test]
+fn global_reader_serves_deployment_history_totals_and_resumes_incrementally() {
+    let cursors: Cursors = Arc::new(std::sync::Mutex::new(Vec::new()));
+    let server = market_mock_with("", cursors.clone());
+    let cfg = protocol_config(&server, 100);
+    let snapshot = fetch_snapshot(&cfg).unwrap();
+    assert_eq!(snapshot.protocol["scope"], "protocol");
+    assert_eq!(snapshot.protocol["quality"], "deployment-history");
+    assert_eq!(snapshot.protocol["takerVolume"], "70000.000000");
+    assert_eq!(snapshot.protocol["openInterest"], "71000.000000");
+    assert_eq!(snapshot.protocol["tvl"], "10000.000000");
+    assert_eq!(snapshot.protocol["activeAccounts"], 2);
+    assert_eq!(
+        perppulse::serve::route(&snapshot, "GET", "/api/protocol").0,
+        200
+    );
+    assert_eq!(
+        perppulse::serve::route(&snapshot, "GET", "/api/analytics").0,
+        200
+    );
+    assert_eq!(snapshot.analytics["state"]["status"], "complete");
+    assert_eq!(snapshot.analytics["windows"][0]["status"], "complete");
+    assert_eq!(snapshot.manifest["protocolEventCount"], 5);
+    assert!(snapshot.manifest["protocolEventIdsHash"].is_string());
+    assert_eq!(snapshot.signals["scope"], "protocol-and-watchlist");
+    // Raw global events are not mirrored: served events remain the watchlist plus market inputs.
+    assert!(snapshot
+        .events
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|e| e["accountId"] != 7));
+
+    let again = fetch_snapshot(&cfg).unwrap();
+    assert_eq!(
+        again.manifest["protocolEventIdsHash"],
+        snapshot.manifest["protocolEventIdsHash"]
+    );
+    assert_eq!(
+        cfg.protocol.as_ref().unwrap().lock().unwrap().event_count(),
+        5
+    );
+    let seen = cursors.lock().unwrap().clone();
+    assert_eq!(seen[0], (json!("54773010"), json!(-1)));
+    assert_eq!(seen.last().unwrap(), &(json!("54773030"), json!(3)));
+}
+
+#[test]
+fn global_reader_bound_profile_and_rewrite_fail_without_partial_commit() {
+    let server = market_mock("");
+    let cfg = protocol_config(&server, 2);
+    let error = fetch_snapshot(&cfg).unwrap_err().to_string();
+    assert!(error.contains("protocol event bound exceeded"), "{error}");
+    assert_eq!(
+        cfg.protocol.as_ref().unwrap().lock().unwrap().event_count(),
+        0
+    );
+
+    let legacy = market_mock("protocol-legacy");
+    assert!(fetch_snapshot(&protocol_config(&legacy, 100)).is_err());
+
+    let rewritten = market_mock("protocol-rewrite");
+    let cfg = protocol_config(&rewritten, 100);
+    fetch_snapshot(&cfg).unwrap();
+    let error = fetch_snapshot(&cfg).unwrap_err().to_string();
+    assert!(error.contains("changed"), "{error}");
+    assert_eq!(
+        cfg.protocol.as_ref().unwrap().lock().unwrap().event_count(),
+        5
+    );
+}
+
+#[test]
+fn bounded_global_coverage_proves_only_windows_after_its_observed_start() {
+    let server = market_mock("protocol-bounded");
+    let snapshot = fetch_snapshot(&protocol_config(&server, 100)).unwrap();
+    assert_eq!(snapshot.protocol["quality"], "bounded-coverage");
+    assert!(snapshot.protocol["openInterest"].is_null());
+    assert_eq!(
+        snapshot.analytics["coverageStartTimestampMs"],
+        1770000500000i64
+    );
+    assert_eq!(snapshot.analytics["state"]["status"], "unavailable");
+    let day = &snapshot.analytics["windows"][0];
+    assert_eq!(day["status"], "incomplete");
+    assert_eq!(day["basis"], "coverage-after-window-start");
+    assert!(day["totals"].is_null());
+    assert_eq!(snapshot.analytics["windows"][3]["status"], "complete");
+    // Only the market input rows at or after the bounded start are counted.
+    assert_eq!(snapshot.manifest["protocolEventCount"], 5);
 }

@@ -59,6 +59,9 @@ struct Payment {
 
 pub(crate) struct FundingEngine {
     coverage: Option<FundingCoverage>,
+    /// Coverage from Exchange deployment observes every funding publication,
+    /// so no unobserved pre-window schedule can be pending at a reset.
+    from_deployment: bool,
     baselines: BTreeMap<u32, (u64, String)>,
     payments: Vec<Payment>,
     next: usize,
@@ -73,6 +76,7 @@ impl FundingEngine {
     ) -> Result<Self> {
         let mut engine = Self {
             coverage: coverage.cloned(),
+            from_deployment: coverage.is_some_and(|c| c.start_block <= registry.deployed_at_block),
             baselines: BTreeMap::new(),
             payments: Vec::new(),
             next: 0,
@@ -232,9 +236,15 @@ impl FundingEngine {
                 if let Some(coverage) = &self.coverage {
                     checkpoint.coverage_start_block = Some(coverage.start_block);
                     checkpoint.through_block = Some(coverage.end_block);
-                    if let Some((baseline, source)) = self.baselines.get(&id.perpetual_id) {
-                        checkpoint.baseline_effective_block = Some(*baseline);
+                    let baseline = self.baselines.get(&id.perpetual_id);
+                    if let Some((block, source)) = baseline {
+                        checkpoint.baseline_effective_block = Some(*block);
                         checkpoint.baseline_event_id = Some(source.clone());
+                    }
+                    if self.from_deployment && coverage.market_ids.contains(&id.perpetual_id) {
+                        checkpoint.unsettled_pnl = Some(Decimal::ZERO);
+                        checkpoint.reason = None;
+                    } else if let Some((baseline, _)) = baseline {
                         if event.block_number >= *baseline {
                             checkpoint.unsettled_pnl = Some(Decimal::ZERO);
                             checkpoint.reason = None;

@@ -55,10 +55,12 @@ digraph PerpPulseOPM {
   implementation_status [
     shape=note,
     fillcolor="#E8F8EE",
-    label="Verified Local Implementation · 2026-10-01\nFixture web/API + bounded live Envio account serving\nCompact PostgreSQL snapshots + hashed range manifests\nExact-cutoff account-total reconciliation + optional Nansen labels\nPending: live v2 reindex, global state/marks, cloud deployment, public demo"
+    label="Verified Local Implementation · 2026-10-07\nFixture web/API + bounded live Envio account serving + v3 marks/covered funding\nProtocol analytics: 24h/7d/30d/coverage windows + deployment-history OI/collateral/skew\nRule-hashed risk signals + mark-shock stress + snapshot wallet comparison + Nansen label filter\nCompact PostgreSQL snapshots + hashed range manifests + same-cutoff quarantine\nPending: mainnet global backfill, cloud deployment, live Nansen, hosted public demo"
   ];
   implementation_status -> query_api [style=dashed, label="implemented local surface"];
   implementation_status -> evidence_manifest [style=dashed, label="implemented range evidence"];
+  implementation_status -> protocol_mart [style=dashed, label="implemented windows and state"];
+  implementation_status -> verified_signal_set [style=dashed, label="implemented rule-hashed signals"];
 
   subgraph cluster_opd0 {
     label="OPD-0 · System Function and Value";

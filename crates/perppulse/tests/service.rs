@@ -271,6 +271,9 @@ fn postgres_round_trip_staleness_missing_and_regression_are_fail_closed() {
     perppulse::publication::publish(&url, "integration-test", &snapshot).unwrap();
     let loaded = perppulse::publication::load(&url, "integration-test", 90).unwrap();
     assert_eq!(loaded.wallets, snapshot.wallets);
+    assert_eq!(loaded.signals, snapshot.signals);
+    assert_eq!(loaded.analytics, snapshot.analytics);
+    assert_eq!(loaded.cohort, snapshot.cohort);
     assert!(!loaded.events_available);
     assert!(perppulse::publication::load(&url, "missing-source", 90).is_err());
     let mut earlier = snapshot.clone();
@@ -281,6 +284,7 @@ fn postgres_round_trip_staleness_missing_and_regression_are_fail_closed() {
         "asOfBlockHash",
         "registryInputsHash",
         "marketMarksHash",
+        "protocolEventIdsHash",
     ] {
         let mut changed = snapshot.clone();
         changed.manifest[field] = json!("sha256:changed");

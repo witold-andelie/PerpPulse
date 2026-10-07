@@ -2,16 +2,18 @@
 
 This script demonstrates synthetic deterministic analytics. It is not a mainnet operating proof.
 
-Start `cargo run -p perppulse -- serve fixtures/golden/open-position-as-of.json` and open `http://127.0.0.1:8081`.
+Start `cargo run -p perppulse -- serve fixtures/golden/watchlist-cohort.json` and open `http://127.0.0.1:8081`.
+The container image serves the same fixture by default.
 
 | Time | Action | Narration |
 | --- | --- | --- |
-| 0:00-0:20 | Show the fixture badge, block cutoff, and coverage | PerpPulse preserves one point in time from protocol totals through wallet positions to source events. This run uses a synthetic fixture. |
-| 0:20-0:45 | Show volume 70000, open interest 71000, and position collateral 10000 | These numbers come from native-scale deterministic accounting. Maker fills count volume once. Position collateral is isolated collateral, not total protocol TVL. |
-| 0:45-1:10 | Select account 42 | The BTC long is one unit at an entry of 70000. With the fixture's eligible mark of 71000, price PnL is 1000. Total PnL and actual liquidation remain unavailable because unsettled funding is unverified. |
-| 1:10-1:30 | Click the position's Evidence button | The position leads back to the canonical block, transaction, and log. The cutoff is preserved. |
-| 1:30-1:45 | Apply an out-of-coverage block range | Unsupported ranges fail visibly. Missing live history, marks, and context are also visible rather than converted into zeros. |
-| 1:45-2:00 | Download the manifest and open methodology | Input hashes and versioned methodology make replay checkable. Perpl is an external verifier and Nansen is optional context. The product remains read-only. |
+| 0:00-0:15 | Show the fixture badge, block cutoff and coverage | PerpPulse fixes one point in time from protocol totals through wallets to source events. This cohort is synthetic: seven accounts, three markets, ten days. |
+| 0:15-0:40 | Read the three Risk Pulse cards | Account 102's BTC long is 0.73% from its funded liquidation price, MON liquidated 65% of its open interest in 24 hours, and account 105 uses 96.6% of ETH's initial leverage limit. Each card names its rule, basis and cutoff. |
+| 0:40-0:55 | Click Inspect evidence on the first card | The signal carries its rule hash, inputs and the position, mark and funding-reset events. Funding is proven because coverage starts at deployment. |
+| 0:55-1:10 | Scroll to Protocol flows and state | 24-hour, 7-day and 30-day windows are complete because history starts at deployment; each window hashes its event IDs. ETH is fully long and MON fully short. |
+| 1:10-1:25 | Show alerts filters and stress scenarios | A 5% BTC drop breaches only account 102; a 20% rise breaches 103's short. MON funding is deliberately uncovered, so it stays a visible data-quality signal rather than a risk fact. |
+| 1:25-1:45 | Compare accounts 101, 102 and 103 | Leverage and PnL percentiles rank only known values; overlap shows 101 and 102 are both long BTC while 103 is short. Nansen labels would filter this list without changing numbers. |
+| 1:45-2:00 | Open account 102, then download the manifest | Navigation keeps the cutoff. Input hashes and the versioned methodology make every number replayable. The product remains read-only. |
 
 ## Planned live Envio recording
 

@@ -457,6 +457,9 @@ pub struct Fixture {
     pub events: Vec<CanonicalEvent>,
     pub marks: Vec<MarketMark>,
     pub window_start_ms: Option<i64>,
+    /// Markets whose funding publications the fixture declares complete
+    /// from coverage start through the cutoff. Absent means unknown funding.
+    pub funding_coverage_markets: Option<Vec<u32>>,
 }
 
 #[derive(Deserialize)]
@@ -474,6 +477,8 @@ struct FixtureFile {
     market_state: Vec<MarketMark>,
     #[serde(default)]
     window_start_ms: Option<i64>,
+    #[serde(default)]
+    funding_coverage_markets: Option<Vec<u32>>,
 }
 
 #[derive(Deserialize)]
@@ -546,6 +551,7 @@ pub fn load_fixture(path: impl AsRef<Path>) -> Result<Fixture> {
         events: parsed.events,
         marks: parsed.market_state,
         window_start_ms: parsed.window_start_ms,
+        funding_coverage_markets: parsed.funding_coverage_markets,
     })
 }
 

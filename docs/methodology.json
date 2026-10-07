@@ -1,5 +1,5 @@
 {
-  "version": "perppulse-methodology-v7",
+  "version": "perppulse-methodology-v8",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
@@ -24,7 +24,7 @@
     "zeroFundingScenario": "Conditional equity = deposit + price PnL; buffer = equity - entry-based maintenance; liquidation = max(0, entry + sideSign * (maintenance - deposit) / size). These fields assume zero unsettled funding and are never actual risk facts",
     "sdkRiskDiagnostics": "Verifier only: compare maintenance exactly, price PnL truncated to collateral native units, and liquidation scenarios using SDK reference funding at market price ticks. SDK marks and funding observations never become canonical inputs",
     "fundingTimeline": "Raw signed int48 payments/sums preserve native units, effective block, source ID, overwrite and scaling observations. Published future payments remain pending. Discontinuity and unauthorized replacement fail visibly. This market timeline is separate from each position's checkpoint proof",
-    "fundingCheckpoint": "Requires explicit complete market-publication coverage and a reset at or after the first observed effective schedule, which bounds unknown pre-window pending funding under Perpl's single-pending-schedule rule. Earlier resets or absent baselines stay unknown. A later nonzero payment requires a canonical scaling anchor at publication; unknown scale invalidates the amount until another proven reset. Checkpoints retain reset, baseline, payment/scale and settlement event IDs, coverage start and cutoff. Bare replay never infers zero from absent events",
+    "fundingCheckpoint": "Requires explicit complete market-publication coverage for the position's market. Coverage beginning at Exchange deployment observes every publication, so any covered reset is proven; otherwise a reset must be at or after the first observed effective schedule, which bounds unknown pre-window pending funding under Perpl's single-pending-schedule rule. Earlier resets or absent baselines stay unknown. A later nonzero payment requires a canonical scaling anchor at publication; unknown scale invalidates the amount until another proven reset. Checkpoints retain reset, baseline, payment/scale and settlement event IDs, coverage start and cutoff. Bare replay never infers zero from absent events",
     "sdkFundedRiskComparison": "Verifier only: project price and funding separately to collateral native units before adding total PnL/equity, because the SDK loads deltaPnlCNS and premiumPnlCNS separately. Buffer uses SDK-width canonical entry-based maintenance. Preserve exact canonical values alongside these projections; liquidation is compared at price ticks. Unknown funding scorecards contain zero checks and remain unverified"
   },
   "eligibility": {
@@ -42,6 +42,46 @@
   "outputVersions": {
     "manifest": "range-manifest-v1",
     "reconciliation": "reconciliation-scorecard-v1",
-    "snapshot": "api-snapshot-v1"
+    "snapshot": "api-snapshot-v1",
+    "analytics": "protocol-analytics-v1",
+    "signals": "risk-signals-v1",
+    "comparison": "snapshot-cohort-v1"
+  },
+  "protocolAnalytics": {
+    "version": "protocol-analytics-v1",
+    "windows": "24h, 7d and 30d end at the selected block/log cutoff and start at the cutoff timestamp minus the duration (inclusive); 'coverage' spans all indexed events through the cutoff",
+    "windowCompleteness": "Complete when coverage begins at Exchange deployment or when the independently observed timestamp of the coverage start block is at or before the window start. Otherwise the window is incomplete and its totals are null; the first observed business event never proves completeness",
+    "flows": "Taker volume and trades from maker fills (counted once); fill fees from maker fills; protocol fees = insurance + protocol fees on open/increase/invert; liquidations and liquidation notional from PositionLiquidated; collateral deposits, withdrawals and net flow from account collateral events; active accounts traded or changed a position (deposits and account creation alone do not count)",
+    "state": "Open interest (long, short, total mark notional), isolated position collateral and skew = (long - short) / (long + short) at the cutoff. Requires deployment history; a bounded index reports state unavailable. A market without an eligible mark keeps collateral but nulls its open interest, skew and the protocol totals",
+    "evidence": "Each window retains its event count, first/last event ID and a hash of its ordered event IDs; live manifests add the coverage-window hash and the same-cutoff quarantine compares it",
+    "liveReader": "Optional bounded global reader: keyset pages every exact risk-hotpath-v3 event through the shared cutoff, re-verifies the last ingested event before each incremental read, rejects coverage start changes and regression, and commits nothing on failure. Raw global events are not mirrored into the compact serving database",
+    "ratios": "Truncated toward zero at six decimal places before display or comparison"
+  },
+  "riskSignals": {
+    "version": "risk-signals-v1",
+    "stressVersion": "mark-shock-stress-v1",
+    "principle": "Signals compare facts already served at the same cutoff with published thresholds; they never create prices, PnL or funding. Each rule definition is hashed (ruleHash) and every signal retains its inputs and source event IDs",
+    "severity": "critical > warning > watch; ranking is severity, then category (risk, activity, concentration, data-quality), then normalized threshold exceedance, then signal ID",
+    "rules": {
+      "liquidation-distance": "Side-adjusted (mark - funded liquidation price) / mark; watch <= 0.25, warning <= 0.15, critical <= 0.05; requires a proven funding checkpoint",
+      "collateral-drawdown": "-price PnL / isolated collateral; watch >= 0.25, warning >= 0.50, critical >= 0.75; funding excluded",
+      "leverage-utilization": "(mark notional / isolated collateral) / registry initial-margin leverage; watch >= 0.50, warning >= 0.80, critical >= 1.00; zero collateral is critical",
+      "watchlist-crowding": "Dominant-side share of snapshot mark notional with at least two accounts; watch >= 0.75, warning >= 0.90; evaluated only when protocol state is unavailable",
+      "market-skew": "|protocol open-interest skew|; watch >= 0.50, warning >= 0.75; requires deployment-history state",
+      "liquidation-activity": "Complete 24-hour liquidation notional / current market open interest; any liquidation is watch, warning >= 0.05, critical >= 0.20; count only when open interest is unavailable",
+      "position-liquidated": "Position closed by liquidation or deleveraging within 24 hours of the cutoff; warning",
+      "risk-input-unavailable": "Open position with a missing mark (warning) or unverified funding (watch, with an explicitly conditional zero-funding distance)",
+      "incomplete-history": "Replay-ineligible account; warning"
+    },
+    "transitions": "A live process carries firstObservedAsOfBlock and severitySinceAsOfBlock from its previous accepted snapshot and marks new, escalated, de-escalated or unchanged; without a previous snapshot every signal is a baseline. Resolved signals stay listed for 1000 blocks (at most 50)",
+    "stress": "Shocks of -20%, -10%, -5%, +5%, +10% and +20% apply to every eligible as-of mark at once; equity = collateral + side-adjusted (shocked mark - effective entry) * size + proven unsettled funding; breach when equity <= entry-based maintenance. Unknown funding uses an explicit zero-funding conditional basis; positions without marks or with incomplete history are excluded and listed"
+  },
+  "comparison": {
+    "version": "snapshot-cohort-v1",
+    "scope": "Wallets in the same snapshot and cutoff only; never a protocol-wide cohort",
+    "statistics": "Open notional, open collateral, collateral leverage, realized PnL, unrealized price PnL, price return on open collateral and fees, from served wallet facts",
+    "percentiles": "Midrank over replay-eligible wallets with a known value, truncated to two decimals; incomplete histories are excluded and listed",
+    "overlap": "Pairwise open-market Jaccard index with same-side and opposing-side markets",
+    "labels": "Nansen labels group participants for discovery and filtering, retain their own observation-time eligibility and never alter canonical numbers"
   }
 }

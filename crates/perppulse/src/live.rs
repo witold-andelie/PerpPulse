@@ -6,9 +6,12 @@ use std::time::{Duration, Instant};
 use serde_json::{json, Value};
 
 use crate::accounting::account_wallet;
-use crate::envio::{EnvioClient, MARKET_INGESTION_PROFILE};
+use crate::analytics::{analyze, AnalyticsReport, CoverageBasis};
+use crate::envio::{EnvioClient, EnvioCoverage, IndexedPoint, MARKET_INGESTION_PROFILE};
 use crate::error::{DataQualityError, Result};
+use crate::events::CanonicalEvent;
 use crate::evidence::manifest;
+use crate::identity::AsOf;
 use crate::ledger::replay;
 use crate::registry::ProtocolRegistry;
 use crate::serve::{run_service, unavailable_context, wallet_value, ApiSnapshot};
@@ -22,11 +25,173 @@ pub struct LiveConfig {
     pub max_lag_blocks: u64,
     pub database_url: Option<String>,
     pub nansen: Option<crate::context::NansenClient>,
+    /// Optional bounded global reader for protocol analytics.
+    pub protocol: Option<std::sync::Mutex<ProtocolAggregator>>,
 }
 
-/// Independent chain head prevents a stopped indexer's own source watermark
-/// from certifying its freshness. No wallet or signing method is used.
-pub fn chain_head(endpoint: &str) -> Result<u64> {
+/// Incremental protocol analytics over every canonical v3 event in coverage.
+/// Each refresh re-verifies the last ingested event, reads only newer rows
+/// through the shared cutoff and replays deterministically; a failed refresh
+/// leaves the previously committed event set unchanged.
+pub struct ProtocolAggregator {
+    max_events: usize,
+    events: Vec<CanonicalEvent>,
+    start_block: Option<u64>,
+    start_timestamp_ms: Option<i64>,
+}
+
+/// About 2 KB per retained live event plus a transient replay copy; 250,000
+/// events need roughly 1 GB at peak.
+pub const MAX_PROTOCOL_EVENTS: usize = 1_000_000;
+
+impl ProtocolAggregator {
+    pub fn new(max_events: usize) -> Result<Self> {
+        if !(1..=MAX_PROTOCOL_EVENTS).contains(&max_events) {
+            return Err(DataQualityError::msg(format!(
+                "protocol event bound must be 1..{MAX_PROTOCOL_EVENTS}"
+            )));
+        }
+        Ok(Self {
+            max_events,
+            events: Vec::new(),
+            start_block: None,
+            start_timestamp_ms: None,
+        })
+    }
+
+    pub fn event_count(&self) -> usize {
+        self.events.len()
+    }
+
+    pub fn refresh(
+        &mut self,
+        client: &EnvioClient,
+        coverage: &EnvioCoverage,
+        as_of: &AsOf,
+        registry: &ProtocolRegistry,
+        rpc_url: &str,
+    ) -> Result<AnalyticsReport> {
+        let start = coverage.evidence.start_block;
+        if self.start_block.is_some_and(|known| known != start) {
+            return Err(DataQualityError::msg(
+                "protocol coverage start changed; restart only after reconciliation",
+            ));
+        }
+        if let Some(last) = self.events.last() {
+            if !as_of.includes(last.block_number, last.log_index) {
+                return Err(DataQualityError::msg(
+                    "protocol cutoff regressed behind ingested events",
+                ));
+            }
+            client.verify_point(&indexed_point(last)?)?;
+        }
+        let after = self.events.last().map(|e| (e.block_number, e.log_index));
+        let fresh = client.read_protocol_events(
+            coverage,
+            as_of,
+            registry,
+            after,
+            self.max_events - self.events.len(),
+        )?;
+        if self.start_timestamp_ms.is_none() && start > registry.deployed_at_block {
+            // Absent evidence keeps windows visibly incomplete; retried next refresh.
+            self.start_timestamp_ms = block_timestamp_ms(rpc_url, start).ok();
+        }
+        let committed = self.events.len();
+        self.events.extend(fresh);
+        match self.report(registry, as_of, start) {
+            Ok(report) => {
+                self.start_block = Some(start);
+                Ok(report)
+            }
+            Err(error) => {
+                self.events.truncate(committed);
+                Err(error)
+            }
+        }
+    }
+
+    fn report(
+        &self,
+        registry: &ProtocolRegistry,
+        as_of: &AsOf,
+        start: u64,
+    ) -> Result<AnalyticsReport> {
+        if self.events.is_empty() {
+            return Err(DataQualityError::msg(
+                "protocol analytics have no canonical events in coverage",
+            ));
+        }
+        let basis = CoverageBasis {
+            start_block: start,
+            deployed_at_block: registry.deployed_at_block,
+            start_timestamp_ms: self.start_timestamp_ms,
+        };
+        if basis.starts_at_deployment() {
+            let ledger = replay(&self.events, registry, as_of)?;
+            let marks: Vec<_> = ledger.market_marks.values().cloned().collect();
+            analyze(
+                &self.events,
+                registry,
+                as_of,
+                &basis,
+                Some((&ledger, &marks)),
+                "protocol",
+            )
+        } else {
+            analyze(&self.events, registry, as_of, &basis, None, "protocol")
+        }
+    }
+}
+
+fn indexed_point(event: &CanonicalEvent) -> Result<IndexedPoint> {
+    let id = event
+        .provenance
+        .as_ref()
+        .map(|p| p.envio_id.clone())
+        .ok_or_else(|| DataQualityError::msg("ingested protocol event lacks provenance"))?;
+    Ok(IndexedPoint {
+        id,
+        block_number: event.block_number,
+        block_hash: event.block_hash.clone(),
+        log_index: event.log_index,
+        timestamp_ms: event.timestamp_ms,
+    })
+}
+
+/// Serve global totals from the coverage window and point-in-time state.
+pub fn protocol_value(report: &AnalyticsReport) -> Value {
+    let coverage = report.window("coverage");
+    let totals = coverage.and_then(|window| window.totals.as_ref());
+    let mut markets: BTreeMap<u32, Value> = BTreeMap::new();
+    for flow in coverage
+        .map(|window| window.markets.as_slice())
+        .unwrap_or_default()
+    {
+        markets.insert(flow.perpetual_id, json!({"perpetualId": flow.perpetual_id, "symbol": flow.symbol,
+            "takerVolume": flow.taker_volume, "protocolFees": flow.protocol_fees, "insuranceFees": flow.insurance_fees,
+            "fillFees": flow.fill_fees, "liquidations": flow.liquidations, "liquidationNotional": flow.liquidation_notional,
+            "activeAccounts": flow.active_accounts, "openInterest": null, "tvl": null, "skew": null, "warnings": []}));
+    }
+    for market in &report.state.markets {
+        let row = markets.entry(market.perpetual_id).or_insert_with(|| json!({"perpetualId": market.perpetual_id,
+            "symbol": market.symbol, "takerVolume": "0", "protocolFees": "0", "liquidations": 0, "activeAccounts": 0, "warnings": []}));
+        row["openInterest"] = json!(market.open_interest);
+        row["tvl"] = json!(market.position_collateral);
+        row["skew"] = json!(market.skew);
+    }
+    let mut warnings = Vec::new();
+    if report.state.status != "complete" {
+        warnings.push(report.state.reason.clone());
+    }
+    json!({"scope": "protocol", "quality": report.history_basis, "analyticsVersion": report.version,
+        "takerVolume": totals.map(|t| t.taker_volume), "openInterest": report.state.open_interest,
+        "tvl": report.state.position_collateral, "protocolFees": totals.map(|t| t.protocol_fees),
+        "liquidations": totals.map(|t| t.liquidations), "activeAccounts": totals.map(|t| t.active_accounts),
+        "markets": markets.into_values().collect::<Vec<_>>(), "warnings": warnings})
+}
+
+fn monad_agent(endpoint: &str) -> Result<ureq::Agent> {
     if !(endpoint.starts_with("http://") || endpoint.starts_with("https://")) {
         return Err(DataQualityError::msg("RPC endpoint must use HTTP or HTTPS"));
     }
@@ -51,6 +216,40 @@ pub fn chain_head(endpoint: &str) -> Result<u64> {
             "independent RPC is not Monad chain 143",
         ));
     }
+    Ok(agent)
+}
+
+/// Independently observed timestamp of one Monad block; read-only.
+pub fn block_timestamp_ms(endpoint: &str, block: u64) -> Result<i64> {
+    let agent = monad_agent(endpoint)?;
+    let response: Value = agent
+        .post(endpoint)
+        .send_json(json!({"jsonrpc": "2.0", "id": 3, "method": "eth_getBlockByNumber", "params": [format!("0x{block:x}"), false]}))
+        .map_err(|_| DataQualityError::msg("independent Monad block request failed"))?
+        .body_mut()
+        .read_json()
+        .map_err(|_| DataQualityError::msg("invalid Monad block response"))?;
+    let hex = |field: &str| {
+        response["result"][field]
+            .as_str()
+            .and_then(|s| s.strip_prefix("0x"))
+            .and_then(|s| u64::from_str_radix(s, 16).ok())
+    };
+    if response.get("error").is_some() || hex("number") != Some(block) {
+        return Err(DataQualityError::msg(
+            "Monad RPC block identity does not match the request",
+        ));
+    }
+    hex("timestamp")
+        .and_then(|seconds| seconds.checked_mul(1000))
+        .and_then(|ms| i64::try_from(ms).ok())
+        .ok_or_else(|| DataQualityError::msg("invalid Monad block timestamp"))
+}
+
+/// Independent chain head prevents a stopped indexer's own source watermark
+/// from certifying its freshness. No wallet or signing method is used.
+pub fn chain_head(endpoint: &str) -> Result<u64> {
+    let agent = monad_agent(endpoint)?;
     let response: Value = agent
         .post(endpoint)
         .send_json(json!({"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []}))
@@ -258,6 +457,29 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
     } else {
         json!(crate::evidence::digest(&market_marks)?)
     };
+    let analytics = match &config.protocol {
+        None => None,
+        Some(aggregator) => Some(
+            aggregator
+                .lock()
+                .map_err(|_| DataQualityError::msg("protocol aggregator lock failed"))?
+                .refresh(
+                    &config.client,
+                    &coverage,
+                    &as_of,
+                    &config.registry,
+                    &config.rpc_url,
+                )?,
+        ),
+    };
+    if let Some(report) = &analytics {
+        let window = report
+            .window("coverage")
+            .ok_or_else(|| DataQualityError::msg("protocol coverage window is missing"))?;
+        manifest["protocolEventCount"] = json!(window.event_count);
+        manifest["protocolEventIdsHash"] = json!(window.event_ids_hash);
+        manifest["analyticsVersion"] = json!(report.version);
+    }
     let context = if config.nansen.is_some() {
         json!({"source":"Nansen","status":"per-account","attribution":"Powered by Nansen API","affectsCanonicalFacts":false,
             "reason":"See each wallet's labels and observation time. Context can be observed after the ledger cutoff."})
@@ -269,17 +491,37 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         exchange_address: config.registry.exchange_address.clone(), as_of_block: as_of.block_number,
         as_of_timestamp_ms: as_of.timestamp_ms, start_block: coverage.evidence.start_block,
         processed_block: coverage.evidence.processed_block,
-        source_note: "Selected account events only. Global metrics require a complete protocol ledger. Eligible v3 marks and covered funding checkpoints are source-linked; unknown checkpoints remain unavailable.".to_string(),
-        protocol: json!({"scope": "selected-accounts", "quality": "unavailable", "takerVolume": null, "openInterest": null,
-            "tvl": null, "protocolFees": null, "liquidations": null, "activeAccounts": null, "markets": [],
-            "warnings": ["A watchlist cannot prove protocol totals. Global metrics are unavailable."]}),
+        source_note: if analytics.is_some() {
+            "Protocol analytics read every canonical v3 event in coverage; wallets are the selected watchlist. Eligible v3 marks and covered funding checkpoints are source-linked; unknown checkpoints remain unavailable."
+        } else {
+            "Selected account events only. Global metrics require a complete protocol ledger. Eligible v3 marks and covered funding checkpoints are source-linked; unknown checkpoints remain unavailable."
+        }
+        .to_string(),
+        protocol: match &analytics {
+            Some(report) => protocol_value(report),
+            None => json!({"scope": "selected-accounts", "quality": "unavailable", "takerVolume": null, "openInterest": null,
+                "tvl": null, "protocolFees": null, "liquidations": null, "activeAccounts": null, "markets": [],
+                "warnings": ["A watchlist cannot prove protocol totals. Global metrics are unavailable."]}),
+        },
         coverage: json!({"chainId": config.registry.chain_id, "startBlock": coverage.evidence.start_block,
             "processedBlock": coverage.evidence.processed_block, "independentHeadBlock": head,
             "coverageLagBlocks": head - coverage.evidence.processed_block, "asOfBlock": as_of.block_number,
             "asOfTimestampMs": as_of.timestamp_ms, "eventSilenceBlocks": coverage.evidence.processed_block - coverage.latest_event.block_number,
             "quality": "covered-account-slice", "eventCount": events.len(), "rangeNote": "Selected account history only; eligibility is reported for each account."}),
         wallets: json!(wallets), events: json!(evidence), mode: "live".to_string(), manifest, context, events_available: true,
+        analytics: Value::Null, signals: Value::Null, cohort: Value::Null,
     };
+    let mut snapshot = snapshot;
+    crate::serve::attach_intelligence(
+        &mut snapshot,
+        &config.registry,
+        analytics.as_ref(),
+        if analytics.is_some() {
+            "protocol-and-watchlist"
+        } else {
+            "selected-accounts"
+        },
+    )?;
     Ok(snapshot)
 }
 
@@ -291,11 +533,12 @@ struct Observed {
     last_block: Option<u64>,
     quarantined: bool,
     last_manifest: Option<Value>,
+    last_signals: Option<crate::signals::SignalReport>,
 }
 
 fn accept_snapshot(
     observed: &mut Observed,
-    snapshot: ApiSnapshot,
+    mut snapshot: ApiSnapshot,
     database_url: Option<&str>,
     now: Instant,
 ) -> Result<()> {
@@ -315,7 +558,8 @@ fn accept_snapshot(
                 && (prior["canonicalInputsHash"] != snapshot.manifest["canonicalInputsHash"]
                     || prior["asOfBlockHash"] != snapshot.manifest["asOfBlockHash"]
                     || prior["registryInputsHash"] != snapshot.manifest["registryInputsHash"]
-                    || prior["marketMarksHash"] != snapshot.manifest["marketMarksHash"]))
+                    || prior["marketMarksHash"] != snapshot.manifest["marketMarksHash"]
+                    || prior["protocolEventIdsHash"] != snapshot.manifest["protocolEventIdsHash"]))
     });
     if observed.quarantined
         || inconsistent
@@ -332,9 +576,16 @@ fn accept_snapshot(
     if now.duration_since(observed.advanced_at) > Duration::from_secs(120) {
         return Err(DataQualityError::msg("Processed coverage has stalled."));
     }
+    let mut signals: crate::signals::SignalReport =
+        serde_json::from_value(snapshot.signals.clone())
+            .map_err(|_| DataQualityError::msg("live snapshot signals are invalid"))?;
+    crate::signals::carry_forward(observed.last_signals.as_ref(), &mut signals);
+    snapshot.signals = serde_json::to_value(&signals)
+        .map_err(|_| DataQualityError::msg("cannot serialize carried signals"))?;
     if let Some(url) = database_url {
         crate::publication::publish(url, "live-watchlist", &snapshot)?;
     }
+    observed.last_signals = Some(signals);
     observed.last_manifest = Some(snapshot.manifest.clone());
     observed.last_block = Some(snapshot.processed_block);
     observed.successful_at = now;
@@ -354,6 +605,7 @@ pub fn run_live(config: LiveConfig, bind: SocketAddr) -> Result<()> {
         last_block: None,
         quarantined: false,
         last_manifest: None,
+        last_signals: None,
     }));
     let writer = state.clone();
     std::thread::spawn(move || loop {
@@ -422,6 +674,7 @@ mod tests {
             last_block: None,
             quarantined: false,
             last_manifest: None,
+            last_signals: None,
         }
     }
     #[test]
@@ -434,6 +687,23 @@ mod tests {
         );
     }
     #[test]
+    fn accepted_snapshots_carry_signal_transitions_forward() {
+        let now = Instant::now();
+        let mut state = observed(now);
+        accept_snapshot(&mut state, snapshot(), None, now).unwrap();
+        let first = state.snapshot.clone().unwrap();
+        assert!(first.signals["baselineAsOfBlock"].is_null());
+        let mut later = snapshot();
+        later.processed_block += 1;
+        accept_snapshot(&mut state, later, None, now).unwrap();
+        let second = &state.snapshot.as_ref().unwrap().signals;
+        assert_eq!(second["baselineAsOfBlock"], first.as_of_block);
+        let items = second["items"].as_array().unwrap();
+        assert!(!items.is_empty());
+        assert!(items.iter().all(|item| item["change"] == "unchanged"));
+    }
+
+    #[test]
     fn changed_same_cutoff_facts_remain_quarantined_after_source_recovers() {
         let now = Instant::now();
         for field in [
@@ -441,6 +711,7 @@ mod tests {
             "asOfBlockHash",
             "registryInputsHash",
             "marketMarksHash",
+            "protocolEventIdsHash",
         ] {
             let mut state = observed(now);
             accept_snapshot(&mut state, snapshot(), None, now).unwrap();

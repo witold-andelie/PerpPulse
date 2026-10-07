@@ -129,6 +129,52 @@ query PerpPulseRustMarketEvents(
 }
 "#;
 
+const PROTOCOL_EVENTS_QUERY: &str = r#"
+query PerpPulseRustProtocolEvents(
+  $chainId: Int!
+  $endLog: Int!
+  $cursorBlock: numeric!
+  $cursorLog: Int!
+  $endBlock: numeric!
+  $limit: Int!
+) {
+  CanonicalEvent(
+    where: {
+      chainId: {_eq: $chainId}
+      _and: [{_or: [{blockNumber: {_lt: $endBlock}}, {_and: [{blockNumber: {_eq: $endBlock}}, {logIndex: {_lte: $endLog}}]}]}]
+      blockNumber: {_lte: $endBlock}
+      _or: [
+        {blockNumber: {_gt: $cursorBlock}}
+        {_and: [{blockNumber: {_eq: $cursorBlock}}, {logIndex: {_gt: $cursorLog}}]}
+      ]
+    }
+    limit: $limit
+    order_by: [{blockNumber: asc}, {logIndex: asc}]
+  ) {
+    id
+    chainId
+    blockNumber
+    blockHash
+    parentHash
+    txHash
+    logIndex
+    timestampMs
+    srcAddress
+    abiEventName
+    kind
+    accountId
+    perpetualId
+    positionType
+    payloadJson
+    schemaVersion
+    handlerVersion
+    classifierVersion
+    ingestionProfile
+    abiFingerprint
+  }
+}
+"#;
+
 const VERIFY_EVENT_QUERY: &str = r#"
 query PerpPulseRustVerifyEvent($id: String!) {
   CanonicalEvent(where: {id: {_eq: $id}}, limit: 1) {
@@ -657,6 +703,119 @@ impl EnvioClient {
         Ok(result)
     }
 
+    /// Read every canonical v3 event after `after` through the shared cutoff.
+    /// Used by incremental protocol analytics; `budget` bounds the new rows and
+    /// an exceeded bound returns no partial success.
+    pub fn read_protocol_events(
+        &self,
+        coverage: &EnvioCoverage,
+        as_of: &AsOf,
+        registry: &ProtocolRegistry,
+        after: Option<(u64, u32)>,
+        budget: usize,
+    ) -> Result<Vec<CanonicalEvent>> {
+        if !coverage.is_ready
+            || as_of.chain_id == 0
+            || as_of.chain_id > i32::MAX as u64
+            || as_of.chain_id != coverage.evidence.chain_id
+            || as_of.block_number < coverage.evidence.start_block
+            || as_of.block_number > coverage.evidence.processed_block
+            || after.is_some_and(|(block, log)| {
+                block < coverage.evidence.start_block || !as_of.includes(block, log)
+            })
+        {
+            return Err(DataQualityError::msg(
+                "invalid protocol event scope, resume cursor or unready coverage",
+            ));
+        }
+        registry.require_chain(as_of.chain_id)?;
+        let end_log = as_of
+            .log_index
+            .map(i32::try_from)
+            .transpose()
+            .map_err(|_| DataQualityError::msg("cutoff log exceeds GraphQL Int"))?
+            .unwrap_or(i32::MAX);
+        let (mut cursor_block, mut cursor_log) = after
+            .map(|(block, log)| (block, i64::from(log)))
+            .unwrap_or((coverage.evidence.start_block, -1));
+        let mut events = Vec::new();
+        loop {
+            let page: RawAccountData = self.post(
+                PROTOCOL_EVENTS_QUERY,
+                &ProtocolVariables {
+                    chain_id: as_of.chain_id as u32,
+                    end_log,
+                    cursor_block: cursor_block.to_string(),
+                    cursor_log,
+                    end_block: as_of.block_number.to_string(),
+                    limit: self.page_size,
+                },
+            )?;
+            if page.events.len() > self.page_size as usize {
+                return Err(DataQualityError::msg(
+                    "protocol page exceeds configured limit",
+                ));
+            }
+            let count = page.events.len();
+            for row in page.events {
+                let event = parse_canonical_event(row)?;
+                let position = (event.block_number, i64::from(event.log_index));
+                if position <= (cursor_block, cursor_log) {
+                    return Err(DataQualityError::msg(
+                        "protocol event cursor did not advance",
+                    ));
+                }
+                if event.chain_id != as_of.chain_id
+                    || event.block_number < coverage.evidence.start_block
+                    || !as_of.includes(event.block_number, event.log_index)
+                    || event.timestamp_ms > as_of.timestamp_ms
+                    || !event
+                        .contract_address
+                        .eq_ignore_ascii_case(&registry.exchange_address)
+                    || event
+                        .provenance
+                        .as_ref()
+                        .is_none_or(|p| p.ingestion_profile != MARKET_INGESTION_PROFILE)
+                    || (event.block_number == as_of.block_number
+                        && (event.block_hash != as_of.block_hash
+                            || event.timestamp_ms != as_of.timestamp_ms))
+                {
+                    return Err(DataQualityError::msg(
+                        "protocol event is outside the profile, contract, coverage or cutoff",
+                    ));
+                }
+                cursor_block = position.0;
+                cursor_log = position.1;
+                events.push(event);
+                if events.len() > budget {
+                    return Err(DataQualityError::msg(
+                        "protocol event bound exceeded; no partial success",
+                    ));
+                }
+            }
+            if count < self.page_size as usize {
+                break;
+            }
+        }
+        self.verify_event(&coverage.latest_event)?;
+        let final_coverage = self.fetch_coverage(as_of.chain_id)?;
+        if final_coverage.evidence.start_block != coverage.evidence.start_block
+            || final_coverage.evidence.processed_block < coverage.evidence.processed_block
+            || final_coverage.source_block < coverage.source_block
+            || final_coverage.events_processed < coverage.events_processed
+        {
+            return Err(DataQualityError::msg(
+                "protocol coverage changed or regressed during the read",
+            ));
+        }
+        Ok(events)
+    }
+
+    /// Confirm that a previously ingested event still exists unchanged.
+    pub fn verify_point(&self, expected: &IndexedPoint) -> Result<()> {
+        self.verify_event(expected)
+    }
+
     fn market_event(
         &self,
         row: RawCanonicalEvent,
@@ -897,6 +1056,17 @@ struct MarketVariables {
     chain_id: u32,
     perpetual_id: u32,
     abi_names: Vec<&'static str>,
+    end_log: i32,
+    cursor_block: String,
+    cursor_log: i64,
+    end_block: String,
+    limit: u32,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ProtocolVariables {
+    chain_id: u32,
     end_log: i32,
     cursor_block: String,
     cursor_log: i64,

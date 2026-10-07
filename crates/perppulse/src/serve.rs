@@ -30,6 +30,52 @@ pub struct ApiSnapshot {
     pub manifest: Value,
     pub context: Value,
     pub events_available: bool,
+    /// Versioned protocol windows and point-in-time state for this scope.
+    #[serde(default, skip_serializing_if = "Value::is_null")]
+    pub analytics: Value,
+    /// Deterministic rule-hashed signals and stress scenarios at this cutoff.
+    #[serde(default, skip_serializing_if = "Value::is_null")]
+    pub signals: Value,
+    /// Snapshot-scoped wallet comparison and participant labels.
+    #[serde(default, skip_serializing_if = "Value::is_null")]
+    pub cohort: Value,
+}
+
+/// Explicit unavailable analytics object; never an empty successful result.
+pub fn unavailable_analytics(scope: &str, reason: &str) -> Value {
+    json!({"version": crate::analytics::ANALYTICS_VERSION, "scope": scope, "status": "unavailable", "reason": reason, "windows": [], "state": null})
+}
+
+/// Attach signals and comparison derived only from facts already in the snapshot.
+pub fn attach_intelligence(
+    snapshot: &mut ApiSnapshot,
+    registry: &crate::registry::ProtocolRegistry,
+    analytics: Option<&crate::analytics::AnalyticsReport>,
+    scope: &str,
+) -> Result<()> {
+    let signals = crate::signals::evaluate(&crate::signals::SignalInputs {
+        scope,
+        as_of_block: snapshot.as_of_block,
+        as_of_timestamp_ms: snapshot.as_of_timestamp_ms,
+        wallets: &snapshot.wallets,
+        events: &snapshot.events,
+        analytics,
+        registry,
+    })?;
+    let cohort = crate::cohort::evaluate(scope, snapshot.as_of_block, &snapshot.wallets)?;
+    snapshot.signals = serde_json::to_value(&signals)
+        .map_err(|_| DataQualityError::msg("cannot serialize signals"))?;
+    snapshot.cohort = serde_json::to_value(&cohort)
+        .map_err(|_| DataQualityError::msg("cannot serialize comparison"))?;
+    snapshot.analytics = match analytics {
+        Some(report) => serde_json::to_value(report)
+            .map_err(|_| DataQualityError::msg("cannot serialize analytics"))?,
+        None => unavailable_analytics(
+            scope,
+            "A selected-account source cannot prove protocol windows or point-in-time protocol state.",
+        ),
+    };
+    Ok(())
 }
 
 pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
@@ -151,7 +197,19 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
     )?;
     manifest["registryInputsHash"] = json!(crate::evidence::digest(&pulse.fixture.registry)?);
     manifest["marketMarksHash"] = json!(crate::evidence::digest(&pulse.fixture.marks)?);
-    Ok(ApiSnapshot {
+    let analytics = crate::analytics::analyze(
+        &pulse.ledger.events,
+        &pulse.fixture.registry,
+        &pulse.fixture.as_of,
+        &crate::analytics::CoverageBasis {
+            start_block: pulse.fixture.coverage.start_block,
+            deployed_at_block: pulse.fixture.registry.deployed_at_block,
+            start_timestamp_ms: None,
+        },
+        Some((&pulse.ledger, &pulse.fixture.marks)),
+        "fixture-protocol",
+    )?;
+    let mut snapshot = ApiSnapshot {
         fixture_name: pulse.fixture.name.clone(),
         chain_id: pulse.fixture.registry.chain_id,
         exchange_address: pulse.fixture.registry.exchange_address.clone(),
@@ -170,7 +228,17 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
         manifest,
         context: unavailable_context(),
         events_available: true,
-    })
+        analytics: Value::Null,
+        signals: Value::Null,
+        cohort: Value::Null,
+    };
+    attach_intelligence(
+        &mut snapshot,
+        &pulse.fixture.registry,
+        Some(&analytics),
+        "fixture-protocol",
+    )?;
+    Ok(snapshot)
 }
 
 /// Pure router used by the std HTTP loop and by unit tests.
@@ -235,6 +303,33 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
     }
     if normalized == "/api/context" {
         return (200, snapshot.context.clone());
+    }
+    if normalized == "/api/analytics" {
+        if snapshot.analytics.is_null() || snapshot.analytics["status"] == "unavailable" {
+            return (
+                503,
+                json!({"error": "protocol analytics are unavailable for this source scope", "analytics": snapshot.analytics}),
+            );
+        }
+        return (200, snapshot.analytics.clone());
+    }
+    if normalized == "/api/signals" {
+        if snapshot.signals.is_null() {
+            return (
+                503,
+                json!({"error": "signals are unavailable for this snapshot"}),
+            );
+        }
+        return (200, snapshot.signals.clone());
+    }
+    if normalized == "/api/comparison" {
+        if snapshot.cohort.is_null() {
+            return (
+                503,
+                json!({"error": "wallet comparison is unavailable for this snapshot"}),
+            );
+        }
+        return (200, snapshot.cohort.clone());
     }
     if normalized == "/api/protocol" {
         if snapshot.protocol["quality"] == "unavailable" {
@@ -356,7 +451,7 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
     }
     (
         404,
-        json!({"error": "unknown path; see /health, /api/protocol, /api/wallets, /api/wallet/<id>, /api/events, /api/event/<id>, /api/coverage"}),
+        json!({"error": "unknown path; see /health, /api/snapshot, /api/protocol, /api/analytics, /api/signals, /api/comparison, /api/wallets, /api/wallet/<id>, /api/events, /api/event/<id>, /api/coverage, /api/manifest, /api/methodology, /api/context"}),
     )
 }
 
@@ -443,7 +538,8 @@ fn normalize_path(path: &str) -> String {
 }
 
 fn percent_decode(input: &str) -> String {
-    let mut out = String::with_capacity(input.len());
+    // Decode to bytes first so multi-byte UTF-8 sequences stay intact.
+    let mut out = Vec::with_capacity(input.len());
     let bytes = input.as_bytes();
     let mut index = 0;
     while index < bytes.len() {
@@ -451,15 +547,15 @@ fn percent_decode(input: &str) -> String {
             if let (Some(high), Some(low)) =
                 (hex_value(bytes[index + 1]), hex_value(bytes[index + 2]))
             {
-                out.push((high * 16 + low) as char);
+                out.push(high * 16 + low);
                 index += 3;
                 continue;
             }
         }
-        out.push(bytes[index] as char);
+        out.push(bytes[index]);
         index += 1;
     }
-    out
+    String::from_utf8_lossy(&out).into_owned()
 }
 
 fn hex_value(byte: u8) -> Option<u8> {
@@ -474,6 +570,7 @@ fn hex_value(byte: u8) -> Option<u8> {
 fn reason(status: u16) -> &'static str {
     match status {
         200 => "OK",
+        204 => "No Content",
         400 => "Bad Request",
         404 => "Not Found",
         405 => "Method Not Allowed",
@@ -509,7 +606,9 @@ pub fn run_service(
                 continue;
             }
         };
-        if active.load(std::sync::atomic::Ordering::SeqCst) >= 32 {
+        // Reserve a slot atomically so concurrent accepts cannot exceed the bound.
+        if active.fetch_add(1, std::sync::atomic::Ordering::SeqCst) >= 32 {
+            active.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
             let _ = write_response(
                 &mut stream,
                 503,
@@ -518,7 +617,6 @@ pub fn run_service(
             );
             continue;
         }
-        active.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         let provider = provider.clone();
         let active = active.clone();
         std::thread::spawn(move || {
@@ -541,7 +639,8 @@ pub fn run_service(
                 }
             };
             if method == "GET" {
-                let asset = match target.as_str() {
+                let asset_path = target.split('?').next().unwrap_or(&target);
+                let asset = match asset_path {
                     "/" => Some((
                         "text/html; charset=utf-8",
                         include_str!("../../../web/index.html"),
@@ -558,6 +657,10 @@ pub fn run_service(
                 };
                 if let Some((content_type, body)) = asset {
                     let _ = write_response(&mut stream, 200, content_type, body);
+                    return;
+                }
+                if asset_path == "/favicon.ico" {
+                    let _ = write_response(&mut stream, 204, "image/x-icon", "");
                     return;
                 }
             }
@@ -707,6 +810,13 @@ mod tests {
         let (status, coverage) = route(&snapshot, "GET", "/api/coverage");
         assert_eq!(status, 200);
         assert!(coverage.get("startBlock").and_then(Value::as_u64).is_some());
+    }
+
+    #[test]
+    fn percent_decoding_keeps_utf8_and_trailing_escapes() {
+        assert_eq!(percent_decode("143%3A0xabc%3A1"), "143:0xabc:1");
+        assert_eq!(percent_decode("a%C3%A9b"), "a\u{e9}b");
+        assert_eq!(percent_decode("tail%3"), "tail%3");
     }
 
     #[test]

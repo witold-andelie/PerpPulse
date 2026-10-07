@@ -28,7 +28,7 @@ Canonical on-chain fact. Identity is (chainId, blockHash, txHash, logIndex).
 This table is the Envio-backed source for the Rust ledger; it is not a second
 position book.
 """
-type CanonicalEvent {
+type CanonicalEvent @index(fields: ["chainId", "blockNumber", "logIndex"]) @index(fields: ["chainId", "accountId", "blockNumber", "logIndex"]) @index(fields: ["chainId", "perpetualId", "abiEventName", "blockNumber", "logIndex"]) {
   id: ID!
   chainId: Int!
   blockNumber: BigInt!

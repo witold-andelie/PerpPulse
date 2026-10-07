@@ -1,4 +1,6 @@
 pub mod accounting;
+pub mod analytics;
+pub mod cohort;
 pub mod context;
 pub mod coverage;
 pub mod envio;
@@ -18,6 +20,7 @@ pub mod publication;
 pub mod quality;
 pub mod registry;
 pub mod serve;
+pub mod signals;
 pub mod store;
 
 pub use coverage::CoverageEvidence;

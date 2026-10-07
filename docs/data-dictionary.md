@@ -129,7 +129,65 @@ coverage, lifecycle semantics and the accepted historical scope.
 | Protocol fees | `insFeeCNS + protFeeCNS` on open/increase/invert |
 | Liquidations | Count and notional from `PositionLiquidated` |
 
-Windowed metrics fail if the window contains no events.
+The fixture CLI metric path fails if its optional window contains no events.
+
+## Protocol analytics windows and state
+
+`protocol-analytics-v1` evaluates one canonical event set at the selected
+block/log cutoff. Windows `24h`, `7d` and `30d` start at the cutoff timestamp
+minus their duration (inclusive) and end at the cutoff; `coverage` spans every
+indexed event. A duration window is complete only when coverage begins at
+Exchange deployment or when the independently observed timestamp of the
+coverage start block precedes the window start. Otherwise the window is
+`incomplete` and its totals are null. The first observed business event never
+proves completeness, and a complete window with no activity reports zero.
+
+| Flow | Definition |
+| --- | --- |
+| Taker volume, trades | Maker-fill notional and count, counted once |
+| Fill fees | Maker-fill `feeCNS` |
+| Protocol fees | `insFeeCNS + protFeeCNS` on open/increase/invert; insurance shown separately |
+| Liquidations | Count and `liqPrice * liqLot` notional from `PositionLiquidated` |
+| Collateral flows | `CollateralDeposit` and `CollateralWithdrawal` amounts and their net |
+| Active accounts | Accounts that traded or changed a position; deposits and account creation alone do not count |
+
+Point-in-time state reports long, short and total mark open interest, isolated
+position collateral and `skew = (long - short) / (long + short)`. It requires
+position history from deployment; a bounded index reports state unavailable.
+A market without an eligible mark keeps its collateral but nulls its open
+interest, skew and the protocol totals. Each window retains its event count,
+first and last event IDs and a hash of its ordered event IDs. Ratios are
+truncated toward zero at six decimals.
+
+## Risk signals, stress and comparison
+
+`risk-signals-v1` compares facts already served at the cutoff with published
+thresholds; it never creates prices, PnL or funding. Each rule definition is
+SHA-256 hashed, and every signal keeps its metric, threshold, inputs, basis
+and source event IDs. Severity order is critical, warning, watch.
+
+| Rule | Metric | Watch / warning / critical |
+| --- | --- | --- |
+| `liquidation-distance` | Side-adjusted (mark - funded liquidation price) / mark; proven funding only | <= 25% / 15% / 5% |
+| `collateral-drawdown` | -price PnL / isolated collateral; funding excluded | >= 25% / 50% / 75% |
+| `leverage-utilization` | (mark notional / collateral) / initial-margin leverage limit | >= 50% / 80% / 100% |
+| `watchlist-crowding` | Dominant-side snapshot notional share, two or more accounts; only without protocol state | >= 75% / 90% / none |
+| `market-skew` | Absolute protocol open-interest skew | >= 50% / 75% / none |
+| `liquidation-activity` | Complete 24-hour liquidation notional / market open interest | any / 5% / 20% |
+| `position-liquidated` | Liquidation or deleveraging close within 24 hours | warning |
+| `risk-input-unavailable` | Missing mark (warning) or unverified funding (watch, conditional zero-funding distance) | presence |
+| `incomplete-history` | Replay-ineligible account | warning |
+
+`mark-shock-stress-v1` applies -20%, -10%, -5%, +5%, +10% and +20% to every
+eligible mark at once. Equity is collateral plus side-adjusted price PnL at the
+shocked mark plus proven unsettled funding; a breach is equity at or below
+entry-based maintenance. Unknown funding is labeled zero-funding conditional.
+
+`snapshot-cohort-v1` compares wallets in one snapshot: open notional and
+collateral, collateral leverage, realized and price PnL, price return on open
+collateral, fees, midrank percentiles over replay-eligible wallets with a known
+value, and pairwise open-market Jaccard overlap. Nansen labels group
+participants for filtering and never alter a number.
 
 ## Risk hot-path scope
 

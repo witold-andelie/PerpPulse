@@ -3,7 +3,8 @@ use std::path::Path;
 use crate::accounting::{account_wallet, WalletSnapshot};
 use crate::error::Result;
 use crate::events::{load_fixture, Fixture};
-use crate::ledger::{replay, Ledger};
+use crate::funding_checkpoint::FundingCoverage;
+use crate::ledger::{replay, replay_with_funding_coverage, Ledger};
 use crate::metrics::{protocol_metrics, ProtocolMetrics};
 use crate::quality::{gate_ledger, gate_metrics, QualityReport};
 use crate::store::EventStore;
@@ -38,7 +39,19 @@ pub fn run_fixture(path: impl AsRef<Path>, max_lag_blocks: Option<u64>) -> Resul
     let store = EventStore::memory()?;
     store.insert_many(&fixture.events)?;
     let stored = store.load_all()?;
-    let ledger = replay(&stored, &fixture.registry, &fixture.as_of)?;
+    let ledger = match &fixture.funding_coverage_markets {
+        None => replay(&stored, &fixture.registry, &fixture.as_of)?,
+        Some(markets) => replay_with_funding_coverage(
+            &stored,
+            &fixture.registry,
+            &fixture.as_of,
+            &FundingCoverage {
+                start_block: fixture.coverage.start_block,
+                end_block: fixture.as_of.block_number,
+                market_ids: markets.clone(),
+            },
+        )?,
+    };
     if !ledger.market_marks.is_empty() {
         if !fixture.marks.is_empty()
             && fixture

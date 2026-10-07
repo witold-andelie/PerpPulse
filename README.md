@@ -4,6 +4,21 @@ Real-time protocol-to-wallet risk intelligence for perpetual markets on Monad.
 
 PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wallet context into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
 
+> 2026-10-07 update: the dashboard is now signal-first. Rule-hashed risk
+> signals (funded liquidation distance, collateral drawdown, leverage
+> utilization, skew/crowding, liquidation activity, missing-input signals)
+> rank the top three at one cutoff, with mark-shock stress scenarios.
+> `protocol-analytics-v1` adds 24-hour, 7-day, 30-day and covered-range flows
+> whose completeness is proven from coverage, plus point-in-time open
+> interest, collateral and long/short skew from deployment history. A snapshot
+> wallet comparison adds percentiles, exposure overlap and Nansen label
+> filtering. `serve-envio --protocol-max-events` adds an incremental, bounded
+> global Envio reader. Coverage from Exchange deployment now proves funding
+> resets before the first observed schedule. These additions are verified with
+> fixtures, mocks and local CI-equivalent checks only; see the
+> [verification record](docs/verification-2026-10-07-analytics.md). No new
+> mainnet run, cloud deployment or live Nansen request is claimed.
+
 > Status: canonical ledger, coverage-bounded Envio-to-Rust adapter,
 > golden-fixture web demo, read-only fixture and live-account APIs, compact PostgreSQL serving,
 > hashed evidence, reconciliation scorecards, and optional Nansen label context implemented.
@@ -50,10 +65,13 @@ The product is read-only. It does not place orders, request private keys, or pre
 
 ## Target judge-facing product path
 
-The following is the intended full product scope. The current web application
-implements fixture metrics, account drill-down, and event evidence. Live serving
-implements bounded account watchlists; global historical analytics, comparison,
-and alerts remain pending.
+The following is the intended full product scope. The web application now
+implements the signal-first Risk Pulse, window flows and state, alerts and
+stress scenarios, account drill-down, snapshot wallet comparison with label
+filtering, and event evidence. Live serving implements bounded account
+watchlists and an optional bounded global reader. Mainnet global history,
+continuously hosted operation, live Nansen labels and push delivery of alerts
+remain pending.
 
 The latest Q16 reader correction and operating artifacts in `4b9135b` passed
 [Rust, PostgreSQL, Envio and DOT verification](https://github.com/witold-andelie/PerpPulse/actions/runs/37076854913)
@@ -171,6 +189,15 @@ full run contract.
 3. Event evidence for the last canonical log (block, transaction, log index)
 
 Golden fixtures cover open → increase → partial reduce → close, an open position with mark, liquidation, and a stale as-of failure.
+The synthetic `watchlist-cohort` fixture adds seven accounts, three markets and
+ten days of history with canonical marks, complete BTC/ETH funding publications
+from deployment and deliberately uncovered MON funding. It is generated
+deterministically by [`scripts/build_cohort_fixture.py`](scripts/build_cohort_fixture.py)
+and is the container's default demo:
+
+```powershell
+cargo run -p perppulse -- serve fixtures/golden/watchlist-cohort.json --bind 127.0.0.1:8081
+```
 
 `envio-account` keyset-pages one account through Envio GraphQL, binds the result
 to `_meta` coverage, verifies every payload subject and provenance tuple, and
@@ -180,14 +207,19 @@ deployment or includes the account-creation event.
 
 `serve` exposes the same fixture pulse as a read-only web and JSON surface. The
 HTTP transport uses the standard library. It serves `GET /health`, `/api/protocol`,
+`/api/analytics`, `/api/signals`, `/api/comparison`,
 `/api/wallets`, `/api/wallet/<accountId>`, `/api/events`,
 `/api/event/<eventId>`, and `/api/coverage`. Unknown paths return 404,
 non-GET methods return 405, and every range remains bounded by the fixture
-`startBlock`.
+`startBlock`. The [serving contract](docs/serving-and-evidence.md) and
+[data dictionary](docs/data-dictionary.md) define every window, rule and
+statistic.
 
 Open `http://127.0.0.1:8081` for the embedded web application. It shows the
-fixture badge, processed coverage, protocol metrics, account positions, event
-evidence, and a downloadable range manifest. Financial values are decimal
+fixture badge, the top three rule-hashed signals, processed coverage, protocol
+metrics, window flows with completeness, market skew, alerts and stress
+scenarios, account positions, wallet comparison, event evidence, and a
+downloadable range manifest. Financial values are decimal
 strings; the browser does not calculate PnL. Wallet, market, and block filters
 operate on one immutable snapshot obtained through `/api/snapshot`.
 
@@ -207,8 +239,15 @@ than 90 seconds or processed coverage stalled for 120 seconds is unavailable.
 Coverage regression or changed facts at the same cutoff quarantine the process.
 Restart only after the source has been reconciled.
 
-A watchlist cannot prove global protocol totals, so the live protocol endpoint
-returns 503. Each account exposes its replay eligibility. Eligible accounts have
+A watchlist cannot prove global protocol totals, so without the global reader
+the live protocol and analytics endpoints return 503. Add
+`--protocol-max-events 250000` to read every canonical v3 event in coverage
+incrementally (at most 1,000,000; budget about 2 KB per retained event plus a
+transient replay copy, so 250,000 events need roughly 1 GB at peak). Windows are complete only when coverage
+starts at deployment or its RPC-observed start time precedes the window; open
+interest, collateral and skew require deployment history (`pnpm dev:full`).
+Every market in coverage must be in the registry; an unknown or excluded
+market fails visibly instead of being dropped from totals. Each account exposes its replay eligibility. Eligible accounts have
 deterministic realized facts and position state; incomplete history blocks
 position replay. Canonical v3 MarkUpdated inputs drive price PnL and source
 inspection. Free balance remains null; funded equity/liquidation require a
@@ -372,6 +411,9 @@ The architecture is informed by the public projects and official documentation l
 
 OpenAI Codex has been used for web research, architecture drafting, implementation,
 documentation, repository setup, and verification. xAI Grok has been used for
-bounded review and for implementing the first ledger slice. All generated material
+bounded review and for implementing the first ledger slice. Anthropic Claude Code
+(Claude Opus 5.5) was used on 2026-10-07 for the protocol analytics, signal,
+comparison and global-reader implementation, code review and fixes,
+documentation, and local verification. All generated material
 is independently reviewed before adoption. Deterministic code and independently
 verifiable data, rather than language-model output, remain the source of analytical facts.

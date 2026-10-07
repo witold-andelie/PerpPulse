@@ -10,7 +10,10 @@ back to a previous successful live snapshot.
 | `/` | Embedded English web application |
 | `/health` | Current source availability, mode, chain, and cutoff |
 | `/api/snapshot` | One immutable snapshot for consistent multi-panel UI reads |
-| `/api/protocol` | Fixture protocol facts; unavailable for a live account-only source |
+| `/api/protocol` | Fixture or global-reader protocol facts; HTTP 503 for a live account-only source |
+| `/api/analytics` | `protocol-analytics-v1` windows, completeness proof and point-in-time state; HTTP 503 when unavailable |
+| `/api/signals` | `risk-signals-v1` items, hashed rules, top three, transitions, resolved list and stress scenarios |
+| `/api/comparison` | `snapshot-cohort-v1` wallet statistics, percentiles, exposure overlap and Nansen label groups |
 | `/api/wallets`, `/api/wallet/<accountId>` | Canonical account facts and explicit replay eligibility |
 | `/api/events` | Bounded filters: accountId, perpetualId, fromBlock, toBlock, offset, limit (1 to 1000) |
 | `/api/event/<eventId>` | Percent-encoded event identity with block, transaction, and log |
@@ -22,9 +25,24 @@ back to a previous successful live snapshot.
 Optional `asOfBlock` rejects a changed block with HTTP 409. For consistency within
 one block, clients should use `/api/snapshot` rather than separate route reads.
 Unknown or duplicated filters are rejected. Historical bounds cannot extend
-outside coverage or past the as-of cutoff. Live data is a watchlist inspection
-and eligible-account replay surface, not an implementation of global historical
-protocol metrics or 24-hour/7-day/30-day analytics.
+outside coverage or past the as-of cutoff. Without `--protocol-max-events`,
+live data is a watchlist inspection and eligible-account replay surface and
+protocol analytics return HTTP 503. With it, a bounded global reader keyset-pages
+every exact `risk-hotpath-v3` event through the shared cutoff, re-verifies its
+last ingested event before each incremental read and replays deterministically.
+Windows are complete only when coverage starts at deployment or its
+independently observed start time precedes the window; point-in-time state
+requires deployment history. A coverage start change, rewritten ingested
+event, bound overflow or unknown/excluded registry market fails visibly and
+commits nothing. Raw global events are not mirrored into served events or the
+compact database; the manifest carries `protocolEventCount` and
+`protocolEventIdsHash`, which the same-cutoff quarantine and the compact
+publication guard both compare.
+
+Signals and comparison are computed once per snapshot from served facts and
+are stored with it, so a compact database snapshot serves them unchanged. A
+live process carries each signal's first-observed and severity-change blocks
+from its previous accepted snapshot; without one, signals are baselines.
 
 ## Normalized verifier reference
 

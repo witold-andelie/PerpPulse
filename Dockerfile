@@ -17,4 +17,4 @@ COPY fixtures ./fixtures
 USER 10001
 EXPOSE 8080
 ENTRYPOINT ["perppulse"]
-CMD ["serve", "fixtures/golden/open-position-as-of.json", "--bind", "0.0.0.0:8080"]
+CMD ["serve", "fixtures/golden/watchlist-cohort.json", "--bind", "0.0.0.0:8080"]

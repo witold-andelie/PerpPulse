@@ -151,3 +151,20 @@ Old v2 indexes remain valid for selected lifecycle verification, but cannot
 prove mark coverage. Use a fresh isolated runtime for v3 and retain account
 births or deployment history when choosing a start block. Funding checkpoint
 reconstruction and new mainnet acceptance remain pending.
+
+## Read indexes (2026-10-07)
+
+`CanonicalEvent` declares three composite storage indexes: `(chainId,
+blockNumber, logIndex)` for the coverage probe and the global protocol reader,
+`(chainId, accountId, blockNumber, logIndex)` for account keyset pages, and
+`(chainId, perpetualId, abiEventName, blockNumber, logIndex)` for mark and
+funding pages. Without them every probe and page sorts the whole table, which
+is acceptable for a 50,000-block smoke window but not for deployment history.
+
+The indexes are storage-only. Row content, provenance versions and the ABI
+fingerprint are unchanged, so retained v2/v3 archives remain readable by the
+Rust reader. A changed schema can make Envio migrate or reset its persisted
+state, so start the updated schema in a new isolated runtime (separate
+generated directory, Compose project, network, volume and ports) and never
+point it at a retained evidence volume. Code generation, typecheck and the 19
+handler tests were rerun locally with pinned pnpm 10.5.2 after the change.

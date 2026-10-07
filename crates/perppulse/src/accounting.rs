@@ -71,6 +71,12 @@ fn validate_mark(mark: &MarketMark, as_of: &AsOf, market: &MarketSpec) -> Result
     Ok(())
 }
 
+/// True only when a mark passes the same point-in-time gate as accounting.
+/// Aggregates use it to report a stale or ineligible mark as unavailable.
+pub fn mark_is_eligible(mark: &MarketMark, as_of: &AsOf, market: &MarketSpec) -> bool {
+    validate_mark(mark, as_of, market).is_ok()
+}
+
 #[derive(Clone, Debug)]
 pub struct PositionSnapshot {
     pub account_id: u64,

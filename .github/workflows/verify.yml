@@ -27,6 +27,7 @@ jobs:
           PERPPULSE_TEST_DATABASE_URL: host=127.0.0.1 user=postgres dbname=perppulse
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
       - run: python3 scripts/check_repository_policy.py --tracked
+      - run: python3 -I scripts/build_cohort_fixture.py | diff - fixtures/golden/watchlist-cohort.json
       - run: git diff --check
       - run: sudo apt-get update && sudo apt-get install -y graphviz
       - run: dot -Tsvg perppulse_opm.dot -o /tmp/perppulse_opm.svg

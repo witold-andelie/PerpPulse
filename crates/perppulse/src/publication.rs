@@ -71,7 +71,8 @@ pub fn publish(url: &str, source: &str, snapshot: &ApiSnapshot) -> Result<()> {
                 OR ((perppulse_serving_snapshot.snapshot#>>'{manifest,canonicalInputsHash}') = (EXCLUDED.snapshot#>>'{manifest,canonicalInputsHash}')
                     AND (perppulse_serving_snapshot.snapshot#>>'{manifest,asOfBlockHash}') = (EXCLUDED.snapshot#>>'{manifest,asOfBlockHash}')
                     AND (perppulse_serving_snapshot.snapshot#>>'{manifest,registryInputsHash}') IS NOT DISTINCT FROM (EXCLUDED.snapshot#>>'{manifest,registryInputsHash}')
-                    AND (perppulse_serving_snapshot.snapshot#>>'{manifest,marketMarksHash}') IS NOT DISTINCT FROM (EXCLUDED.snapshot#>>'{manifest,marketMarksHash}')))",
+                    AND (perppulse_serving_snapshot.snapshot#>>'{manifest,marketMarksHash}') IS NOT DISTINCT FROM (EXCLUDED.snapshot#>>'{manifest,marketMarksHash}')
+                    AND (perppulse_serving_snapshot.snapshot#>>'{manifest,protocolEventIdsHash}') IS NOT DISTINCT FROM (EXCLUDED.snapshot#>>'{manifest,protocolEventIdsHash}')))",
         &[&source, &cutoff, &hash, &payload]).map_err(|_| DataQualityError::msg("compact snapshot publication failed"))?;
     if changed != 1 {
         return Err(DataQualityError::msg(

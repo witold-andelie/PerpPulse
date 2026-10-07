@@ -64,6 +64,21 @@ content hash.
 Both browser runs used installed Google Chrome through Playwright 1.63.0
 because the cached bundled browser did not match that Playwright version.
 
+## Publication and CI
+
+Implementation `0e553ff46814db42b9b608fdbd287c1647f647b9` was pushed over SSH
+and its remote SHA independently matched. Its policy run succeeded; in its
+analytics run the Envio and SDK-reference jobs succeeded and the Rust job
+passed every substantive step before the runner's graphviz package
+installation stalled for more than 50 minutes. Commit
+`39295be5f82dfcf99fe2d9e1702ea2b9ce438134` changes only the workflow, bounding
+job and installation time. Its
+[analytics run](https://github.com/witold-andelie/PerpPulse/actions/runs/37672517538)
+succeeded in all three jobs and its
+[policy run](https://github.com/witold-andelie/PerpPulse/actions/runs/37672517463)
+succeeded. The [acceptance record](evidence/ci-0e553ff-2026-10-07.json) lists
+job IDs and the credential-free public download hashes.
+
 ## Hand-checked cohort facts
 
 At cutoff block 56933010 the cohort fixture yields:

@@ -1,0 +1,81 @@
+{
+  "version": "publication-ci-acceptance-v1",
+  "observedAt": "2026-10-07T19:20:00Z",
+  "implementationCommit": "0e553ff46814db42b9b608fdbd287c1647f647b9",
+  "workflowCommit": "39295be5f82dfcf99fe2d9e1702ea2b9ce438134",
+  "workflowChange": "Bounded job and graphviz installation time only; Rust, Envio, web, fixture and documentation content are identical to the implementation commit",
+  "remoteMainShaMatched": true,
+  "analytics": {
+    "runId": 37672517538,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37672517538",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "rust",
+        "jobId": 112967605361,
+        "conclusion": "success",
+        "checks": [
+          "format",
+          "104 Rust tests",
+          "fresh PostgreSQL integration",
+          "clippy",
+          "tracked publication policy",
+          "cohort fixture reproducibility",
+          "diff whitespace",
+          "DOT validation"
+        ]
+      },
+      {
+        "name": "sdk-reference",
+        "jobId": 112967605704,
+        "conclusion": "success",
+        "checks": [
+          "RPC gate/redaction tests",
+          "format",
+          "locked SDK build",
+          "SDK precision tests",
+          "clippy"
+        ]
+      },
+      {
+        "name": "envio",
+        "jobId": 112967605811,
+        "conclusion": "success",
+        "checks": [
+          "frozen installation",
+          "code generation with composite read indexes",
+          "type checking",
+          "19 Envio tests"
+        ]
+      }
+    ]
+  },
+  "repositoryPolicy": {
+    "runId": 37672517463,
+    "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37672517463",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "implementationCommitRuns": {
+    "analytics": {
+      "runId": 37664736193,
+      "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37664736193",
+      "observed": "envio job 112940945388 and sdk-reference job 112940945410 succeeded; rust job 112940944895 passed format, tests, PostgreSQL integration, clippy, policy, fixture reproducibility and whitespace steps, then its runner's graphviz apt installation remained in progress for more than 50 minutes. This stalled run is not counted as acceptance."
+    },
+    "repositoryPolicy": {
+      "runId": 37664736086,
+      "url": "https://github.com/witold-andelie/PerpPulse/actions/runs/37664736086",
+      "conclusion": "success"
+    }
+  },
+  "publicArtifacts": {
+    "credentialFreeDownloadMatched": true,
+    "files": {
+      "docs/evidence/cohort-browser-2026-10-07.json": "sha256:8ec6ad8d81c1935904e51ae3b5b96da22fbfad6f4ba42532af346af3a907594a",
+      "docs/evidence/cohort-dashboard-2026-10-07.png": "sha256:5aa80f2f2d1c76a6ababe276756e6707a6d79ff648c0b19866f8bbcf16e84dd5",
+      "fixtures/golden/watchlist-cohort.json": "sha256:54be05d1c1a200597b38d54e2b9591797a2aad4ecba032276ebb15cbf2430607"
+    }
+  },
+  "limits": "CI verifies code, fixtures, mocks and generated Envio code. It is not mainnet operation, hosting, live Nansen use or sponsor acceptance."
+}

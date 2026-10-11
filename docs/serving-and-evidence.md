@@ -13,14 +13,13 @@ back to a previous successful live snapshot.
 | `/api/protocol` | Fixture or global-reader protocol facts; HTTP 503 for a live account-only source |
 | `/api/analytics` | `protocol-analytics-v1` windows, completeness proof and point-in-time state; HTTP 503 when unavailable |
 | `/api/signals` | `risk-signals-v1` items, hashed rules, top three, transitions, resolved list and stress scenarios |
-| `/api/comparison` | `snapshot-cohort-v1` wallet statistics, percentiles, exposure overlap and Nansen label groups |
+| `/api/comparison` | `snapshot-cohort-v2` wallet statistics, percentiles and exposure overlap |
 | `/api/wallets`, `/api/wallet/<accountId>` | Canonical account facts and explicit replay eligibility |
 | `/api/events` | Bounded filters: accountId, perpetualId, fromBlock, toBlock, offset, limit (1 to 1000) |
 | `/api/event/<eventId>` | Percent-encoded event identity with block, transaction, and log |
 | `/api/coverage` | Processed coverage, separate last-event silence, cutoff, and limitations |
 | `/api/manifest` | Ordered identity hash, canonical input hash, provenance tuples, methodology hash |
 | `/api/methodology` | Versioned machine-readable definitions and safety contract |
-| `/api/context` | Separate optional context availability |
 
 Optional `asOfBlock` rejects a changed block with HTTP 409. For consistency within
 one block, clients should use `/api/snapshot` rather than separate route reads.
@@ -89,15 +88,7 @@ replace the live API's freshness gates. See the
   mark-derived notional, liquidation price, and liquidation buffer are unavailable.
 - Protocol PnL and executable-liquidity risk remain separate; no order-book
   execution estimate is inferred from mark prices.
-- Nansen labels have their own observation timestamp. Context observed after a
-  cutoff cannot be treated as contemporaneous evidence or alter financial facts.
 - Hashes detect changes and bind replay inputs; they are not an independent proof
   of chain finality or complete ingestion. Raw provider responses are not exported.
 - Compact database rows carry no raw event bodies. Stale or invalid rows return
   an error, and their absence never becomes an empty successful financial result.
-
-The Nansen request and response fields are implemented from the official
-[Address Labels contract](https://docs.nansen.ai/api/profiler/address-labels).
-Attribution is displayed near optional labels. A live key, permitted endpoint
-coverage, request-cost approval, and redistribution eligibility must be confirmed
-before using real context in a public deployment.

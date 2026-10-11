@@ -183,11 +183,11 @@ eligible mark at once. Equity is collateral plus side-adjusted price PnL at the
 shocked mark plus proven unsettled funding; a breach is equity at or below
 entry-based maintenance. Unknown funding is labeled zero-funding conditional.
 
-`snapshot-cohort-v1` compares wallets in one snapshot: open notional and
+`snapshot-cohort-v2` compares wallets in one snapshot: open notional and
 collateral, collateral leverage, realized and price PnL, price return on open
 collateral, fees, midrank percentiles over replay-eligible wallets with a known
-value, and pairwise open-market Jaccard overlap. Nansen labels group
-participants for filtering and never alter a number.
+value, and pairwise open-market Jaccard overlap. Version 2 removes the v1
+third-party label grouping; no external labels are used.
 
 ## Risk hot-path scope
 

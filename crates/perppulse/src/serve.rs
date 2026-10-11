@@ -28,6 +28,9 @@ pub struct ApiSnapshot {
     pub events: Value,
     pub mode: String,
     pub manifest: Value,
+    /// Retired external-context field. New snapshots omit it; it is kept only
+    /// so compact snapshots published before its retirement keep their hash.
+    #[serde(default, skip_serializing_if = "Value::is_null")]
     pub context: Value,
     pub events_available: bool,
     /// Versioned protocol windows and point-in-time state for this scope.
@@ -36,7 +39,7 @@ pub struct ApiSnapshot {
     /// Deterministic rule-hashed signals and stress scenarios at this cutoff.
     #[serde(default, skip_serializing_if = "Value::is_null")]
     pub signals: Value,
-    /// Snapshot-scoped wallet comparison and participant labels.
+    /// Snapshot-scoped wallet comparison.
     #[serde(default, skip_serializing_if = "Value::is_null")]
     pub cohort: Value,
 }
@@ -217,16 +220,14 @@ pub fn build_snapshot(pulse: &Pulse) -> Result<ApiSnapshot> {
         as_of_timestamp_ms: pulse.fixture.as_of.timestamp_ms,
         start_block: pulse.fixture.coverage.start_block,
         processed_block: pulse.fixture.coverage.processed_block,
-        source_note:
-            "Envio canonical events; Perpl snapshot is a verifier; Nansen is not included."
-                .to_string(),
+        source_note: "Envio canonical events; Perpl snapshot is a verifier.".to_string(),
         protocol,
         coverage: coverage.clone(),
         wallets: wallets_json,
         events: Value::Array(evidence),
         mode: "fixture".to_string(),
         manifest,
-        context: unavailable_context(),
+        context: Value::Null,
         events_available: true,
         analytics: Value::Null,
         signals: Value::Null,
@@ -300,9 +301,6 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
             200,
             serde_json::from_str(crate::evidence::METHODOLOGY).expect("validated methodology"),
         );
-    }
-    if normalized == "/api/context" {
-        return (200, snapshot.context.clone());
     }
     if normalized == "/api/analytics" {
         if snapshot.analytics.is_null() || snapshot.analytics["status"] == "unavailable" {
@@ -451,7 +449,7 @@ pub fn route(snapshot: &ApiSnapshot, method: &str, target: &str) -> (u16, Value)
     }
     (
         404,
-        json!({"error": "unknown path; see /health, /api/snapshot, /api/protocol, /api/analytics, /api/signals, /api/comparison, /api/wallets, /api/wallet/<id>, /api/events, /api/event/<id>, /api/coverage, /api/manifest, /api/methodology, /api/context"}),
+        json!({"error": "unknown path; see /health, /api/snapshot, /api/protocol, /api/analytics, /api/signals, /api/comparison, /api/wallets, /api/wallet/<id>, /api/events, /api/event/<id>, /api/coverage, /api/manifest, /api/methodology"}),
     )
 }
 
@@ -484,10 +482,6 @@ fn parse_query(target: &str) -> Result<std::collections::BTreeMap<String, u64>> 
         }
     }
     Ok(values)
-}
-
-pub fn unavailable_context() -> Value {
-    json!({"source": "Nansen", "status": "unavailable", "labels": [], "reason": "Nansen credentials and verified coverage have not been configured.", "affectsCanonicalFacts": false})
 }
 
 pub fn wallet_value(wallet: &crate::accounting::WalletSnapshot, incomplete_balance: bool) -> Value {

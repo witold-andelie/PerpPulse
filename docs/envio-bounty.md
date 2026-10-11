@@ -8,8 +8,7 @@ its current contents and revision are not independently verified. Source
 identity and access limits are retained in the
 [catalog record](evidence/bounty-sources-2026-10-03.json). The separately supplied
 [Perpl task](perpl-bounty.md) requires trading outside the chosen read-only
-scope. [Nansen requirements](nansen-bounty.md) need a meaningful context feature
-and live verification.
+scope. The [Nansen bounty](nansen-bounty.md) was withdrawn on 2026-10-11.
 
 ## Eligibility and deliverables
 

@@ -252,7 +252,6 @@ fn config(mock: &Mock) -> LiveConfig {
         refresh_seconds: 10,
         max_lag_blocks: 100,
         database_url: None,
-        nansen: None,
         protocol: None,
     }
 }

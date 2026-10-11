@@ -12,7 +12,7 @@ The container image serves the same fixture by default.
 | 0:40-0:55 | Click Inspect evidence on the first card | The signal carries its rule hash, inputs and the position, mark and funding-reset events. Funding is proven because coverage starts at deployment. |
 | 0:55-1:10 | Scroll to Protocol flows and state | 24-hour, 7-day and 30-day windows are complete because history starts at deployment; each window hashes its event IDs. ETH is fully long and MON fully short. |
 | 1:10-1:25 | Show alerts filters and stress scenarios | A 5% BTC drop breaches only account 102; a 20% rise breaches 103's short. MON funding is deliberately uncovered, so it stays a visible data-quality signal rather than a risk fact. |
-| 1:25-1:45 | Compare accounts 101, 102 and 103 | Leverage and PnL percentiles rank only known values; overlap shows 101 and 102 are both long BTC while 103 is short. Nansen labels would filter this list without changing numbers. |
+| 1:25-1:45 | Compare accounts 101, 102 and 103 | Leverage and PnL percentiles rank only known values; overlap shows 101 and 102 are both long BTC while 103 is short. |
 | 1:45-2:00 | Open account 102, then download the manifest | Navigation keeps the cutoff. Input hashes and the versioned methodology make every number replayable. The product remains read-only. |
 
 ## Planned live Envio recording

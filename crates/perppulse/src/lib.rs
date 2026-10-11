@@ -1,7 +1,6 @@
 pub mod accounting;
 pub mod analytics;
 pub mod cohort;
-pub mod context;
 pub mod coverage;
 pub mod envio;
 pub mod error;

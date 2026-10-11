@@ -379,7 +379,7 @@ fn carry_forward_marks_new_escalated_unchanged_and_resolved_signals() {
 fn comparison_ranks_only_known_values_and_measures_exposure_overlap() {
     let snapshot = cohort();
     let cohort = &snapshot.cohort;
-    assert_eq!(cohort["version"], "snapshot-cohort-v1");
+    assert_eq!(cohort["version"], "snapshot-cohort-v2");
     assert_eq!(cohort["members"], 7);
     let wallet = |id: u64| {
         cohort["wallets"]
@@ -412,51 +412,25 @@ fn comparison_ranks_only_known_values_and_measures_exposure_overlap() {
     assert_eq!(pair["jaccard"], "0.333333");
     assert_eq!(pair["sameSideMarkets"], 1);
     assert_eq!(pair["sharedMarkets"][0]["symbol"], "ETH");
-    assert_eq!(cohort["labels"]["status"], "unavailable");
+    assert!(cohort.get("labels").is_none());
 }
 
 #[test]
-fn ineligible_histories_are_excluded_and_labels_group_participants() {
+fn ineligible_histories_are_excluded_from_comparison_and_flagged() {
     let snapshot = cohort();
     let mut wallets = snapshot.wallets.clone();
     let rows = wallets.as_array_mut().unwrap();
     rows[1]["replayEligible"] = json!(false);
     rows[1]["replayBasis"] = json!("incomplete-history");
-    rows[2]["context"] = json!({"source":"Nansen","status":"available","attribution":"Powered by Nansen API",
-        "pointInTimeEligible":false,"labels":[{"label":"Synthetic fund","category":"fund"},{"label":"Synthetic trader","category":null}]});
-    rows[3]["context"] = json!({"source":"Nansen","status":"partial","pointInTimeEligible":true,
-        "labels":[{"label":"Synthetic fund","category":"fund"}]});
-    rows[4]["context"] = json!({"source":"Nansen","status":"available","labels":[]});
+    // A retired per-wallet context field from an older snapshot is ignored.
+    rows[2]["context"] = json!({"status": "unavailable", "labels": []});
     let excluded = rows[1]["accountId"].clone();
-    let unlabeled = rows[4]["accountId"].as_u64().unwrap();
     let report = perppulse::cohort::evaluate("test", snapshot.as_of_block, &wallets).unwrap();
     assert_eq!(report.excluded[0]["accountId"], excluded);
     assert!(report
         .wallets
         .iter()
         .all(|w| json!(w.account_id) != excluded));
-    assert_eq!(report.labels.status, "partial");
-    assert_eq!(
-        report.labels.attribution.as_deref(),
-        Some("Powered by Nansen API")
-    );
-    let fund = report
-        .labels
-        .groups
-        .iter()
-        .find(|g| g.label == "Synthetic fund")
-        .unwrap();
-    assert_eq!(fund.members.len(), 2);
-    assert!(!fund.members[0].point_in_time_eligible);
-    assert!(fund.members[1].point_in_time_eligible);
-    let trader = report
-        .labels
-        .groups
-        .iter()
-        .find(|g| g.label == "Synthetic trader")
-        .unwrap();
-    assert!(trader.category.is_none());
-    assert_eq!(report.labels.unlabeled_accounts, vec![unlabeled]);
     let signals = perppulse::signals::evaluate(&perppulse::signals::SignalInputs {
         scope: "test",
         as_of_block: snapshot.as_of_block,
@@ -510,6 +484,10 @@ fn methodology_documents_the_served_versions_and_rule_ids() {
         methodology["comparison"]["version"],
         perppulse::cohort::COHORT_VERSION
     );
+    assert_eq!(
+        methodology["outputVersions"]["comparison"],
+        perppulse::cohort::COHORT_VERSION
+    );
 }
 
 #[test]
@@ -531,6 +509,10 @@ fn new_routes_serve_reports_and_fail_visibly_without_them() {
     assert_eq!(route(&missing, "GET", "/api/analytics").0, 503);
     assert_eq!(route(&missing, "GET", "/api/signals").0, 503);
     assert_eq!(route(&missing, "GET", "/api/comparison").0, 503);
+    // The retired external-context field and route are gone from new snapshots.
+    let served = serde_json::to_string(&snapshot).unwrap();
+    assert!(!served.contains("\"context\""));
+    assert_eq!(route(&snapshot, "GET", "/api/context").0, 404);
     // Older compact snapshots without the new fields keep their exact hash.
     let mut legacy = snapshot.clone();
     legacy.analytics = Value::Null;
@@ -539,6 +521,15 @@ fn new_routes_serve_reports_and_fail_visibly_without_them() {
     let text = serde_json::to_string(&legacy).unwrap();
     assert!(!text.contains("\"signals\""));
     let parsed: perppulse::serve::ApiSnapshot = serde_json::from_str(&text).unwrap();
+    assert_eq!(
+        perppulse::evidence::digest(&parsed).unwrap(),
+        perppulse::evidence::digest(&legacy).unwrap()
+    );
+    // Snapshots published while the context field existed keep their hash too.
+    legacy.context = json!({"status": "unavailable", "labels": []});
+    let text = serde_json::to_string(&legacy).unwrap();
+    let parsed: perppulse::serve::ApiSnapshot = serde_json::from_str(&text).unwrap();
+    assert_eq!(parsed.context, legacy.context);
     assert_eq!(
         perppulse::evidence::digest(&parsed).unwrap(),
         perppulse::evidence::digest(&legacy).unwrap()

@@ -29,5 +29,5 @@ uses a different observation and must not be attached to that snapshot as a
 matching reconciliation scorecard.
 
 This is a bounded self-hosted mainnet demonstration. Continuous public hosting,
-global analytics, eligible accounting marks, full SDK reconciliation and live
-Nansen enrichment remain pending. No order placement or custody is included.
+global analytics, eligible accounting marks and full SDK reconciliation remain
+pending. No order placement or custody is included.

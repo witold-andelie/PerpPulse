@@ -1,44 +1,21 @@
-# Nansen bounty requirements and planned feature
+# Nansen bounty: withdrawn
 
-The owner supplied the authenticated bounty text on 2026-10-02 and the
-[Nansen catalog URL](https://hackathon.monad.xyz/tracks/best-use-of-nansen) on
-2026-10-03. The requirements below record that text. The browsing tool could
-not read the linked page; its current contents and revision are not independently
-verified. The [catalog record](evidence/bounty-sources-2026-10-03.json) identifies
-the supplied source and access limits.
+On 2026-10-11 the owner decided not to use Nansen in PerpPulse. The Best Use of
+Nansen bounty is not pursued.
 
-## Requirement-to-evidence mapping
+- No Nansen API, MCP tool, CLI, key or data is used by the product, tests, demo
+  or CI.
+- The optional common-label adapter, the `--nansen-max-requests` option, the
+  `/api/context` route and the comparison label filter were removed. Wallet
+  comparison is now `snapshot-cohort-v2` under methodology v9; its statistics,
+  percentiles and overlap are unchanged.
+- No live Nansen request was ever made by this project. Earlier verification
+  records that mention the adapter describe mock-only checks at their own
+  revisions.
+- Compact snapshots published before the removal keep their content hash: the
+  retired `context` field is still accepted on read and omitted from new
+  snapshots.
 
-| Supplied requirement | Current evidence | Remaining work |
-| --- | --- | --- |
-| Meaningfully integrate at least one API endpoint, MCP tool or CLI command | Budgeted common-label API adapter and mock regression checks in [context.rs](../crates/perppulse/src/context.rs) | Verify permitted Monad requests and selected-field results with real data |
-| Nansen drives a core product feature | Label groups drive participant discovery and filtering in the wallet comparison (`snapshot-cohort-v1`), with per-member observation-time eligibility; verified with mock labels in [intelligence tests](../crates/perppulse/tests/intelligence.rs) | Validate the same workflow with real Monad labels; mock labels do not establish sponsor acceptance |
-| Working product, prototype or demo | Read-only fixture app and bounded live-account serving implementation | Complete the actual data-to-feature workflow |
-| Explain endpoints, data categories, tools or commands used | Endpoint and observation-time contract documented below | Add sanitized operating evidence, request allowance and verified cost/data-use terms |
-| Public repository or technical documentation | Public source and [serving contract](serving-and-evidence.md) | Publish the final feature and reproducible operating steps |
-| Short video or live demo; optional submission video at most two minutes | [Demo plan](demo-script.md) | Show the Nansen-driven interaction and its connection to actual Envio facts in the recording |
-
-## Core feature
-
-Participant intelligence lets a user select a Nansen label in the comparison
-panel and inspect the covered accounts associated with it, then drill into
-eligible position transitions and realized facts from Envio. It was implemented
-on 2026-10-07 and verified only with synthetic mock labels. Labels explain who is in the
-selected watchlist. They do not establish protocol-wide cohorts, profitability,
-or historical ownership and do not alter accounting. Partial label pages and
-missing context remain visible.
-
-The current adapter uses `POST /api/v1/profiler/address/labels` with `chain=monad`.
-The [official contract](https://docs.nansen.ai/api/profiler/address-labels), checked
-2026-10-02, lists Monad support and current non-premium labels. It does not offer
-historical label queries; smart-money and alpha-trader labels require the
-separate premium endpoint. `label` is required, while `category` and `kind` are
-optional. The adapter preserves a missing category as null; it does not invent
-a classification. A mixed categorized/uncategorized mock response verifies this
-behavior. No premium request is authorized or planned.
-
-Every context view must show its observation time separately from the ledger
-cutoff and attribute Nansen. A label observed later cannot be presented as
-historical evidence at that cutoff. Request and credit allowance, public data-use
-permission and safe local credential input must be confirmed before paid calls.
-No real Nansen call or sponsor acceptance is claimed here.
+The 2026-10-02 requirement text and the
+[catalog record](evidence/bounty-sources-2026-10-03.json) remain historical
+inputs only. See the [audit record](verification-2026-10-11-audit.md).

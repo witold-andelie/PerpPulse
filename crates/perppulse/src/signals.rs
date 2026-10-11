@@ -1065,7 +1065,10 @@ pub fn carry_forward(previous: Option<&SignalReport>, current: &mut SignalReport
             .filter(|item| {
                 !active.contains(item.signal_id.as_str())
                     && !fresh.contains(&item.signal_id)
-                    && current.as_of_block - item.resolved_as_of_block <= RESOLVED_RETENTION_BLOCKS
+                    && current
+                        .as_of_block
+                        .saturating_sub(item.resolved_as_of_block)
+                        <= RESOLVED_RETENTION_BLOCKS
             })
             .cloned(),
     );

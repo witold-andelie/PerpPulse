@@ -76,9 +76,6 @@ enum Command {
         /// Publish compact state using PERPPULSE_DATABASE_URL through a local proxy.
         #[arg(long)]
         publish_database: bool,
-        /// Explicit owner-approved allowance for optional billable Nansen requests.
-        #[arg(long, default_value_t = 0)]
-        nansen_max_requests: u32,
         /// Read every canonical v3 event in coverage for protocol analytics,
         /// bounded by this many events (0 disables; at most 1,000,000).
         #[arg(long, default_value_t = 0)]
@@ -267,7 +264,6 @@ fn run() -> Result<(), DataQualityError> {
             page_size,
             max_events,
             publish_database,
-            nansen_max_requests,
             protocol_max_events,
         } => {
             let config = perppulse::live::LiveConfig {
@@ -282,12 +278,6 @@ fn run() -> Result<(), DataQualityError> {
                 rpc_url,
                 refresh_seconds,
                 max_lag_blocks,
-                nansen: if nansen_max_requests > 0 {
-                    Some(perppulse::context::NansenClient::new(
-                    std::env::var("NANSEN_API_KEY").map_err(|_|DataQualityError::msg("NANSEN_API_KEY is required for the explicit Nansen request allowance"))?,nansen_max_requests)?)
-                } else {
-                    None
-                },
                 database_url: if publish_database {
                     Some(database_url()?)
                 } else {

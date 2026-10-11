@@ -14,7 +14,7 @@ use crate::evidence::manifest;
 use crate::identity::AsOf;
 use crate::ledger::replay;
 use crate::registry::ProtocolRegistry;
-use crate::serve::{run_service, unavailable_context, wallet_value, ApiSnapshot};
+use crate::serve::{run_service, wallet_value, ApiSnapshot};
 
 pub struct LiveConfig {
     pub client: EnvioClient,
@@ -24,7 +24,6 @@ pub struct LiveConfig {
     pub refresh_seconds: u64,
     pub max_lag_blocks: u64,
     pub database_url: Option<String>,
-    pub nansen: Option<crate::context::NansenClient>,
     /// Optional bounded global reader for protocol analytics.
     pub protocol: Option<std::sync::Mutex<ProtocolAggregator>>,
 }
@@ -396,12 +395,6 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         }
         wallet["balanceNote"] =
             json!("Exact free balance requires complete balance-event coverage.");
-        wallet["context"] =
-            if let (Some(client), Some(owner)) = (&config.nansen, wallet["owner"].as_str()) {
-                client.labels(owner, slice.as_of.timestamp_ms)
-            } else {
-                unavailable_context()
-            };
         wallets.push(wallet);
         as_of = Some(slice.as_of);
         events.extend(slice.events);
@@ -480,12 +473,6 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         manifest["protocolEventIdsHash"] = json!(window.event_ids_hash);
         manifest["analyticsVersion"] = json!(report.version);
     }
-    let context = if config.nansen.is_some() {
-        json!({"source":"Nansen","status":"per-account","attribution":"Powered by Nansen API","affectsCanonicalFacts":false,
-            "reason":"See each wallet's labels and observation time. Context can be observed after the ledger cutoff."})
-    } else {
-        unavailable_context()
-    };
     let snapshot = ApiSnapshot {
         fixture_name: "Envio account watchlist".to_string(), chain_id: config.registry.chain_id,
         exchange_address: config.registry.exchange_address.clone(), as_of_block: as_of.block_number,
@@ -508,7 +495,7 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
             "coverageLagBlocks": head - coverage.evidence.processed_block, "asOfBlock": as_of.block_number,
             "asOfTimestampMs": as_of.timestamp_ms, "eventSilenceBlocks": coverage.evidence.processed_block - coverage.latest_event.block_number,
             "quality": "covered-account-slice", "eventCount": events.len(), "rangeNote": "Selected account history only; eligibility is reported for each account."}),
-        wallets: json!(wallets), events: json!(evidence), mode: "live".to_string(), manifest, context, events_available: true,
+        wallets: json!(wallets), events: json!(evidence), mode: "live".to_string(), manifest, context: Value::Null, events_available: true,
         analytics: Value::Null, signals: Value::Null, cohort: Value::Null,
     };
     let mut snapshot = snapshot;

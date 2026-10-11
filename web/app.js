@@ -13,7 +13,7 @@ function option(select, value, label) { const node = document.createElement("opt
 function button(label, handler) { const node = document.createElement("button"); node.type = "button"; node.textContent = label; node.addEventListener("click", handler); return node; }
 function showDetail(value) { byId("detail").textContent = typeof value === "string" ? value : JSON.stringify(value,null,2); byId("event-detail").open = true; byId("event-detail").scrollIntoView({behavior:"smooth",block:"center"}); }
 const severityRank = {critical:3, warning:2, watch:1};
-function failure(error) { byId("error").textContent = error.message; byId("error").hidden = false; byId("status").textContent = "Source unavailable"; byId("mode").textContent = "SOURCE UNAVAILABLE"; byId("mode").className = "badge"; byId("scope").textContent = "Source unavailable"; snapshot = null; byId("export").disabled = true; for (const id of ["metrics","markets","wallet-summary","positions","events","coverage","top-signals","windows","signals","stress","resolved","compare","compare-head","overlap","compare-pick"]) byId(id).replaceChildren(); for (const id of ["cutoff","source-note","wallet-note","context","event-count","detail","signal-summary","state-note","signal-count","compare-note","label-note"]) byId(id).textContent = "Data unavailable. Refresh after the source recovers."; }
+function failure(error) { byId("error").textContent = error.message; byId("error").hidden = false; byId("status").textContent = "Source unavailable"; byId("mode").textContent = "SOURCE UNAVAILABLE"; byId("mode").className = "badge"; byId("scope").textContent = "Source unavailable"; snapshot = null; byId("export").disabled = true; for (const id of ["metrics","markets","wallet-summary","positions","events","coverage","top-signals","windows","signals","stress","resolved","compare","compare-head","overlap","compare-pick"]) byId(id).replaceChildren(); for (const id of ["cutoff","source-note","wallet-note","event-count","detail","signal-summary","state-note","signal-count","compare-note"]) byId(id).textContent = "Data unavailable. Refresh after the source recovers."; }
 async function refresh() {
   byId("refresh").disabled = true;
   try {
@@ -41,9 +41,8 @@ async function refresh() {
     byId("from-block").value = data.startBlock; byId("to-block").value = data.asOfBlock;
     const coverage = byId("coverage"); coverage.replaceChildren();
     for (const [label,value] of [["Quality",data.coverage.quality],["Processed block",data.processedBlock],["Coverage lag",data.coverage.coverageLagBlocks],["Quiet interval (blocks)",data.coverage.eventSilenceBlocks],["Canonical events",data.manifest.eventCount],["Reconciliation",data.manifest.reconciliation.status],["Signal rules",data.signals ? data.signals.version : null],["Analytics",data.analytics ? data.analytics.version : null]]) { const dt = document.createElement("dt"); dt.textContent = label; const dd = document.createElement("dd"); dd.textContent = text(value); coverage.append(dt,dd); }
-    byId("context").textContent = `${data.context.source}: ${data.context.status}. ${data.context.reason}`;
     byId("export").disabled = false; byId("detail").textContent = "Choose an event or signal to inspect its evidence.";
-    renderSignals(); renderWallet(); renderCompareOptions(); renderCompare(); renderEvents();
+    renderSignals(); renderWallet(); syncCompareSelection(); renderCompare(); renderEvents();
   } catch (error) { failure(error); } finally { byId("refresh").disabled = false; }
 }
 function renderAnalytics(data) {
@@ -134,7 +133,6 @@ function renderWallet() {
   if (!wallet) return;
   cards("wallet-summary",[["Realized PnL",wallet.realizedPnl,"AUSD / lifecycle facts"],["Price PnL",wallet.unrealizedPricePnl,"AUSD / funding excluded"],["Total unrealized PnL",wallet.unrealizedPnl,"AUSD / verified funding required"],["Unsettled funding",wallet.unrealizedFunding,"AUSD / verification required"],["Settled funding",wallet.realizedFunding,"AUSD / lifecycle settlements"],["Free balance",wallet.freeBalance,"AUSD / completeness required"]]);
   byId("wallet-note").textContent = [wallet.quality,wallet.balanceNote,...(wallet.warnings || [])].filter(Boolean).join(" ");
-  if (wallet.context) byId("wallet-note").textContent += ` Powered by Nansen API: ${wallet.context.status}. ${(wallet.context.labels || []).map((item) => item.label).join(", ")} ${wallet.context.pointInTimeEligible === false ? "Context was observed after the ledger cutoff." : ""}`;
   for (const market of wallet.marketInputs || []) {
     const pending = (market.pending || []).map((p) => p.effectiveBlock).join(", ");
     byId("wallet-note").textContent += ` Market ${market.perpetualId}: ${market.active ? "last observed funding effective at block " + market.active.effectiveBlock : "no effective funding observed in coverage"}${pending ? "; scheduled funding at block " + pending : ""}.`;
@@ -143,14 +141,9 @@ function renderWallet() {
   for (const p of wallet.positions || []) { const row = document.createElement("tr"); for (const value of [`${p.symbol} / ${p.side}`,p.status,amount(p.size),amount(p.entry),amount(p.deposit),amount(p.realizedPnl),amount(p.unrealizedPricePnl),amount(p.liquidationPrice)]) row.append(cell(value)); const action = cell(""); action.append(button("Evidence ↗",() => inspect(p.lastEventId))); if (p.markEventId) action.append(button("Mark evidence", () => inspect(p.markEventId))); if (p.fundingCheckpoint?.resetEventId) action.append(button("Funding checkpoint", () => showDetail(p.fundingCheckpoint))); row.append(action); positions.append(row); }
   if (!positions.children.length) empty(positions,wallet.replayEligible === false ? "Position replay is blocked by incomplete history." : "No position records in this account snapshot.",9);
 }
-function renderCompareOptions() {
-  const cohort = snapshot && snapshot.cohort; const select = byId("label-filter"); const previous = select.value;
-  select.replaceChildren(); option(select,"","All snapshot accounts");
+function syncCompareSelection() {
+  const cohort = snapshot && snapshot.cohort;
   if (!cohort) return;
-  for (const group of cohort.labels.groups || []) option(select, group.label, `${group.label}${group.category ? " (" + group.category + ")" : ""} · ${group.members.length}`);
-  if ([...select.options].some((o) => o.value === previous)) select.value = previous;
-  const labels = cohort.labels;
-  byId("label-note").textContent = labels.status === "unavailable" ? "Nansen labels are unavailable for this snapshot; comparison uses canonical facts only." : `${labels.attribution || "Nansen"}: ${labels.status}. ${labels.note}`;
   const holders = (cohort.wallets || []).filter((w) => w.openPositions > 0).map((w) => w.accountId);
   compareSelection = new Set([...compareSelection].filter((id) => cohort.wallets.some((w) => w.accountId === id)));
   if (!compareSelection.size) for (const id of holders.slice(0,3)) compareSelection.add(id);
@@ -159,16 +152,13 @@ function renderCompare() {
   const cohort = snapshot && snapshot.cohort; const pick = byId("compare-pick"); pick.replaceChildren();
   const head = byId("compare-head"); head.replaceChildren(); const body = byId("compare"); body.replaceChildren(); const overlap = byId("overlap"); overlap.replaceChildren();
   if (!cohort) { empty(body,"Comparison is unavailable.",1); return; }
-  const label = byId("label-filter").value;
-  const group = (cohort.labels.groups || []).find((g) => g.label === label);
-  const allowed = new Set(group ? group.members.map((m) => m.accountId) : cohort.wallets.map((w) => w.accountId));
-  for (const wallet of cohort.wallets.filter((w) => allowed.has(w.accountId))) {
+  for (const wallet of cohort.wallets) {
     const chip = document.createElement("label"); chip.className = "chip";
     const box = document.createElement("input"); box.type = "checkbox"; box.checked = compareSelection.has(wallet.accountId);
     box.addEventListener("change", () => { if (box.checked) compareSelection.add(wallet.accountId); else compareSelection.delete(wallet.accountId); renderCompare(); });
-    chip.append(box, document.createTextNode(` ${wallet.accountId}${wallet.labels.length ? " · " + wallet.labels.join(", ") : ""}`)); pick.append(chip);
+    chip.append(box, document.createTextNode(` ${wallet.accountId}`)); pick.append(chip);
   }
-  const chosen = cohort.wallets.filter((w) => allowed.has(w.accountId) && compareSelection.has(w.accountId));
+  const chosen = cohort.wallets.filter((w) => compareSelection.has(w.accountId));
   const header = document.createElement("tr"); header.append(Object.assign(document.createElement("th"), {textContent:"Statistic"}));
   for (const w of chosen) { const th = document.createElement("th"); th.append(button(`Account ${w.accountId}`, () => { byId("wallet-select").value = String(w.accountId); renderWallet(); renderSignalRows(); renderEvents(); byId("wallet-title").scrollIntoView({behavior:"smooth"}); })); header.append(th); }
   head.append(header);
@@ -184,7 +174,7 @@ function renderCompare() {
   for (const pair of cohort.overlap || []) {
     if (!ids.has(pair.accountA) || !ids.has(pair.accountB)) continue;
     const row = document.createElement("tr");
-    for (const value of [`${pair.accountA} / ${pair.accountB}`, pair.sharedMarkets.map((m) => `${m.symbol} ${m.sideA}/${m.sideB}`).join(", ") || "None", pair.jaccard, pair.sameSideMarkets, pair.opposingMarkets]) row.append(cell(value));
+    for (const value of [`${pair.accountA} / ${pair.accountB}`, pair.sharedMarkets.map((m) => `${m.symbol} ${m.sideA}/${m.sideB}`).join(", ") || "None", amount(pair.jaccard), pair.sameSideMarkets, pair.opposingMarkets]) row.append(cell(value));
     overlap.append(row);
   }
   if (!overlap.children.length) empty(overlap,"Select at least two accounts with open positions.",5);
@@ -208,6 +198,5 @@ byId("wallet-select").addEventListener("change",() => {renderWallet();renderSign
 byId("apply").addEventListener("click",renderEvents);
 byId("wallet-filter").addEventListener("change",renderEvents);
 for (const id of ["signal-severity","signal-category","signal-wallet"]) byId(id).addEventListener("change",renderSignalRows);
-byId("label-filter").addEventListener("change",renderCompare);
 byId("export").addEventListener("click",() => { if (!snapshot) return; const url = URL.createObjectURL(new Blob([JSON.stringify(snapshot.manifest,null,2)],{type:"application/json"})); const link = document.createElement("a"); link.href = url; link.download = `perppulse-manifest-${snapshot.asOfBlock}.json`; link.click(); URL.revokeObjectURL(url); });
 refresh();

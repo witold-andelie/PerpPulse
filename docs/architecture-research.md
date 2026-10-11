@@ -47,11 +47,9 @@ Verified mainnet facts used by the first implementation slice:
 - Position lifecycle is reconstructed from Exchange logs (`PositionOpened` through close/liquidation). The risk hot path excludes intent-only `OrderRequest` and subjectless duplicate `TakerOrderFilled` logs; per-market volume counts `MakerOrderFilled` once.
 - Envio HyperSync supports Monad chain 143 at https://143.hypersync.xyz.
 
-### Nansen
+### Nansen (withdrawn)
 
-Nansen supports Monad address labels and provides Profiler and Smart Money surfaces. PerpPulse caches enrichment with observed-at time, endpoint, provenance, cache age, credit budget, and warning state. Nansen context may modify explanation, cohort comparison, and ranking, but never the canonical position ledger or financial arithmetic. Missing Nansen data results in a visible degraded mode rather than false empty facts.
-
-Primary sources: [address labels](https://docs.nansen.ai/api/profiler/address-labels), [API overview](https://docs.nansen.ai/api/overview), [Smart Money](https://docs.nansen.ai/api/smart-money), and [data methodology](https://docs.nansen.ai/guides/data-methodology-and-technical-reference).
+Nansen address labels were evaluated as optional participant context. The owner withdrew Nansen on 2026-10-11; PerpPulse uses no Nansen API or data, and wallet comparison relies only on canonical served facts.
 
 ## Applied design improvements
 
@@ -62,7 +60,7 @@ Primary sources: [address labels](https://docs.nansen.ai/api/profiler/address-la
 5. Visible quarantines and errors instead of successful empty outputs.
 6. Golden wallets and full lifecycle fixtures, including partial close, funding, fees, liquidation, missing ranges, and reorgs.
 7. Deterministic stress scenarios that quantify sensitivity without pretending to forecast prices.
-8. Sponsor ablation showing that Envio is structurally necessary and Nansen adds product-level decision context.
+8. Sponsor ablation showing that Envio is structurally necessary.
 9. Signal-first navigation from protocol to market to wallet to event evidence.
 10. Append-only run manifests containing as-of cutoff, inputs, outputs, versions, Git SHA, timestamps, and errors.
 

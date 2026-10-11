@@ -1,5 +1,9 @@
 # Signal-first analytics, comparison and global reader verification
 
+> Superseded in part on 2026-10-11: the owner withdrew Nansen, and the label
+> filtering listed below was removed. See the
+> [audit record](verification-2026-10-11-audit.md).
+
 Observed 2026-10-07 on a macOS workstation. Base revision
 `14307094f26cc8c000d771e7a93387843567c95d`. This record covers deterministic
 local implementation, fixtures, HTTP mocks and CI-equivalent checks. It is not

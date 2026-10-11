@@ -112,6 +112,7 @@ fn replay_internal(
     };
     let mut seen = BTreeSet::new();
     let mut previous: Option<(u64, u32)> = None;
+    let mut previous_block_hash: Option<(u64, String)> = None;
 
     for event in ordered {
         event.validate()?;
@@ -147,10 +148,22 @@ fn replay_internal(
             )));
         }
         let current = (event.block_number, event.log_index);
-        if previous.is_some_and(|prior| current < prior) {
+        // A log index is unique within one canonical block, so a repeated
+        // position means mixed forks or corrupted input, never two facts.
+        if previous.is_some_and(|prior| current <= prior) {
             return Err(DataQualityError::msg(format!(
-                "event {} is out of order",
+                "event {} repeats or precedes a prior block/log position",
                 event_id.key()
+            )));
+        }
+        if previous_block_hash
+            .as_ref()
+            .is_some_and(|(block, hash)| *block == event.block_number && *hash != event.block_hash)
+        {
+            return Err(DataQualityError::msg(format!(
+                "event {} block hash differs from another event in block {}",
+                event_id.key(),
+                event.block_number
             )));
         }
         if event.block_number < registry.deployed_at_block {
@@ -164,6 +177,7 @@ fn replay_internal(
         funding.advance(&mut ledger, event.block_number)?;
         apply(&mut ledger, &event)?;
         funding.after_lifecycle(&mut ledger, &event)?;
+        previous_block_hash = Some((event.block_number, event.block_hash.clone()));
         ledger.events.push(event);
         previous = Some(current);
     }
@@ -522,20 +536,13 @@ fn require_open_position<'a>(
     event: &CanonicalEvent,
 ) -> Result<&'a mut PositionState> {
     let position_id = require_position_id(event)?;
-    let key = position_id.key();
-    let position = ledger.positions.get_mut(&key).ok_or_else(|| {
-        DataQualityError::msg(format!(
-            "event {} targets a missing open position",
-            event.event_id().unwrap().key()
-        ))
-    })?;
-    if !position.is_open() {
-        return Err(DataQualityError::msg(format!(
-            "event {} targets a missing open position",
-            event.event_id()?.key()
-        )));
+    let event_key = event.event_id()?.key();
+    match ledger.positions.get_mut(&position_id.key()) {
+        Some(position) if position.is_open() => Ok(position),
+        _ => Err(DataQualityError::msg(format!(
+            "event {event_key} targets a missing open position"
+        ))),
     }
-    Ok(position)
 }
 
 fn assert_transition(

@@ -18,9 +18,9 @@ mainnet; separate sponsor rules must still be verified.
 | AI coding disclosure | README attribution section |
 | Monad integration and applicable addresses | [Registry](protocol-registry.md); [v3 actual browser, marks and SDK proof](verification-2026-10-03-market-mainnet.md) |
 | Public three-minute operating video | [80-second real Envio recording](demo/README.md) with English captions; hosted-player URL and portal format acceptance pending |
-| Description, architecture, stack, deployment instructions | README and deployment docs; isolated [mainnet indexing and reader evidence](verification-2026-10-02-live-v2.md) observed; [signal-first analytics, comparison and global reader](verification-2026-10-07-analytics.md) verified locally; continuous public runtime pending |
+| Description, architecture, stack, deployment instructions | README and deployment docs; isolated [mainnet indexing and reader evidence](verification-2026-10-02-live-v2.md) observed; [signal-first analytics, comparison and global reader](verification-2026-10-07-analytics.md) verified locally; [Nansen withdrawal and repository audit](verification-2026-10-11-audit.md) recorded; continuous public runtime pending |
 | Website submission; one project and track | Owner registration/submission pending; selected track: Onchain Finance & Trading |
-| Separate sponsor requirements | Owner-supplied [Envio](envio-bounty.md), [Perpl](perpl-bounty.md) and [Nansen](nansen-bounty.md) requirements mapped on 2026-10-02; [catalog URLs received](evidence/bounty-sources-2026-10-03.json) on 2026-10-03; current page contents/revisions and form checks remain unverified; the supplied Perpl trading task is outside the retained read-only scope |
+| Separate sponsor requirements | Owner-supplied [Envio](envio-bounty.md) and [Perpl](perpl-bounty.md) requirements mapped on 2026-10-02; the [Nansen bounty](nansen-bounty.md) was withdrawn on 2026-10-11; [catalog URLs received](evidence/bounty-sources-2026-10-03.json) on 2026-10-03; current page contents/revisions and form checks remain unverified; the supplied Perpl trading task is outside the retained read-only scope |
 
 Section 5.2 allocates equal weight across five main-track criteria: product
 quality, technical execution, Monad integration, track relevance, and impact.

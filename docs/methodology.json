@@ -1,9 +1,9 @@
 {
-  "version": "perppulse-methodology-v8",
+  "version": "perppulse-methodology-v9",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
-  "contextSource": "Nansen; optional context cannot alter canonical numbers",
+  "contextSource": "None; no third-party enrichment or labeling provider is used",
   "accounting": {
     "amounts": "Finite decimal strings derived from integer native scales",
     "positionSide": "Perpl wire 0=long and 1=short are verified against source payloads and mapped to ledger 1=long and 2=short; other wire values fail closed",
@@ -45,7 +45,7 @@
     "snapshot": "api-snapshot-v1",
     "analytics": "protocol-analytics-v1",
     "signals": "risk-signals-v1",
-    "comparison": "snapshot-cohort-v1"
+    "comparison": "snapshot-cohort-v2"
   },
   "protocolAnalytics": {
     "version": "protocol-analytics-v1",
@@ -77,11 +77,11 @@
     "stress": "Shocks of -20%, -10%, -5%, +5%, +10% and +20% apply to every eligible as-of mark at once; equity = collateral + side-adjusted (shocked mark - effective entry) * size + proven unsettled funding; breach when equity <= entry-based maintenance. Unknown funding uses an explicit zero-funding conditional basis; positions without marks or with incomplete history are excluded and listed"
   },
   "comparison": {
-    "version": "snapshot-cohort-v1",
+    "version": "snapshot-cohort-v2",
     "scope": "Wallets in the same snapshot and cutoff only; never a protocol-wide cohort",
     "statistics": "Open notional, open collateral, collateral leverage, realized PnL, unrealized price PnL, price return on open collateral and fees, from served wallet facts",
     "percentiles": "Midrank over replay-eligible wallets with a known value, truncated to two decimals; incomplete histories are excluded and listed",
     "overlap": "Pairwise open-market Jaccard index with same-side and opposing-side markets",
-    "labels": "Nansen labels group participants for discovery and filtering, retain their own observation-time eligibility and never alter canonical numbers"
+    "changes": "v2 removes the v1 third-party participant-label grouping; statistics, percentiles and overlap are unchanged"
   }
 }

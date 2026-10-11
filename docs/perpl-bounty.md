@@ -24,7 +24,7 @@ confirmed available Perpl bounty.
 - Obtain the official title, URL and current contents of any Perpl analytics or
   risk-tool bounty before claiming eligibility.
 - If no such bounty exists, continue the read-only product for Envio and the
-  main track, with Nansen considered only after meaningful integration is proven.
+  main track. Nansen was withdrawn on 2026-10-11.
 - Keep independent Perpl SDK reconciliation as a correctness requirement for the
   product, regardless of sponsor availability.
 

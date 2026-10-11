@@ -9,7 +9,7 @@ These rules apply to every automated or human-assisted change in this repository
 5. Do not mark a task complete without recording reproducible verification evidence.
 6. Never commit private keys, wallet seed phrases, API credentials, internal tokens, personal data, or unredacted provider responses.
 7. Keep the product read-only unless the owner explicitly changes the safety boundary. No order placement or custody logic is in scope.
-8. Maintain one canonical event and position lifecycle ledger. Perpl snapshots are reconciliation inputs; Nansen data is contextual enrichment.
+8. Maintain one canonical event and position lifecycle ledger. Perpl snapshots are reconciliation inputs. No third-party labeling or enrichment provider is used.
 9. Risk and PnL facts must be deterministic, finite, point-in-time safe, and traceable to source events. AI may explain facts but may not create them.
 10. Fail visibly on missing, stale, inconsistent, or quarantined data. Do not convert failures into empty successful results.
 11. Any GCP provisioning or other billable external action requires explicit owner approval and a confirmed project ID, region, billing account, and budget target.

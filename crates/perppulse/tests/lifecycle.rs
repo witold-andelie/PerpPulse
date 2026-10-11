@@ -341,7 +341,8 @@ fn exact_post_event_balance_updates_account_state() {
     let mut fill = opened;
     fill.kind = perppulse::LifecycleKind::MakerFill;
     fill.abi_event_name = "MakerOrderFilled".to_string();
-    fill.log_index += 1;
+    // Log 1 of this block already holds the fixture's maker fill.
+    fill.log_index += 2;
     fill.tx_hash = "0xbalancefillcccccccccccccccccccccccccccccccccccccccccccccccccccc".to_string();
     fill.price_pns = Some(700_000);
     fill.lot_lns = Some(100_000);
@@ -364,7 +365,8 @@ fn collateral_decrease_updates_deposit_and_entry_from_end_state() {
     let mut decreased = opened;
     decreased.kind = perppulse::LifecycleKind::CollateralDecreased;
     decreased.abi_event_name = "PositionCollateralDecreased".to_string();
-    decreased.log_index += 1;
+    // Log 1 of this block already holds the fixture's maker fill.
+    decreased.log_index += 2;
     decreased.tx_hash =
         "0xcollateralcccccccccccccccccccccccccccccccccccccccccccccccccc".to_string();
     decreased.position_type = Some(0);
@@ -393,7 +395,8 @@ fn liquidation_credit_requires_and_applies_exact_start_deposit() {
     let mut credit = opened;
     credit.kind = perppulse::LifecycleKind::PositionLiquidationCredit;
     credit.abi_event_name = "PositionLiquidationCredit".to_string();
-    credit.log_index += 1;
+    // Log 1 of this block already holds the fixture's maker fill.
+    credit.log_index += 2;
     credit.tx_hash = "0xliqcreditccccccccccccccccccccccccccccccccccccccccccccccccccc".to_string();
     credit.position_type = None;
     credit.start_deposit_cns = Some(10_000_000_000);
@@ -415,4 +418,32 @@ fn liquidation_credit_requires_and_applies_exact_start_deposit() {
     )
     .expect_err("inconsistent transition");
     assert!(error.to_string().contains("start deposit"), "{error}");
+}
+
+#[test]
+fn repeated_block_log_positions_and_mixed_block_hashes_fail_closed() {
+    let fixture = load_fixture(fixture("open-position-as-of.json")).unwrap();
+    let fill = fixture
+        .events
+        .iter()
+        .find(|event| event.kind == perppulse::LifecycleKind::MakerFill)
+        .expect("maker fill")
+        .clone();
+    // A different transaction claiming the same block/log position.
+    let mut repeated = fixture.clone();
+    let mut copy = fill.clone();
+    copy.tx_hash = "0xotherforkccccccccccccccccccccccccccccccccccccccccccccccccccccc".to_string();
+    repeated.events.push(copy);
+    let error = replay(&repeated.events, &repeated.registry, &repeated.as_of)
+        .expect_err("repeated position");
+    assert!(error.to_string().contains("block/log position"), "{error}");
+    // Two events of one block that disagree on its hash.
+    let mut mixed = fixture;
+    let mut later = fill;
+    later.log_index += 1;
+    later.block_hash =
+        "0xstaleforkcccccccccccccccccccccccccccccccccccccccccccccccccccccc".to_string();
+    mixed.events.push(later);
+    let error = replay(&mixed.events, &mixed.registry, &mixed.as_of).expect_err("mixed hashes");
+    assert!(error.to_string().contains("block hash differs"), "{error}");
 }

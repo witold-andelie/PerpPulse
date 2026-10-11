@@ -2,7 +2,14 @@
 
 Real-time protocol-to-wallet risk intelligence for perpetual markets on Monad.
 
-PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wallet context into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
+PerpPulse turns Perpl market state and Envio-indexed onchain events into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
+
+> 2026-10-11 update: the owner withdrew Nansen from the project. The optional
+> label adapter, `--nansen-max-requests`, `/api/context` and the comparison
+> label filter are removed; the methodology is now v9 and wallet comparison is
+> `snapshot-cohort-v2` (same statistics, percentiles and overlap, no labels).
+> The Nansen bounty is not pursued. See the
+> [audit record](docs/verification-2026-10-11-audit.md).
 
 > 2026-10-07 update: the dashboard is now signal-first. Rule-hashed risk
 > signals (funded liquidation distance, collateral drawdown, leverage
@@ -11,17 +18,17 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 > `protocol-analytics-v1` adds 24-hour, 7-day, 30-day and covered-range flows
 > whose completeness is proven from coverage, plus point-in-time open
 > interest, collateral and long/short skew from deployment history. A snapshot
-> wallet comparison adds percentiles, exposure overlap and Nansen label
-> filtering. `serve-envio --protocol-max-events` adds an incremental, bounded
+> wallet comparison adds percentiles and exposure overlap.
+> `serve-envio --protocol-max-events` adds an incremental, bounded
 > global Envio reader. Coverage from Exchange deployment now proves funding
 > resets before the first observed schedule. These additions are verified with
 > fixtures, mocks and local CI-equivalent checks only; see the
 > [verification record](docs/verification-2026-10-07-analytics.md). No new
-> mainnet run, cloud deployment or live Nansen request is claimed.
+> mainnet run or cloud deployment is claimed.
 
 > Status: canonical ledger, coverage-bounded Envio-to-Rust adapter,
 > golden-fixture web demo, read-only fixture and live-account APIs, compact PostgreSQL serving,
-> hashed evidence, reconciliation scorecards, and optional Nansen label context implemented.
+> hashed evidence and reconciliation scorecards implemented.
 > The isolated `risk-hotpath-v2` index resumed on 2026-10-02 with 69,317 real
 > Monad events and a one-block independently observed lag. Four covered accounts
 > passed actual browser checks; an [80-second operating recording](docs/demo/README.md)
@@ -55,11 +62,11 @@ PerpPulse turns Perpl market state, Envio-indexed onchain events, and Nansen wal
 - Primary track: Onchain Finance & Trading
 - Perpl: analytics/risk target; an applicable read-only bounty remains unconfirmed
 - Envio bounty: Best Use of Envio
-- Nansen bounty: Best Use of Nansen
 
 The owner-supplied [Perpl task](docs/perpl-bounty.md) requires trading activity
-and is outside the retained read-only scope. [Envio](docs/envio-bounty.md) and
-[Nansen](docs/nansen-bounty.md) requirements are mapped to remaining live evidence.
+and is outside the retained read-only scope. [Envio](docs/envio-bounty.md)
+requirements are mapped to remaining live evidence. The Nansen bounty was
+withdrawn on 2026-10-11 and no Nansen data or API is used.
 
 The product is read-only. It does not place orders, request private keys, or present AI-generated numbers as financial facts.
 
@@ -67,11 +74,10 @@ The product is read-only. It does not place orders, request private keys, or pre
 
 The following is the intended full product scope. The web application now
 implements the signal-first Risk Pulse, window flows and state, alerts and
-stress scenarios, account drill-down, snapshot wallet comparison with label
-filtering, and event evidence. Live serving implements bounded account
+stress scenarios, account drill-down, snapshot wallet comparison, and event
+evidence. Live serving implements bounded account
 watchlists and an optional bounded global reader. Mainnet global history,
-continuously hosted operation, live Nansen labels and push delivery of alerts
-remain pending.
+continuously hosted operation and push delivery of alerts remain pending.
 
 The latest Q16 reader correction and operating artifacts in `4b9135b` passed
 [Rust, PostgreSQL, Envio and DOT verification](https://github.com/witold-andelie/PerpPulse/actions/runs/37076854913)
@@ -95,7 +101,7 @@ PerpPulse has explicit source-of-truth boundaries:
 - Envio and Monad events are canonical for global account and position lifecycle facts.
 - Perpl public REST and market WebSocket data provide low-latency market state.
 - Perpl `dex-sdk` snapshots and traces are reconciliation and test instruments, not a second ledger.
-- Nansen labels, Profiler, and Smart Money data provide behavioral context and ranking features; they never overwrite canonical facts.
+- No third-party labeling or enrichment provider is used. Wallet comparison ranks only facts already served from the canonical ledger.
 - AI may explain a deterministic signal, but it may not calculate or replace prices, PnL, liquidation levels, or risk facts.
 
 The event identity is `(chain_id, block_hash, tx_hash, log_index)`. Derived records retain source, schema, metric, model, and rule versions plus an as-of cutoff.
@@ -297,7 +303,7 @@ are explicitly unavailable in compact serving mode; resolve manifest and
 position event IDs against Envio. The Cloud SQL migration and cloud deployment
 have not been executed by this implementation session.
 
-### Evidence, reconciliation, and optional context
+### Evidence and reconciliation
 
 `/api/manifest` provides stable hashes of ordered event IDs, canonical inputs,
 and the versioned [`methodology.json`](docs/methodology.json). CLI evidence export
@@ -317,17 +323,6 @@ effective entry. Every selected market requires explicit open/closed state;
 missing or incomplete references fail. This archival path never replaces the
 live API's freshness checks. Its selected mainnet evidence is in
 [`docs/verification-2026-10-03-sdk.md`](docs/verification-2026-10-03-sdk.md).
-
-Optional Nansen common labels use the official
-[Address Labels endpoint](https://docs.nansen.ai/api/profiler/address-labels),
-with five-minute caching, no retries or premium calls, and an explicit allowance
-of 1 to 10 requests per process. By default no requests are made. After owner
-approval of the billable calls, supply `NANSEN_API_KEY` as process environment
-and `--nansen-max-requests <count>` to `serve-envio`. Restarts reset this local
-allowance; it is not an account-wide spending cap. Errors and exhausted allowance
-degrade context while canonical facts stay available. Label observation time and
-point-in-time eligibility are separate from the ledger cutoff. No live Nansen
-request was used as verification evidence for this release.
 
 ### Container and checks
 
@@ -359,7 +354,7 @@ synthetic full-product path; it is not evidence of live global analytics.
 
 The framework covers five planes:
 
-- Data: historical backfill, live capture, point-in-time market state, gap and reorg detection, quarantine, deterministic replay, and Nansen enrichment.
+- Data: historical backfill, live capture, point-in-time market state, gap and reorg detection, quarantine, and deterministic replay.
 - Intelligence: versioned metric definitions, one canonical position lifecycle ledger, point-in-time accounting, deterministic stress scenarios, and fail-closed signal quality gates.
 - Experience: protocol, market, wallet, comparison, event evidence, and alert views connected by stable navigation context.
 - Evidence: golden fixtures, invariant checks, source reconciliation, freshness measurements, sponsor ablation, and append-only run manifests.
@@ -414,6 +409,7 @@ documentation, repository setup, and verification. xAI Grok has been used for
 bounded review and for implementing the first ledger slice. Anthropic Claude Code
 (Claude Opus 5.5) was used on 2026-10-07 for the protocol analytics, signal,
 comparison and global-reader implementation, code review and fixes,
-documentation, and local verification. All generated material
+documentation, and local verification, and on 2026-10-11 for the Nansen
+removal and a repository audit with its fixes. All generated material
 is independently reviewed before adoption. Deterministic code and independently
 verifiable data, rather than language-model output, remain the source of analytical facts.

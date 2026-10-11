@@ -1,9 +1,8 @@
-//! Snapshot-scoped wallet comparison and participant context.
+//! Snapshot-scoped wallet comparison.
 //!
 //! Statistics are normalized from facts already served for each wallet at one
 //! cutoff. Percentiles rank only replay-eligible wallets with a known value;
-//! incomplete histories are listed as excluded instead of being ranked. Nansen
-//! labels group participants for discovery and never change a number.
+//! incomplete histories are listed as excluded instead of being ranked.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -15,7 +14,7 @@ use crate::analytics::ratio;
 use crate::error::{DataQualityError, Result};
 use crate::signals::parse_wallets;
 
-pub const COHORT_VERSION: &str = "snapshot-cohort-v1";
+pub const COHORT_VERSION: &str = "snapshot-cohort-v2";
 pub const PERCENTILE_STATISTICS: [&str; 6] = [
     "realizedPnl",
     "unrealizedPricePnl",
@@ -50,7 +49,6 @@ pub struct WalletStats {
     pub fees: Option<Decimal>,
     pub exposures: Vec<Exposure>,
     pub percentiles: BTreeMap<String, Option<Decimal>>,
-    pub labels: Vec<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -77,33 +75,6 @@ pub struct PairOverlap {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelMember {
-    pub account_id: u64,
-    pub point_in_time_eligible: bool,
-}
-
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct LabelGroup {
-    pub label: String,
-    pub category: Option<String>,
-    pub members: Vec<LabelMember>,
-}
-
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct LabelIndex {
-    pub source: String,
-    pub status: String,
-    pub attribution: Option<String>,
-    pub groups: Vec<LabelGroup>,
-    pub unlabeled_accounts: Vec<u64>,
-    pub unavailable_accounts: Vec<u64>,
-    pub note: String,
-}
-
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct CohortReport {
     pub version: String,
     pub scope: String,
@@ -114,7 +85,6 @@ pub struct CohortReport {
     pub wallets: Vec<WalletStats>,
     pub excluded: Vec<Value>,
     pub overlap: Vec<PairOverlap>,
-    pub labels: LabelIndex,
 }
 
 #[derive(Deserialize)]
@@ -130,8 +100,6 @@ struct WalletFacts {
     positions: Vec<PositionFacts>,
     #[serde(default)]
     replay_basis: Option<String>,
-    #[serde(default)]
-    context: Option<Value>,
 }
 
 #[derive(Deserialize)]
@@ -154,12 +122,10 @@ pub fn evaluate(scope: &str, as_of_block: u64, wallets: &Value) -> Result<Cohort
     let parsed = parse_wallets(wallets)?;
     let mut stats = Vec::new();
     let mut excluded = Vec::new();
-    let mut contexts = Vec::new();
     for wallet in &parsed {
         let facts: WalletFacts = serde_json::from_value(wallet.raw.clone()).map_err(|error| {
             DataQualityError::msg(format!("invalid wallet facts for comparison: {error}"))
         })?;
-        contexts.push((wallet.account_id(), facts.context.clone()));
         if !wallet.eligible() {
             excluded.push(json!({"accountId": wallet.account_id(), "reason": "incomplete-history", "replayBasis": facts.replay_basis}));
             continue;
@@ -176,20 +142,6 @@ pub fn evaluate(scope: &str, as_of_block: u64, wallets: &Value) -> Result<Cohort
                 .insert(name.to_string(), value.map(|value| midrank(value, &known)));
         }
     }
-    let labels = label_index(&contexts);
-    for wallet in &mut stats {
-        wallet.labels = labels
-            .groups
-            .iter()
-            .filter(|group| {
-                group
-                    .members
-                    .iter()
-                    .any(|member| member.account_id == wallet.account_id)
-            })
-            .map(|group| group.label.clone())
-            .collect();
-    }
     let overlap = overlaps(&stats)?;
     Ok(CohortReport {
         version: COHORT_VERSION.to_string(),
@@ -201,7 +153,6 @@ pub fn evaluate(scope: &str, as_of_block: u64, wallets: &Value) -> Result<Cohort
         wallets: stats,
         excluded,
         overlap,
-        labels,
     })
 }
 
@@ -254,7 +205,6 @@ fn wallet_stats(account_id: u64, facts: &WalletFacts) -> Result<WalletStats> {
         fees: facts.fees,
         exposures,
         percentiles: BTreeMap::new(),
-        labels: Vec::new(),
     })
 }
 
@@ -321,66 +271,4 @@ fn overlaps(stats: &[WalletStats]) -> Result<Vec<PairOverlap>> {
         }
     }
     Ok(pairs)
-}
-
-fn label_index(contexts: &[(u64, Option<Value>)]) -> LabelIndex {
-    let mut groups: BTreeMap<(String, Option<String>), Vec<LabelMember>> = BTreeMap::new();
-    let mut unlabeled = Vec::new();
-    let mut unavailable = Vec::new();
-    let mut attribution = None;
-    for (account_id, context) in contexts {
-        let usable = context
-            .as_ref()
-            .filter(|value| matches!(value["status"].as_str(), Some("available" | "partial")));
-        let Some(context) = usable else {
-            unavailable.push(*account_id);
-            continue;
-        };
-        if attribution.is_none() {
-            attribution = context["attribution"].as_str().map(str::to_string);
-        }
-        let point_in_time = context["pointInTimeEligible"].as_bool() == Some(true);
-        let labels = context["labels"].as_array().cloned().unwrap_or_default();
-        if labels.is_empty() {
-            unlabeled.push(*account_id);
-        }
-        for label in labels {
-            let Some(name) = label["label"].as_str() else {
-                continue;
-            };
-            groups
-                .entry((
-                    name.to_string(),
-                    label["category"].as_str().map(str::to_string),
-                ))
-                .or_default()
-                .push(LabelMember {
-                    account_id: *account_id,
-                    point_in_time_eligible: point_in_time,
-                });
-        }
-    }
-    let status = if groups.is_empty() && unlabeled.is_empty() {
-        "unavailable"
-    } else if unavailable.is_empty() {
-        "available"
-    } else {
-        "partial"
-    };
-    LabelIndex {
-        source: "Nansen".to_string(),
-        status: status.to_string(),
-        attribution,
-        groups: groups
-            .into_iter()
-            .map(|((label, category), mut members)| {
-                members.sort_by_key(|member| member.account_id);
-                members.dedup_by_key(|member| member.account_id);
-                LabelGroup { label, category, members }
-            })
-            .collect(),
-        unlabeled_accounts: unlabeled,
-        unavailable_accounts: unavailable,
-        note: "Labels describe who is in this snapshot and are observed separately from the ledger cutoff. They never alter canonical numbers and do not establish protocol-wide cohorts.".to_string(),
-    }
 }

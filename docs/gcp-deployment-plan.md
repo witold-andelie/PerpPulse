@@ -45,7 +45,7 @@ Stop the database (pauses instance compute, keeps disks) with `.\deploy\stop.ps1
 | Cloud Run Jobs and Scheduler | Bounded backfill, deterministic replay, reconciliation, fixtures, and load tests | Explicit execution and retry caps |
 | Cloud Storage | Raw reference snapshots, golden fixtures, and run manifests | Lifecycle deletion after 30 days for disposable artifacts |
 | BigQuery | Optional hourly analytical benchmark and billing export | Add only after the PostgreSQL baseline proves a need |
-| Secret Manager | Nansen credentials and internal tokens | Runtime identity access only |
+| Secret Manager | Database and internal tokens | Runtime identity access only |
 | Cloud Logging and Monitoring | Freshness, sequence gaps, reorgs, retries, reconciliation, and cost telemetry | Short retention and sampled debug logs |
 | Cloud Build and Artifact Registry | Reproducible images tied to Git commit SHA | Retain only useful image versions |
 
@@ -61,7 +61,7 @@ The promotional-credit workload should produce evidence that remains useful afte
 4. Reconcile golden wallets against Perpl `dex-sdk` snapshots and traces.
 5. Run a 14-to-21-day live ingestion soak and report p50 and p95 end-to-end freshness.
 6. Load-test protocol, wallet, comparison, and evidence queries with realistic filters.
-7. Run sponsor ablations to show what quality is lost without Envio and what context is lost without Nansen.
+7. Run a sponsor ablation to show what quality is lost without Envio.
 8. Optionally spend at most USD 10 on Vertex AI explanation evaluation. It may explain deterministic signals but must not generate prices, PnL, or risk facts.
 
 After the campaign, scale the API to zero when idle, stop bounded jobs, and decide whether the worker and database justify their October cost.

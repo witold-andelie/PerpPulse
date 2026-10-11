@@ -41,6 +41,11 @@ pub struct ProtocolMetrics {
     pub warnings: Vec<String>,
 }
 
+fn add(left: Decimal, right: Decimal, name: &str) -> Result<Decimal> {
+    left.checked_add(right)
+        .ok_or_else(|| DataQualityError::msg(format!("{name} aggregate overflow")))
+}
+
 #[derive(Default)]
 struct Bucket {
     volume: Decimal,
@@ -102,9 +107,16 @@ pub fn protocol_metrics(
                     market.price_decimals,
                     "fill.price",
                 )?;
-                bucket.volume += notional(price, size, "fill.volume")?;
-                bucket.fill_fees +=
-                    from_native(event.fee_cns.unwrap_or(0), collateral_decimals, "fill.fee")?;
+                bucket.volume = add(
+                    bucket.volume,
+                    notional(price, size, "fill.volume")?,
+                    "volume",
+                )?;
+                bucket.fill_fees = add(
+                    bucket.fill_fees,
+                    from_native(event.fee_cns.unwrap_or(0), collateral_decimals, "fill.fee")?,
+                    "fill fees",
+                )?;
                 if let Some(account_id) = event.account_id {
                     bucket.accounts.insert(account_id);
                 }
@@ -114,15 +126,24 @@ pub fn protocol_metrics(
             | LifecycleKind::PositionInverted => {
                 let perpetual_id = market_id(event)?;
                 let bucket = by_market.entry(perpetual_id).or_default();
-                bucket.protocol_fees += from_native(
-                    event.ins_fee_cns.unwrap_or(0) + event.prot_fee_cns.unwrap_or(0),
-                    collateral_decimals,
-                    "protocol_fees",
+                let fees = event
+                    .ins_fee_cns
+                    .unwrap_or(0)
+                    .checked_add(event.prot_fee_cns.unwrap_or(0))
+                    .ok_or_else(|| DataQualityError::msg("protocol fee overflow"))?;
+                bucket.protocol_fees = add(
+                    bucket.protocol_fees,
+                    from_native(fees, collateral_decimals, "protocol_fees")?,
+                    "protocol fees",
                 )?;
-                bucket.insurance_fees += from_native(
-                    event.ins_fee_cns.unwrap_or(0),
-                    collateral_decimals,
-                    "insurance_fees",
+                bucket.insurance_fees = add(
+                    bucket.insurance_fees,
+                    from_native(
+                        event.ins_fee_cns.unwrap_or(0),
+                        collateral_decimals,
+                        "insurance_fees",
+                    )?,
+                    "insurance fees",
                 )?;
                 if let Some(account_id) = event.account_id {
                     bucket.accounts.insert(account_id);
@@ -143,7 +164,11 @@ pub fn protocol_metrics(
                     market.price_decimals,
                     "liq.price",
                 )?;
-                bucket.liquidation_notional += notional(price, size, "liq.notional")?;
+                bucket.liquidation_notional = add(
+                    bucket.liquidation_notional,
+                    notional(price, size, "liq.notional")?,
+                    "liquidation notional",
+                )?;
                 if let Some(account_id) = event.account_id {
                     bucket.accounts.insert(account_id);
                 }
@@ -171,8 +196,8 @@ pub fn protocol_metrics(
             ))
         })?;
         let bucket = by_market.entry(snap.perpetual_id).or_default();
-        bucket.open_interest += notional_value;
-        bucket.tvl += snap.deposit;
+        bucket.open_interest = add(bucket.open_interest, notional_value, "open interest")?;
+        bucket.tvl = add(bucket.tvl, snap.deposit, "TVL")?;
         bucket.accounts.insert(snap.account_id);
     }
 
@@ -208,10 +233,10 @@ pub fn protocol_metrics(
             active_accounts: bucket.accounts.len(),
             warnings: row_warnings,
         });
-        total_volume += bucket.volume;
-        total_oi += bucket.open_interest;
-        total_tvl += bucket.tvl;
-        total_fees += bucket.protocol_fees;
+        total_volume = add(total_volume, bucket.volume, "volume")?;
+        total_oi = add(total_oi, bucket.open_interest, "open interest")?;
+        total_tvl = add(total_tvl, bucket.tvl, "TVL")?;
+        total_fees = add(total_fees, bucket.protocol_fees, "protocol fees")?;
         total_liqs += bucket.liquidations;
         accounts.extend(bucket.accounts);
     }

@@ -27,7 +27,7 @@ digraph PerpPulseOPM {
     fontname="Microsoft YaHei",
     fontsize=16,
     labelloc=t,
-    label="PerpPulse — Real-Time Protocol-to-Wallet Risk Intelligence on Monad\nPrimary: Onchain Finance & Trading | Bounties: Perpl Analytics/Risk + Envio + Nansen"
+    label="PerpPulse — Real-Time Protocol-to-Wallet Risk Intelligence on Monad\nPrimary: Onchain Finance & Trading | Bounties: Perpl Analytics/Risk + Envio"
   ];
 
   node [
@@ -55,7 +55,7 @@ digraph PerpPulseOPM {
   implementation_status [
     shape=note,
     fillcolor="#E8F8EE",
-    label="Verified Local Implementation · 2026-10-07\nFixture web/API + bounded live Envio account serving + v3 marks/covered funding\nProtocol analytics: 24h/7d/30d/coverage windows + deployment-history OI/collateral/skew\nRule-hashed risk signals + mark-shock stress + snapshot wallet comparison + Nansen label filter\nCompact PostgreSQL snapshots + hashed range manifests + same-cutoff quarantine\nPending: mainnet global backfill, cloud deployment, live Nansen, hosted public demo"
+    label="Verified Local Implementation · 2026-10-11\nFixture web/API + bounded live Envio account serving + v3 marks/covered funding\nProtocol analytics: 24h/7d/30d/coverage windows + deployment-history OI/collateral/skew\nRule-hashed risk signals + mark-shock stress + snapshot wallet comparison\nCompact PostgreSQL snapshots + hashed range manifests + same-cutoff quarantine\nPending: mainnet global backfill, cloud deployment, hosted public demo\nNansen withdrawn by owner decision; no third-party enrichment"
   ];
   implementation_status -> query_api [style=dashed, label="implemented local surface"];
   implementation_status -> evidence_manifest [style=dashed, label="implemented range evidence"];
@@ -126,12 +126,6 @@ digraph PerpPulseOPM {
       label="Envio HyperSync / HyperIndex / HyperRPC\n<<Environmental Object>>"
     ];
 
-    nansen_instrument [
-      style="dashed,filled",
-      fillcolor="#F3F7FA",
-      label="Nansen Data / Labels / Behavior\n<<Environmental Object>>"
-    ];
-
     read_only_boundary [
       style="dashed,filled",
       fillcolor="#F3F7FA",
@@ -176,11 +170,6 @@ digraph PerpPulseOPM {
       color="#2F6FB0",
       label="instrument · chain data"
     ];
-    nansen_instrument -> delivering_intelligence [
-      style=dashed,
-      color="#2F6FB0",
-      label="instrument · wallet context"
-    ];
     read_only_boundary -> delivering_intelligence [
       style=dashed,
       color="#2F6FB0",
@@ -189,7 +178,7 @@ digraph PerpPulseOPM {
   }
 
   // -------------------------------------------------------------------------
-  // OPD-1A: ingesting, canonicalizing, finalizing, and enriching data.
+  // OPD-1A: ingesting, canonicalizing, and finalizing data.
   // -------------------------------------------------------------------------
   subgraph cluster_data_plane {
     label="OPD-1A · Data Plane (in-zoomed system process)";
@@ -215,15 +204,9 @@ digraph PerpPulseOPM {
       label="Perpl dex-sdk Snapshot / Trace\n<<Verification Instrument>>\nas-of-block exchange state + event trace"
     ];
 
-    nansen_api [
-      style="dashed,filled",
-      fillcolor="#F8FAFC",
-      label="Nansen Monad Wallet Context\n<<Environmental Object>>\naddress labels · Profiler · Smart Money flows/holdings"
-    ];
-
     source_truth_contract [
       fillcolor="#EAF3FF",
-      label="Source-of-Truth Contract\n<<Object>>\nEnvio/onchain = global account + position facts\nPerpl stream = low-latency market state\nPerpl snapshot/trace = reconciliation only\nNansen = behavioral context only"
+      label="Source-of-Truth Contract\n<<Object>>\nEnvio/onchain = global account + position facts\nPerpl stream = low-latency market state\nPerpl snapshot/trace = reconciliation only"
     ];
 
     protocol_registry [
@@ -341,17 +324,6 @@ digraph PerpPulseOPM {
       label="Ingestion + Data Quality Status\n<<Object>>\nlag · completeness · sequence gaps · reorg depth\ndecode failures · reconciliation delta · retry state"
     ];
 
-    enriching_wallets [
-      shape=ellipse,
-      fillcolor="#FFF0C2",
-      color="#A86E00",
-      label="Caching and Enriching Wallet Context\n<<Process>>\ncredit budget · TTL · 429 backoff"
-    ];
-
-    wallet_context [
-      label="Wallet Context Features\n<<Object>>\nlabels · cohorts · Smart Money context · behavioral features\nendpoint · observed-at · cache age · provenance · warnings"
-    ];
-
     monad_chain -> historical_backfill [
       style=dashed,
       color="#2F6FB0",
@@ -430,11 +402,6 @@ digraph PerpPulseOPM {
     deterministic_replaying -> dataset_deduped [label="restores normalized range"];
     deterministic_replaying -> checkpoint_lineage [label="records replay run"];
 
-    dataset_final -> enriching_wallets [style=dashed, color="#2F6FB0", label="instrument"];
-    nansen_api -> enriching_wallets [style=dashed, color="#2F6FB0", label="instrument"];
-    nansen_instrument -> enriching_wallets [style=dashed, color="#2F6FB0", label="API / MCP / CLI"];
-    source_truth_contract -> enriching_wallets [style=dashed, color="#2F6FB0", label="instrument · context-only boundary"];
-    enriching_wallets -> wallet_context [label="yields derived context"];
   }
 
   // -------------------------------------------------------------------------
@@ -525,7 +492,7 @@ digraph PerpPulseOPM {
     risk_signal_set [
       fillcolor="#FFECEC",
       color="#B54747",
-      label="Candidate Risk Signal Set\n<<Object>>\ncrowding OI/TVL · liquidation-distance/cascade bands\nfunding/price divergence · concentration · net outflow\nSmart-Money divergence (context)\nrule ID · severity · evidence · affected entity · freshness"
+      label="Candidate Risk Signal Set\n<<Object>>\ncrowding OI/TVL · liquidation-distance/cascade bands\nfunding/price divergence · concentration · net outflow\nrule ID · severity · evidence · affected entity · freshness"
     ];
 
     signal_quality_policy [
@@ -594,11 +561,9 @@ digraph PerpPulseOPM {
     protocol_mart -> risk_assessing [style=dashed, color="#2F6FB0", label="instrument"];
     wallet_mart -> risk_assessing [style=dashed, color="#2F6FB0", label="instrument"];
     stress_result -> risk_assessing [style=dashed, color="#2F6FB0", label="instrument"];
-    wallet_context -> risk_assessing [style=dashed, color="#2F6FB0", label="instrument · context only"];
     risk_assessing -> risk_signal_set [label="yields"];
 
     wallet_mart -> behavioral_reasoning [style=dashed, color="#7B61A8", label="optional instrument"];
-    wallet_context -> behavioral_reasoning [style=dashed, color="#7B61A8", label="optional instrument"];
     behavioral_reasoning -> risk_signal_set [style=dotted, color="#7B61A8", label="adds explanation; never overwrites facts"];
 
     risk_signal_set -> gating_signals [label="consumed"];
@@ -644,7 +609,7 @@ digraph PerpPulseOPM {
       style="rounded,filled",
       fillcolor="#E8F8EE",
       color="#25855A",
-      label="wallet deep-dive view\n<<State>>\ncanonical positions/ledger/performance\nNansen labels/context visually separated · evidence timeline"
+      label="wallet deep-dive view\n<<State>>\ncanonical positions/ledger/performance\nevidence timeline"
     ];
 
     comparison_state [
@@ -801,7 +766,7 @@ digraph PerpPulseOPM {
       shape=ellipse,
       fillcolor="#FFF0C2",
       color="#A86E00",
-      label="Tracing and Ablating Sponsor Integrations\n<<Process>>\nshow degradation without Envio or Nansen"
+      label="Tracing and Ablating Sponsor Integrations\n<<Process>>\nshow degradation without Envio"
     ];
 
     golden_fixtures [
@@ -834,13 +799,13 @@ digraph PerpPulseOPM {
     ux_evidence [
       fillcolor="#E8F8EE",
       color="#25855A",
-      label="Product Evidence\n<<Object>>\nprotocol anomaly → market → wallet → event proof\nas-of filters preserved · top signals before raw tables\ncanonical facts visibly distinct from Nansen context"
+      label="Product Evidence\n<<Object>>\nprotocol anomaly → market → wallet → event proof\nas-of filters preserved · top signals before raw tables\ncanonical facts visibly distinct from derived signals"
     ];
 
     sponsor_evidence [
       fillcolor="#E8F8EE",
       color="#25855A",
-      label="Integration + Ablation Evidence\n<<Object>>\nPerpl-specific risk outcome + snapshot/trace match\nEnvio powers backfill/reorg-aware live core pipeline\nNansen changes context/ranking, not canonical facts\ngracious degraded mode with explicit limitations"
+      label="Integration + Ablation Evidence\n<<Object>>\nPerpl-specific risk outcome + snapshot/trace match\nEnvio powers backfill/reorg-aware live core pipeline\ngraceful degraded mode with explicit limitations"
     ];
 
     packaging_submission [
@@ -891,7 +856,6 @@ digraph PerpPulseOPM {
 
     perpl_instrument -> tracing_integrations [style=dashed, color="#2F6FB0", label="instrument"];
     envio_instrument -> tracing_integrations [style=dashed, color="#2F6FB0", label="instrument"];
-    nansen_instrument -> tracing_integrations [style=dashed, color="#2F6FB0", label="instrument"];
     source_truth_contract -> tracing_integrations [style=dashed, color="#2F6FB0", label="instrument"];
     tracing_integrations -> sponsor_evidence [label="yields"];
 
@@ -968,7 +932,7 @@ digraph PerpPulseOPM {
     secret_manager [
       style="dashed,filled",
       fillcolor="#F8FAFC",
-      label="Secret Manager\n<<Planned Infrastructure Object>>\nNansen credentials and internal tokens · runtime-only access"
+      label="Secret Manager\n<<Planned Infrastructure Object>>\ndatabase and internal tokens · runtime-only access"
     ];
 
     cloud_observability [

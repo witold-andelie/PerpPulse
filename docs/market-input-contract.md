@@ -57,7 +57,10 @@ to be the live Perpl `refPriceMaxAgeSec`. Native fixture marks remain synthetic.
 The v3 watchlist consumes canonical MarkUpdated inputs with source event IDs.
 Selected mainnet marks and price PnL have independent SDK evidence; legacy
 profiles retain null mark-derived facts.
-Supplying malformed or stale marks fails the accounting request visibly.
+Supplying malformed marks fails the accounting request visibly. Where marks are
+required (fixture protocol metrics) a stale mark also fails. Since methodology
+v10, live wallet accounting reports a stale mark as unavailable for that
+position, with a warning, and keeps serving the other positions.
 
 Price PnL and entry-based maintenance use checked decimal arithmetic. Actual equity and liquidation remain null while unsettled funding checkpoints are unverified; conditional zero-funding scenarios have separate fields. Values outside
 the supported finite decimal range return errors instead of wrapping or
@@ -89,7 +92,8 @@ the funding effective block and overwrite flag. The adapter selects the latest
 mark at or before the same block/hash/log cutoff as every account, and pages
 funding/scale observations within retained coverage. Returned subjects, event
 kinds, provenance, native ranges, cursor advancement and final watermarks are
-checked. Missing marks stay unavailable; stale or inconsistent inputs fail.
+checked. Missing or stale marks stay unavailable for the affected position;
+inconsistent inputs fail.
 No oracle/REST/SDK observation substitutes for a mark event. Canonical inputs
 are deduplicated into the same lifecycle ledger and covered by its manifest.
 

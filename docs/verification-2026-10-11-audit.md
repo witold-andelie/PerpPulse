@@ -35,13 +35,14 @@ earlier links stay valid.
 
 ## Reviewed without change
 
-These are design limits or risks for the owner to decide, not silent errors:
+These are design limits or risks for the owner to decide, not silent errors.
+The first item was decided afterwards; see the follow-up below.
 
-- Live wallet accounting rejects the whole refresh when an open position's
-  latest canonical mark is 60 seconds or more older than the cutoff. This is the
-  documented, tested contract. Protocol analytics instead mark that market's
-  open interest unavailable. A quiet market can therefore take the live
-  dashboard down until a fresh mark arrives.
+- Live wallet accounting rejected the whole refresh when an open position's
+  latest canonical mark was 60 seconds or more older than the cutoff, while
+  protocol analytics only marked that market's open interest unavailable. A
+  quiet market could therefore take the live dashboard down until a fresh mark
+  arrived.
 - Three synthetic golden fixtures declare an as-of block hash that differs from
   the hash on their own events in that block. The live Envio readers enforce
   the match; replay does not, so fixture manifests and evidence stay stable.
@@ -76,3 +77,28 @@ container build and both workflows.
 | Fixture service smoke | `/api/context` 404; `/api/comparison` is `snapshot-cohort-v2` without labels; `/api/methodology` is v9; snapshots carry no `context` |
 | Browser, cohort fixture (installed Chrome, Playwright 1.63.0) | Signals, windows, stress, comparison and evidence navigation render; no JavaScript or console errors |
 | Browser, `verify_risk_browser.py` | The original seven checks pass |
+
+## Follow-up owner decision: stale live marks degrade
+
+After reviewing the first item above, the owner chose degradation. Under
+`perppulse-methodology-v10`:
+
+- When marks are not required (live wallet accounting), a mark at or beyond the
+  60-second limit makes only that position's mark, price PnL, notional and
+  mark-derived risk unavailable. The position carries a warning with the mark's
+  age, the wallet quality is `marks-unavailable`, and the
+  `risk-input-unavailable` warning signal lists that reason. Other positions
+  and wallets are served.
+- Integrity violations are unchanged and still fail visibly: future block or
+  timestamp, same-block hash or log mismatch, non-positive or out-of-range
+  prices and duplicate marks, including when the mark is also stale.
+- Fixture protocol metrics still require eligible marks, and protocol analytics
+  keep their existing per-market `mark-unavailable` state.
+- The live manifest keeps hashing the stale mark as a canonical input.
+
+| Check | Result |
+| --- | --- |
+| `stale_v3_mark_degrades_its_position_instead_of_failing_the_snapshot` | Failed against the previous code (the snapshot refresh errored) and passes now; it replaces the former live "stale" rejection case |
+| Extended `marks_reject_staleness_nonpositive_values_duplicates_and_log_lookahead` | Required marks still reject staleness; non-required marks degrade staleness but reject a stale non-positive mark and a future mark. Failed against the previous code |
+| `cargo test --locked` | 104 passed, one disposable PostgreSQL test ignored locally |
+| Format, Clippy, policy, `git diff --check`, documentation links, browser checks | Passed; see the publication commit's CI for the PostgreSQL round trip |

@@ -159,6 +159,22 @@ fn marks_reject_staleness_nonpositive_values_duplicates_and_log_lookahead() {
         .unwrap_err()
         .to_string()
         .contains("stale"));
+    // When marks are not required, staleness alone degrades the position.
+    let degraded = account_wallet(&ledger, 42, &fixture.as_of, &fresh, false).unwrap();
+    assert!(degraded.positions[0].mark.is_none());
+    assert!(degraded.positions[0].notional_value.is_none());
+    assert!(degraded.unrealized_price_pnl.is_none());
+    assert!(degraded.positions[0]
+        .warnings
+        .iter()
+        .any(|warning| warning.contains("is stale")));
+    // Integrity failures are never downgraded, even for a stale mark.
+    let mut corrupt = fresh.clone();
+    corrupt[0].mark_pns = 0;
+    assert!(account_wallet(&ledger, 42, &fixture.as_of, &corrupt, false).is_err());
+    let mut future = fixture.marks.clone();
+    future[0].timestamp_ms = fixture.as_of.timestamp_ms + 1;
+    assert!(account_wallet(&ledger, 42, &fixture.as_of, &future, false).is_err());
     for invalid_price in [0, -1, i128::MAX] {
         let mut marks = fixture.marks.clone();
         marks[0].mark_pns = invalid_price;

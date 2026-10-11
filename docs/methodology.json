@@ -1,5 +1,5 @@
 {
-  "version": "perppulse-methodology-v9",
+  "version": "perppulse-methodology-v10",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
@@ -33,7 +33,7 @@
     "freshness": "Indexer source lag, observation age, and live processed-watermark advancement are checked separately",
     "sourceHeightWitness": "If the separately polled Envio source height trails committed progress, preserve the original cutoff and seek at most three later source observations 200 ms apart; changed coverage, regression, or failure to cover that cutoff is an error",
     "missingData": "Explicit null, degraded status, or HTTP 503; never a fabricated zero",
-    "marks": "Positive finite native prices, one mark per market, age strictly below 60000 ms, no future block or timestamp; same-block log cutoffs require matching block hash and log index at or before the cutoff",
+    "marks": "Positive finite native prices, one mark per market, age strictly below 60000 ms, no future block or timestamp; same-block log cutoffs require matching block hash and log index at or before the cutoff. Live wallet accounting treats a mark at or beyond the age limit as unavailable for that position (null mark-derived facts, a position warning and a risk-input-unavailable signal) and serves other positions; integrity violations still fail the refresh. Fixture protocol metrics still require eligible marks",
     "restContext": "Sanitized public metadata observation only; composite REST state does not prove mark freshness or an exact log cutoff and never enters canonical accounting",
     "registry": "Valid contract identities, scales at most 18, consistent exclusions, and maintenance fraction at least the initial fraction, both above 100 hundredths",
     "ranges": "Block selectors must lie within processed coverage and the selected as-of cutoff",

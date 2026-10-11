@@ -366,6 +366,8 @@ struct PositionView {
     last_event_id: String,
     #[serde(default)]
     funding_checkpoint: Option<Value>,
+    #[serde(default)]
+    warnings: Vec<String>,
 }
 
 impl PositionView {
@@ -628,8 +630,8 @@ fn position_signals(
             score: Decimal::ZERO,
             basis: "coverage",
             title: format!("{label}: as-of mark unavailable"),
-            explanation: "No eligible canonical mark exists at the cutoff, so price PnL, drawdown, leverage and liquidation distance are unavailable.".to_string(),
-            inputs: json!({"missing": "mark-unavailable"}),
+            explanation: "No eligible canonical mark exists at the cutoff (missing, or 60 seconds or older), so price PnL, drawdown, leverage and liquidation distance are unavailable.".to_string(),
+            inputs: json!({"missing": "mark-unavailable", "reasons": p.warnings}),
             evidence: position_evidence,
         });
         return Ok(());

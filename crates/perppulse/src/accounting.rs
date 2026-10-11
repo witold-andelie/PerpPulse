@@ -26,7 +26,9 @@ fn div(a: Decimal, b: Decimal, name: &str) -> Result<Decimal> {
         .ok_or_else(|| DataQualityError::msg(format!("{name} overflow or zero denominator")))
 }
 
-fn validate_mark(mark: &MarketMark, as_of: &AsOf, market: &MarketSpec) -> Result<()> {
+/// Integrity of one mark at the cutoff: timing, block identity, sign and
+/// range. A violation means inconsistent input and always fails visibly.
+fn validate_mark_integrity(mark: &MarketMark, as_of: &AsOf, market: &MarketSpec) -> Result<()> {
     if mark.timestamp_ms < 0
         || mark.timestamp_ms > as_of.timestamp_ms
         || mark.block_number > as_of.block_number
@@ -54,11 +56,6 @@ fn validate_mark(mark: &MarketMark, as_of: &AsOf, market: &MarketSpec) -> Result
             ));
         }
     }
-    if as_of.timestamp_ms - mark.timestamp_ms >= MAX_MARK_AGE_MS {
-        return Err(DataQualityError::msg(
-            "as-of mark is stale (60-second application limit)",
-        ));
-    }
     if mark.mark_pns <= 0 || mark.oracle_pns.is_some_and(|p| p <= 0) {
         return Err(DataQualityError::msg(
             "mark and supplied oracle prices must be positive",
@@ -67,6 +64,23 @@ fn validate_mark(mark: &MarketMark, as_of: &AsOf, market: &MarketSpec) -> Result
     from_native(mark.mark_pns, market.price_decimals, "mark")?;
     if let Some(oracle) = mark.oracle_pns {
         from_native(oracle, market.price_decimals, "oracle")?;
+    }
+    Ok(())
+}
+
+/// Age of a mark at or beyond the application limit; `None` when it is fresh.
+/// Saturating, because callers may ask before the integrity checks run.
+fn stale_mark_age(mark: &MarketMark, as_of: &AsOf) -> Option<i64> {
+    let age = as_of.timestamp_ms.saturating_sub(mark.timestamp_ms);
+    (age >= MAX_MARK_AGE_MS).then_some(age)
+}
+
+fn validate_mark(mark: &MarketMark, as_of: &AsOf, market: &MarketSpec) -> Result<()> {
+    validate_mark_integrity(mark, as_of, market)?;
+    if stale_mark_age(mark, as_of).is_some() {
+        return Err(DataQualityError::msg(
+            "as-of mark is stale (60-second application limit)",
+        ));
     }
     Ok(())
 }
@@ -172,7 +186,7 @@ pub fn account_wallet(
         } else if position.is_open() {
             missing_price_pnl = true;
             warnings.push(format!(
-                "unrealized PnL unavailable for {} because mark data is missing",
+                "unrealized PnL unavailable for {} because no eligible as-of mark is available",
                 snap.symbol
             ));
         }
@@ -345,6 +359,15 @@ pub fn position_snapshot(
                     return Err(DataQualityError::msg(message));
                 }
                 warnings.push(message);
+            }
+            Some(mark) if !require_marks && stale_mark_age(mark, as_of).is_some() => {
+                // Only staleness degrades: integrity failures still reject the input.
+                validate_mark_integrity(mark, as_of, market)?;
+                let age = stale_mark_age(mark, as_of).unwrap_or(MAX_MARK_AGE_MS);
+                warnings.push(format!(
+                    "as-of mark for perpetual {} is stale: {age} ms old at block {} (60-second application limit); mark-derived facts are unavailable",
+                    position.position_id.perpetual_id, as_of.block_number
+                ));
             }
             Some(mark) => {
                 validate_mark(mark, as_of, market)?;

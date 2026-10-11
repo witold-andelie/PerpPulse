@@ -7,8 +7,8 @@ Nansen bounty is not pursued.
   or CI.
 - The optional common-label adapter, the `--nansen-max-requests` option, the
   `/api/context` route and the comparison label filter were removed. Wallet
-  comparison is now `snapshot-cohort-v2` under methodology v9; its statistics,
-  percentiles and overlap are unchanged.
+  comparison is now `snapshot-cohort-v2`, introduced in methodology v9; its
+  statistics, percentiles and overlap are unchanged.
 - No live Nansen request was ever made by this project. Earlier verification
   records that mention the adapter describe mock-only checks at their own
   revisions.

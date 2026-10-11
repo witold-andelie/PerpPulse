@@ -565,13 +565,46 @@ fn market_inputs_reject_lookahead_wrong_scope_malformed_funding_and_regression()
         "future-log",
         "foreign-market",
         "legacy-mark",
-        "stale",
         "malformed-funding",
         "regression",
     ] {
         let server = market_mock(failure);
         assert!(fetch_snapshot(&config(&server)).is_err(), "{failure}");
     }
+}
+
+#[test]
+fn stale_v3_mark_degrades_its_position_instead_of_failing_the_snapshot() {
+    // Exactly 60 seconds old: ineligible, with intact block and log identity.
+    let server = market_mock("stale");
+    let snapshot = fetch_snapshot(&config(&server)).unwrap();
+    let wallet = &snapshot.wallets[0];
+    let p = &wallet["positions"][0];
+    assert_eq!(wallet["quality"], "marks-unavailable");
+    assert_eq!(p["status"], "open");
+    assert_eq!(p["riskStatus"], "marks-unavailable");
+    assert!(p["mark"].is_null());
+    assert!(p["markEventId"].is_null());
+    assert!(p["unrealizedPricePnl"].is_null());
+    assert!(p["notionalValue"].is_null());
+    assert!(p["warnings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|w| w.as_str().unwrap().contains("is stale: 60000 ms old")));
+    // The stale input stays hashed, and the gap is a visible warning signal.
+    assert!(snapshot.manifest["marketMarksHash"].is_string());
+    let signal = snapshot.signals["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["ruleId"] == "risk-input-unavailable")
+        .unwrap();
+    assert_eq!(signal["severity"], "warning");
+    assert!(signal["inputs"]["reasons"][0]
+        .as_str()
+        .unwrap()
+        .contains("stale"));
 }
 
 #[test]

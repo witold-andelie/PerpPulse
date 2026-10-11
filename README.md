@@ -8,8 +8,9 @@ PerpPulse turns Perpl market state and Envio-indexed onchain events into a small
 > label adapter, `--nansen-max-requests`, `/api/context` and the comparison
 > label filter are removed; the methodology is now v9 and wallet comparison is
 > `snapshot-cohort-v2` (same statistics, percentiles and overlap, no labels).
-> The Nansen bounty is not pursued. See the
-> [audit record](docs/verification-2026-10-11-audit.md).
+> The Nansen bounty is not pursued. Methodology v10 then degrades a stale live
+> mark to an unavailable position fact instead of failing the whole refresh.
+> See the [audit record](docs/verification-2026-10-11-audit.md).
 
 > 2026-10-07 update: the dashboard is now signal-first. Rule-hashed risk
 > signals (funded liquidation distance, collateral drawdown, leverage
@@ -277,8 +278,11 @@ VVV (70), NEAR (100), and UNI (110) beyond the September fixture registry.
 The observation does not update the canonical registry or supply accounting
 marks. Composite REST timestamps do not prove mark-update freshness or the
 ledger's exact log cutoff. Accounting requires positive finite marks younger
-than 60 seconds; duplicate, future, stale, and ambiguous same-block marks are
-rejected. The 60-second application limit is conservative and still requires
+than 60 seconds; duplicate, future, non-positive and ambiguous same-block marks
+are rejected. Since methodology v10, a live mark 60 seconds or older makes only
+that position's mark-derived facts unavailable, with a warning and a
+risk-input-unavailable signal, instead of failing the whole refresh. The
+60-second application limit is conservative and still requires
 comparison with the live protocol's exact-cutoff limits. Same-block log cutoffs
 require the matching block hash and a mark log at or before the selected cutoff.
 The September registry remains a frozen golden-fixture input. The dated registry

@@ -6,9 +6,9 @@ The owner supplied the authenticated bounty text on 2026-10-02 and the
 outstanding operating proof. The browsing tool could not read the linked page;
 its current contents and revision are not independently verified. Source
 identity and access limits are retained in the
-[catalog record](evidence/bounty-sources-2026-10-03.json). The separately supplied
-[Perpl task](perpl-bounty.md) requires trading outside the chosen read-only
-scope. The [Nansen bounty](nansen-bounty.md) was withdrawn on 2026-10-11.
+[catalog record](evidence/bounty-sources-2026-10-03.json). Since 2026-10-11 this
+is the only sponsor bounty PerpPulse enters: the owner decided not to enter the
+[Perpl bounty](perpl-bounty.md) and withdrew the [Nansen bounty](nansen-bounty.md).
 
 ## Eligibility and deliverables
 

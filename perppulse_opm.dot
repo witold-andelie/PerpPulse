@@ -27,7 +27,7 @@ digraph PerpPulseOPM {
     fontname="Microsoft YaHei",
     fontsize=16,
     labelloc=t,
-    label="PerpPulse — Real-Time Protocol-to-Wallet Risk Intelligence on Monad\nPrimary: Onchain Finance & Trading | Bounties: Perpl Analytics/Risk + Envio"
+    label="PerpPulse — Real-Time Protocol-to-Wallet Risk Intelligence on Monad\nPrimary: Onchain Finance & Trading | Bounty: Envio only"
   ];
 
   node [
@@ -55,7 +55,7 @@ digraph PerpPulseOPM {
   implementation_status [
     shape=note,
     fillcolor="#E8F8EE",
-    label="Verified Local Implementation · 2026-10-11\nFixture web/API + bounded live Envio account serving + v3 marks/covered funding\nProtocol analytics: 24h/7d/30d/coverage windows + deployment-history OI/collateral/skew\nRule-hashed risk signals + mark-shock stress + snapshot wallet comparison\nCompact PostgreSQL snapshots + hashed range manifests + same-cutoff quarantine\nPending: mainnet global backfill, cloud deployment, hosted public demo\nNansen withdrawn by owner decision; no third-party enrichment"
+    label="Verified Local Implementation · 2026-10-11\nFixture web/API + bounded live Envio account serving + v3 marks/covered funding\nProtocol analytics: 24h/7d/30d/coverage windows + deployment-history OI/collateral/skew\nRule-hashed risk signals + mark-shock stress + snapshot wallet comparison\nCompact PostgreSQL snapshots + hashed range manifests + same-cutoff quarantine\nPending: mainnet global backfill, cloud deployment, hosted public demo\nNansen withdrawn by owner decision; no third-party enrichment\nSponsor bounty: Envio only; Perpl bounty not entered"
   ];
   implementation_status -> query_api [style=dashed, label="implemented local surface"];
   implementation_status -> evidence_manifest [style=dashed, label="implemented range evidence"];

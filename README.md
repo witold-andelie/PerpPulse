@@ -10,6 +10,8 @@ PerpPulse turns Perpl market state and Envio-indexed onchain events into a small
 > `snapshot-cohort-v2` (same statistics, percentiles and overlap, no labels).
 > The Nansen bounty is not pursued. Methodology v10 then degrades a stale live
 > mark to an unavailable position fact instead of failing the whole refresh.
+> Best Use of Envio is now the only sponsor bounty entered; the Perpl bounty is
+> not entered.
 > See the [audit record](docs/verification-2026-10-11-audit.md).
 
 > 2026-10-07 update: the dashboard is now signal-first. Rule-hashed risk
@@ -61,13 +63,14 @@ PerpPulse turns Perpl market state and Envio-indexed onchain events into a small
 ## Competition fit
 
 - Primary track: Onchain Finance & Trading
-- Perpl: analytics/risk target; an applicable read-only bounty remains unconfirmed
-- Envio bounty: Best Use of Envio
+- Sponsor bounty: Best Use of Envio (the only one entered)
 
-The owner-supplied [Perpl task](docs/perpl-bounty.md) requires trading activity
-and is outside the retained read-only scope. [Envio](docs/envio-bounty.md)
-requirements are mapped to remaining live evidence. The Nansen bounty was
-withdrawn on 2026-10-11 and no Nansen data or API is used.
+[Envio](docs/envio-bounty.md) requirements are mapped to remaining live
+evidence. On 2026-10-11 the owner decided not to enter the
+[Perpl bounty](docs/perpl-bounty.md), whose supplied task requires trading
+activity outside the read-only scope, and withdrew the
+[Nansen bounty](docs/nansen-bounty.md); no Nansen data or API is used. Perpl
+stays the analyzed protocol and its SDK stays the reconciliation reference.
 
 The product is read-only. It does not place orders, request private keys, or present AI-generated numbers as financial facts.
 

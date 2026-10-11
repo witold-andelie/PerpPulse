@@ -102,3 +102,14 @@ After reviewing the first item above, the owner chose degradation. Under
 | Extended `marks_reject_staleness_nonpositive_values_duplicates_and_log_lookahead` | Required marks still reject staleness; non-required marks degrade staleness but reject a stale non-positive mark and a future mark. Failed against the previous code |
 | `cargo test --locked` | 104 passed, one disposable PostgreSQL test ignored locally |
 | Format, Clippy, policy, `git diff --check`, documentation links, browser checks | Passed; see the publication commit's CI for the PostgreSQL round trip |
+
+## Follow-up owner decision: Envio is the only sponsor bounty
+
+The owner decided not to enter the Perpl bounty. The text supplied on
+2026-10-02 requires a trading bot with real onchain trading activity, which the
+read-only scope excludes, and no analytics or risk-tool Perpl task was
+confirmed. Best Use of Envio is the only sponsor bounty entered; the
+main-competition track stays Onchain Finance & Trading. No code changed: Perpl
+remains the analyzed protocol and its SDK remains the reconciliation reference.
+[`perpl-bounty.md`](perpl-bounty.md), the README, the Envio and submission
+checklists and the OPM model record the decision.

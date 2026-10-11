@@ -1,4 +1,14 @@
-# Perpl bounty scope decision
+# Perpl bounty: not entered
+
+On 2026-10-11 the owner decided not to enter the Perpl bounty. Best Use of
+Envio is the only sponsor bounty PerpPulse pursues; the main-competition track
+stays Onchain Finance & Trading. Perpl remains the protocol PerpPulse analyzes,
+and independent Perpl SDK reconciliation remains a correctness requirement.
+No trading code, orders, custody or private keys are added.
+
+The record below explains the earlier scope decision and is kept for history.
+
+## Earlier scope decision
 
 The owner supplied a Perpl trading-bot bounty description on 2026-10-02 and the
 [Perpl catalog URL](https://hackathon.monad.xyz/tracks/best-use-of-perpl-s-api)
@@ -18,15 +28,6 @@ PerpPulse does not qualify for the supplied trading-bot requirement, and no
 orders, custody, private keys or trading automation will be added under the
 current scope. The product's analytics target must not be presented as a
 confirmed available Perpl bounty.
-
-## Remaining discovery
-
-- Obtain the official title, URL and current contents of any Perpl analytics or
-  risk-tool bounty before claiming eligibility.
-- If no such bounty exists, continue the read-only product for Envio and the
-  main track. Nansen was withdrawn on 2026-10-11.
-- Keep independent Perpl SDK reconciliation as a correctness requirement for the
-  product, regardless of sponsor availability.
 
 The supplied resource list points to [developer documentation](https://docs.perpl.xyz/resources/for-developers),
 the [dex-sdk](https://github.com/PerplFoundation/dex-sdk), and

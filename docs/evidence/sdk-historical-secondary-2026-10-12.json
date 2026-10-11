@@ -1,0 +1,531 @@
+{
+  "asOfBlock": 89210000,
+  "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+  "asOfLogIndex": null,
+  "asOfTimestampMs": 1784638189000,
+  "canonicalManifests": [
+    {
+      "accountId": 4198,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "canonicalInputsHash": "sha256:c5becaab7545d1e5db52b6d07f1648fa183d8cc557420adbbc55d746300516ce",
+      "chainId": 143,
+      "eventCount": 54,
+      "firstEventId": "143:0xace484b880833ae44e72a5763de3704de55d993da51c1dbcc11657d250fe846b:0x8e872f08711b15ad6c2528cec715f591fae655af3a784ec7a2baf0b491efd4c9:84",
+      "lastEventId": "143:0x9303af5d63506c64e504bc16a40d3d2a06bb591d76149c1952e082d03c463b82:0x4da4e145bba7efba372555170e9bacde64dda222a3597a7ed7a0c8ae41515dd8:135",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "marketMarksHash": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "methodologyHash": "sha256:0c2de63659606577aaa6111c7883c7c631b3f86c314b2aa4ba28a220afcb0264",
+      "observedIsReady": false,
+      "observedSourceBlock": 112580583,
+      "orderedEventIdsHash": "sha256:1a84a4fee8429343195525772d7edeb59659953d4a4642431cb19748c884a74e",
+      "processedBlock": 89210000,
+      "provenanceTuples": [
+        [
+          "canonical-event-v5",
+          "envio-handlers-v5",
+          "exchange-classifier-v4",
+          "risk-hotpath-v3",
+          "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:7f1194cd58fbd53292d8fa1898fe5042a4eed23fd988fdad7f7ba04af4da1938",
+        "role": "external verifier",
+        "scope": "Requested position state; enabled diagnostics separately compare marks, price PnL and eligible funding checkpoints. Unknown funding is explicitly unverified; lifetime totals and balances remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:d2f960f15fda5a13f19052d24f431736b7c9360c42ea61617d2ae64da98b8bb8",
+      "source": "envio-mainnet-archive",
+      "startBlock": 89200000,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 4199,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "canonicalInputsHash": "sha256:5cdceb2de567d896fd6261393d0aca5ed17143261334675f4408585bb0ba15c4",
+      "chainId": 143,
+      "eventCount": 26,
+      "firstEventId": "143:0x5025e43e71c0034f9ad9609c4937a4ae9e746ad22898787927a045124f0b30a7:0xfa001534c6161244bbf885c4830a1d62c5cb98da7c7cd21d590d1466b1dab2ea:1",
+      "lastEventId": "143:0xb0d7c2d84df507c4093a7601e6a73471a594de98d99f511a95bb057e29ec8de6:0x5f031071cac1f7fe86a44cc615cfb9296d7f3104e42d6ef14c90ada8f39be531:65",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "marketMarksHash": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "methodologyHash": "sha256:0c2de63659606577aaa6111c7883c7c631b3f86c314b2aa4ba28a220afcb0264",
+      "observedIsReady": false,
+      "observedSourceBlock": 112580583,
+      "orderedEventIdsHash": "sha256:fce7edc6e77fac0a9eb75fa37b17a1a15e261fdeb029d9c5b926970dbd4705be",
+      "processedBlock": 89210000,
+      "provenanceTuples": [
+        [
+          "canonical-event-v5",
+          "envio-handlers-v5",
+          "exchange-classifier-v4",
+          "risk-hotpath-v3",
+          "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:3c9d975ceefc1e943c74d7ce57f56033d4ad6006bbe5d7421a7b1ab73c275d26",
+        "role": "external verifier",
+        "scope": "Requested position state; enabled diagnostics separately compare marks, price PnL and eligible funding checkpoints. Unknown funding is explicitly unverified; lifetime totals and balances remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:d2f960f15fda5a13f19052d24f431736b7c9360c42ea61617d2ae64da98b8bb8",
+      "source": "envio-mainnet-archive",
+      "startBlock": 89200000,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 4200,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "canonicalInputsHash": "sha256:0f30656d5a61fa09ea7d1361c60b462bc470841abb893864e7f6e21cbf94997d",
+      "chainId": 143,
+      "eventCount": 56,
+      "firstEventId": "143:0x9fbc87f3bdec3512ce923f0b1147f57d1d4b4c08e7a0834b959eba8957358962:0xf0d3c323c4136e9b13d6d5fe59b15978cbc18f1b962bcb71fdc7c27471eeb742:1",
+      "lastEventId": "143:0x80c775300b47fe6a10701f76792546d693e0af147f88d94ab2754c925c67e043:0x5a85013a0d6491cd46a93ff54ebb94eaf692f4f07238b1d5c322d7e7293d45ec:49",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "marketMarksHash": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "methodologyHash": "sha256:0c2de63659606577aaa6111c7883c7c631b3f86c314b2aa4ba28a220afcb0264",
+      "observedIsReady": false,
+      "observedSourceBlock": 112580583,
+      "orderedEventIdsHash": "sha256:09a7b9b5dc2fa314e0b6eefc81305b95e7c28bf30bd2ba1325f7e68ae84ea333",
+      "processedBlock": 89210000,
+      "provenanceTuples": [
+        [
+          "canonical-event-v5",
+          "envio-handlers-v5",
+          "exchange-classifier-v4",
+          "risk-hotpath-v3",
+          "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:00c5feb9f907484520a907bea3dd32b915010c8707d8250a703ec86fd9f17629",
+        "role": "external verifier",
+        "scope": "Requested position state; enabled diagnostics separately compare marks, price PnL and eligible funding checkpoints. Unknown funding is explicitly unverified; lifetime totals and balances remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:d2f960f15fda5a13f19052d24f431736b7c9360c42ea61617d2ae64da98b8bb8",
+      "source": "envio-mainnet-archive",
+      "startBlock": 89200000,
+      "version": "range-manifest-v1"
+    },
+    {
+      "accountId": 4201,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "canonicalInputsHash": "sha256:9069f45940f53bfe2e1c20c78cc9a3d2b2fd31ee70e8187d7c7af937ce2492c5",
+      "chainId": 143,
+      "eventCount": 6,
+      "firstEventId": "143:0xd2c6867240cffa2a4d5e1ededef5602234476397ad62983e4900524008718bf4:0xdbf39db43df9f14d3b78dc713537b63714f1e747bd42d63d4cf3794f37262560:84",
+      "lastEventId": "143:0xa360a0c9fd6969658e8d83e0eaefec20c7bfe3702bc6a47084605a46bcacd581:0x7d26acc21159511334e01c60018505cb7440617705946cf1dc5a7f94fff14a69:211",
+      "limitations": [
+        "Coverage is processed-chain evidence, not an independent reorg or completeness certificate.",
+        "Fixture inputs are synthetic and are never evidence of live mainnet operation."
+      ],
+      "marketMarksHash": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "methodologyHash": "sha256:0c2de63659606577aaa6111c7883c7c631b3f86c314b2aa4ba28a220afcb0264",
+      "observedIsReady": false,
+      "observedSourceBlock": 112580583,
+      "orderedEventIdsHash": "sha256:ed92acb416598a05501d1545dfcbde362bf03380f8d8363ec09aa26b2d26769f",
+      "processedBlock": 89210000,
+      "provenanceTuples": [
+        [
+          "canonical-event-v5",
+          "envio-handlers-v5",
+          "exchange-classifier-v4",
+          "risk-hotpath-v3",
+          "sha256:8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+        ]
+      ],
+      "reconciliation": {
+        "accountTotalsStatus": "unverified",
+        "positionsStatus": "matched",
+        "referenceHash": "sha256:e465895c099a07d776645325e8b53d618522cc33195c077d4b70f6f7048b9bd7",
+        "role": "external verifier",
+        "scope": "Requested position state; enabled diagnostics separately compare marks, price PnL and eligible funding checkpoints. Unknown funding is explicitly unverified; lifetime totals and balances remain unverified.",
+        "status": "partially-verified"
+      },
+      "registryHash": "sha256:d2f960f15fda5a13f19052d24f431736b7c9360c42ea61617d2ae64da98b8bb8",
+      "source": "envio-mainnet-archive",
+      "startBlock": 89200000,
+      "version": "range-manifest-v1"
+    }
+  ],
+  "chainId": 143,
+  "fundingScorecards": [],
+  "fundingTimelines": [],
+  "limitations": [
+    "SDK calls pin the block number; its header hash is checked before and after acquisition, not EIP-1898 on every call.",
+    "Completeness is restricted to the selected markets and covered account histories.",
+    "Lifetime totals, balances and live freshness are not verified. Funding and funded risk are verified only for nonempty matched funding scorecards; unverified checkpoints remain unknown."
+  ],
+  "marketInputEventCount": 0,
+  "marketInputsHash": null,
+  "marketObservations": [
+    {
+      "initialMarginInverse": "8",
+      "maintenanceMarginInverse": "15",
+      "markPrice": "543.42",
+      "markTimestampSeconds": 1784638157,
+      "perpetualId": 50,
+      "priceDecimals": 2,
+      "priceMaxAgeSeconds": 60,
+      "role": "reference observation; not adopted into canonical risk accounting",
+      "sdkMarkObsolete": false,
+      "sizeDecimals": 4,
+      "symbol": "ZEC"
+    }
+  ],
+  "marketScorecards": [],
+  "mode": "historical-end-of-block",
+  "referenceHash": "sha256:70043d22fdc1c09656a6aefc7732e2002bdce83d109a80c609093c47a0071d00",
+  "references": [
+    {
+      "accountId": 4198,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        50
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 50,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 4199,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        50
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 50,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 4200,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        50
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 50,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    },
+    {
+      "accountId": 4201,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "chainId": 143,
+      "execution": "SnapshotBuilder::build",
+      "fees": null,
+      "freeBalance": null,
+      "marketIds": [
+        50
+      ],
+      "positionSnapshotComplete": true,
+      "positions": [
+        {
+          "deposit": "0",
+          "entryPrice": null,
+          "perpetualId": 50,
+          "side": null,
+          "size": "0",
+          "status": "closed"
+        }
+      ],
+      "realizedFunding": null,
+      "realizedPnl": null,
+      "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+      "source": "perpl-dex-sdk"
+    }
+  ],
+  "riskReferences": [],
+  "riskScorecards": [],
+  "scorecards": [
+    {
+      "accountId": 4198,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 50,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 50,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 50,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [
+        1
+      ],
+      "marketIds": [
+        50
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v2-sdk-width"
+    },
+    {
+      "accountId": 4199,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 50,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 50,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 50,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [
+        1,
+        20
+      ],
+      "marketIds": [
+        50
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v2-sdk-width"
+    },
+    {
+      "accountId": 4200,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 50,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 50,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 50,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [
+        1,
+        20
+      ],
+      "marketIds": [
+        50
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v2-sdk-width"
+    },
+    {
+      "accountId": 4201,
+      "asOfBlock": 89210000,
+      "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+      "asOfLogIndex": null,
+      "asOfTimestampMs": 1784638189000,
+      "chainId": 143,
+      "checks": [
+        {
+          "canonical": "closed",
+          "field": "status",
+          "perpetualId": 50,
+          "reference": "closed",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "size",
+          "perpetualId": 50,
+          "reference": "0",
+          "status": "matched"
+        },
+        {
+          "canonical": "0",
+          "field": "deposit",
+          "perpetualId": 50,
+          "reference": "0",
+          "status": "matched"
+        }
+      ],
+      "excludedCanonicalMarketIds": [
+        1,
+        20
+      ],
+      "marketIds": [
+        50
+      ],
+      "scope": "Selected position status, size, deposit, side and effective entry only. Lifetime PnL, funding, fees, balances, marks and risk are unverified.",
+      "status": "matched",
+      "version": "position-reconciliation-v2-sdk-width"
+    }
+  ],
+  "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+  "status": "matched",
+  "version": "sdk-reference-execution-v1",
+  "observedAt": "2026-10-11T23:27:35.416455Z",
+  "rpcGate": {
+    "allowance": 96,
+    "requests": 26,
+    "methods": {
+      "eth_chainId": 1,
+      "eth_getBlockByNumber": 3,
+      "eth_call": 22
+    },
+    "rejections": {},
+    "rpcErrorResponses": 1,
+    "responseLimitBytes": 4194304,
+    "requestLimitBytes": 65536,
+    "overallTimeoutSeconds": 180
+  },
+  "sourceArtifacts": {
+    "crates/perppulse/src/envio.rs": "sha256:972a6da933a08a48aad65b16eae65ba87f3416b5c2c238215eb91b9b3a325f2a",
+    "crates/perppulse/src/evidence.rs": "sha256:cddb669c3a505f321821814081d0bb9ec7d549e0dbc1275d08fb23d9ef026eea",
+    "crates/perppulse/src/accounting.rs": "sha256:3ab4fcc569c48b4dd5375ab3549d121be0c5c468dab2404360c17fd18589191c",
+    "crates/perppulse/src/serve.rs": "sha256:25d75b4a0f7c7b1a25482ca481576e0a0f8d3a939fbc0ac1fe3adff74ad45943",
+    "docs/methodology.json": "sha256:1d2b8034d4ecc7350c524bc1836af7a83cdae62a880c3b2e64a2081f1653e559",
+    "crates/perppulse/src/funding.rs": "sha256:f779ee0dbdf38c0e84dadc39f65273c3b1b592b06a7ecc9791b949e90ca0c2f4",
+    "crates/perppulse/src/ledger.rs": "sha256:3b3cfa2097215a74c1e50f5d5d3f39d7e2aa1ae636c78044d3a669472ddc7bad",
+    "crates/perppulse/src/funding_checkpoint.rs": "sha256:2a1ae53bde4a931e63b03aba8729fed18071273191a652c415e07e761eab2b2d",
+    "crates/perppulse/src/lib.rs": "sha256:c279588a3c63448f3b02c04c4b9fec0ee391e87e673330f6d33305d07c78d246",
+    "crates/perppulse/src/money.rs": "sha256:08634f58049ff2424bc8f6552f3ca702531677c395d62e0eabd5009e5a0a7ce6",
+    "crates/perppulse/src/registry.rs": "sha256:2f03f355f1e8b69484d541a5bf847a55b6b2acf12bd47ab89b24e20777d8c4a3",
+    "tools/perpl-reference/src/main.rs": "sha256:1450aa0aef926ae00823f592f3c7f284930c230e158bd1b75dd38fb1afd8af01",
+    "tools/perpl-reference/Cargo.toml": "sha256:dfc09621f69a333b438bcd791f55320fb906d9ae59e049618f00e854b9b14b5b",
+    "tools/perpl-reference/Cargo.lock": "sha256:858afcbfdb9f4f19d9f7e4941ee50a42bab200557660b4d6bb2cc79b9799bb24",
+    "scripts/run_sdk_reference.py": "sha256:c76cf1ab85ae81d50031dedd23ceb84d3ab3bda8fc582043bfb09447c9f3592d"
+  },
+  "operatorBinaryHash": "sha256:68f87c30a92ee2b14aa323697ef0f874e384703e6f2000663a4190127070dcea",
+  "registryArtifactName": "mainnet-registry-block-89210000.json",
+  "registryArtifactHash": "sha256:3c884c79d48ecfdb9dd5ca5440c057de9543ce6be7ac464e38296f82106cb173"
+}

@@ -81,6 +81,30 @@ enum Command {
         #[arg(long, default_value_t = 0)]
         protocol_max_events: usize,
     },
+    /// Serve an explicitly pinned historical Envio window; never a live fallback.
+    ServeEnvioArchive {
+        #[arg(long, value_delimiter = ',', required = true)]
+        accounts: Vec<u64>,
+        #[arg(long)]
+        graphql_url: String,
+        #[arg(long, default_value = "https://rpc.monad.xyz")]
+        rpc_url: String,
+        #[arg(
+            long,
+            default_value = "fixtures/protocol/mainnet-registry-2026-10-03.json"
+        )]
+        registry: PathBuf,
+        #[arg(long)]
+        start_block: u64,
+        #[arg(long)]
+        end_block: u64,
+        #[arg(long)]
+        expected_event_count: usize,
+        #[arg(long)]
+        registry_proof: PathBuf,
+        #[arg(long, default_value = "127.0.0.1:8081")]
+        bind: String,
+    },
     /// Export a reproducible fixture manifest, optionally comparing a Perpl reference.
     Evidence {
         fixture: PathBuf,
@@ -292,6 +316,36 @@ fn run() -> Result<(), DataQualityError> {
                 },
             };
             perppulse::live::run_live(config, parse_bind(&bind)?)?;
+        }
+        Command::ServeEnvioArchive {
+            accounts,
+            graphql_url,
+            rpc_url,
+            registry,
+            start_block,
+            end_block,
+            expected_event_count,
+            registry_proof,
+            bind,
+        } => {
+            perppulse::historical::run_historical(
+                perppulse::historical::HistoricalConfig {
+                    client: EnvioClient::new(graphql_url, None, 1000, 50_000)?,
+                    registry: load_registry(resolve_repo_path(registry))?,
+                    accounts,
+                    rpc_url,
+                    start_block,
+                    end_block,
+                    expected_event_count,
+                    registry_proof: serde_json::from_slice(
+                        &std::fs::read(resolve_repo_path(registry_proof)).map_err(|_| {
+                            DataQualityError::msg("cannot read historical registry proof")
+                        })?,
+                    )
+                    .map_err(|_| DataQualityError::msg("invalid historical registry proof JSON"))?,
+                },
+                parse_bind(&bind)?,
+            )?;
         }
         Command::Evidence {
             fixture,

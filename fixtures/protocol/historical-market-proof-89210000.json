@@ -1,0 +1,85 @@
+{
+  "version": "historical-market-proof-v1",
+  "status": "matched",
+  "chainId": 143,
+  "asOfBlock": 89210000,
+  "asOfBlockHash": "0xb0c80ee5b4f9b2026930d1550f4d20cf306e82bc4847683c2d572dc720ceea19",
+  "asOfTimestampMs": 1784638189000,
+  "registryInputsHash": "sha256:d2f960f15fda5a13f19052d24f431736b7c9360c42ea61617d2ae64da98b8bb8",
+  "canonicalInputsHash": "sha256:3fcfd3d2eb3c29956936c61c276d72d5861b084f21c1f5f8c2194b32f336f7d1",
+  "collateralDecimals": 6,
+  "sdkCommit": "dbb37c59f6aef03e38d0787eb9c968f59f652617",
+  "executions": [
+    {
+      "artifact": "docs/evidence/sdk-historical-primary-2026-10-12.json",
+      "artifactHash": "sha256:afb215a68c65515e44d0365433df42dee4fc62f1b4cc2fe8c2137e1d88cdd35a",
+      "referenceHash": "sha256:cf51fb3b1ebeb0d1f6e8e8341308ab373131d492b5492cbffca99120ea24783b",
+      "operatorBinaryHash": "sha256:68f87c30a92ee2b14aa323697ef0f874e384703e6f2000663a4190127070dcea",
+      "rpcRequests": 57,
+      "rpcErrorResponses": 1,
+      "matchedPositionChecks": 66,
+      "observedAt": "2026-10-11T23:27:12.822001Z"
+    },
+    {
+      "artifact": "docs/evidence/sdk-historical-secondary-2026-10-12.json",
+      "artifactHash": "sha256:043fae0d290eb50aef5e59667c5f45adb129ceec21a2b5898e5f91169abf0c52",
+      "referenceHash": "sha256:70043d22fdc1c09656a6aefc7732e2002bdce83d109a80c609093c47a0071d00",
+      "operatorBinaryHash": "sha256:68f87c30a92ee2b14aa323697ef0f874e384703e6f2000663a4190127070dcea",
+      "rpcRequests": 26,
+      "rpcErrorResponses": 1,
+      "matchedPositionChecks": 12,
+      "observedAt": "2026-10-11T23:27:35.416455Z"
+    }
+  ],
+  "markets": [
+    {
+      "perpetualId": 1,
+      "priceDecimals": 1,
+      "sizeDecimals": 5,
+      "initMarginFracHdths": 1500,
+      "maintMarginFracHdths": 2500
+    },
+    {
+      "perpetualId": 10,
+      "priceDecimals": 6,
+      "sizeDecimals": 0,
+      "initMarginFracHdths": 1000,
+      "maintMarginFracHdths": 2000
+    },
+    {
+      "perpetualId": 20,
+      "priceDecimals": 2,
+      "sizeDecimals": 3,
+      "initMarginFracHdths": 1200,
+      "maintMarginFracHdths": 2000
+    },
+    {
+      "perpetualId": 31,
+      "priceDecimals": 3,
+      "sizeDecimals": 3,
+      "initMarginFracHdths": 1200,
+      "maintMarginFracHdths": 2000
+    },
+    {
+      "perpetualId": 40,
+      "priceDecimals": 4,
+      "sizeDecimals": 2,
+      "initMarginFracHdths": 1000,
+      "maintMarginFracHdths": 2000
+    },
+    {
+      "perpetualId": 50,
+      "priceDecimals": 2,
+      "sizeDecimals": 4,
+      "initMarginFracHdths": 800,
+      "maintMarginFracHdths": 1500
+    }
+  ],
+  "limitations": [
+    "Reviewed evidence at a fixed historical cutoff; not a live registry.",
+    "One expected getContractVersion revert in each run activates the pinned SDK legacy-contract fallback.",
+    "SDK marks, premium PnL and balances remain external reference observations, never canonical inputs.",
+    "Number-pinned calls have before/after header verification, not per-subcall EIP-1898 binding.",
+    "The registry hash includes six verified event markets; unknown markets fail closed."
+  ]
+}

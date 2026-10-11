@@ -1,0 +1,84 @@
+{
+  "network": "mainnet",
+  "chain_id": 143,
+  "chain_name": "Monad",
+  "exchange_address": "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F",
+  "collateral": {
+    "symbol": "AUSD",
+    "address": "0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a",
+    "decimals": 6
+  },
+  "deployed_at_block": 54773010,
+  "excluded_perpetuals": [
+    30
+  ],
+  "fee_scale_decimals": 5,
+  "abi_revision": "rc_v1.1.7-178-g2273779",
+  "retrieved_at": "2026-10-11T23:26:33.954712+00:00",
+  "sources": [
+    "https://github.com/PerplFoundation/dex-sdk/tree/dbb37c59f6aef03e38d0787eb9c968f59f652617",
+    "https://docs.monad.xyz/developer-essentials/network-information"
+  ],
+  "markets": [
+    {
+      "perpetual_id": 1,
+      "symbol": "BTC",
+      "price_decimals": 1,
+      "size_decimals": 5,
+      "init_margin_frac_hdths": 1500,
+      "maint_margin_frac_hdths": 2500,
+      "listed": true,
+      "notes": "Native scales and cutoff margin parameters verified by the pinned official SDK at historical block 89210000; not a live registry."
+    },
+    {
+      "perpetual_id": 10,
+      "symbol": "MON",
+      "price_decimals": 6,
+      "size_decimals": 0,
+      "init_margin_frac_hdths": 1000,
+      "maint_margin_frac_hdths": 2000,
+      "listed": true,
+      "notes": "Native scales and cutoff margin parameters verified by the pinned official SDK at historical block 89210000; not a live registry."
+    },
+    {
+      "perpetual_id": 20,
+      "symbol": "ETH",
+      "price_decimals": 2,
+      "size_decimals": 3,
+      "init_margin_frac_hdths": 1200,
+      "maint_margin_frac_hdths": 2000,
+      "listed": true,
+      "notes": "Native scales and cutoff margin parameters verified by the pinned official SDK at historical block 89210000; not a live registry."
+    },
+    {
+      "perpetual_id": 31,
+      "symbol": "SOL",
+      "price_decimals": 3,
+      "size_decimals": 3,
+      "init_margin_frac_hdths": 1200,
+      "maint_margin_frac_hdths": 2000,
+      "listed": true,
+      "notes": "Native scales and cutoff margin parameters verified by the pinned official SDK at historical block 89210000; not a live registry."
+    },
+    {
+      "perpetual_id": 40,
+      "symbol": "HYPE",
+      "price_decimals": 4,
+      "size_decimals": 2,
+      "init_margin_frac_hdths": 1000,
+      "maint_margin_frac_hdths": 2000,
+      "listed": true,
+      "notes": "Native scales and cutoff margin parameters verified by the pinned official SDK at historical block 89210000; not a live registry."
+    },
+    {
+      "perpetual_id": 50,
+      "symbol": "ZEC",
+      "price_decimals": 2,
+      "size_decimals": 4,
+      "init_margin_frac_hdths": 800,
+      "maint_margin_frac_hdths": 1500,
+      "listed": true,
+      "notes": "Native scales and cutoff margin parameters verified by the pinned official SDK at historical block 89210000; not a live registry."
+    }
+  ]
+}

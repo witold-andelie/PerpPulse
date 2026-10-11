@@ -266,6 +266,19 @@ pub fn chain_head(endpoint: &str) -> Result<u64> {
     u64::from_str_radix(value, 16).map_err(|_| DataQualityError::msg("invalid Monad head number"))
 }
 
+pub fn event_value(event: &CanonicalEvent) -> Result<Value> {
+    Ok(json!({
+        "eventId": event.event_id()?.key(), "abi": event.abi_event_name, "kind": format!("{:?}", event.kind),
+        "blockNumber": event.block_number, "blockHash": event.block_hash, "txHash": event.tx_hash,
+        "logIndex": event.log_index, "timestampMs": event.timestamp_ms, "accountId": event.account_id, "perpetualId": event.perpetual_id,
+        "markPricePns": event.mark_price_pns.map(|v| v.to_string()), "fundingEventBlock": event.funding_event_block,
+        "fundingPaymentPns": event.funding_payment_pns.map(|v| v.to_string()), "fundingSumPns": event.funding_sum_pns.map(|v| v.to_string()),
+        "fundingAllowOverwrite": event.funding_allow_overwrite, "fundingScalingExponent": event.funding_scaling_exp,
+        "provenance": event.provenance.as_ref().map(|p| json!({"schemaVersion": p.schema_version, "handlerVersion": p.handler_version,
+            "classifierVersion": p.classifier_version, "ingestionProfile": p.ingestion_profile, "abiFingerprint": p.abi_fingerprint}))
+    }))
+}
+
 pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
     if config.accounts.is_empty()
         || config.accounts.len() > 20
@@ -425,16 +438,7 @@ pub fn fetch_snapshot(config: &LiveConfig) -> Result<ApiSnapshot> {
         ));
     }
     events.sort_by_key(|e| (e.block_number, e.log_index));
-    let evidence = events.iter().map(|event| Ok(json!({
-        "eventId": event.event_id()?.key(), "abi": event.abi_event_name, "kind": format!("{:?}", event.kind),
-        "blockNumber": event.block_number, "blockHash": event.block_hash, "txHash": event.tx_hash,
-        "logIndex": event.log_index, "timestampMs": event.timestamp_ms, "accountId": event.account_id, "perpetualId": event.perpetual_id,
-        "markPricePns": event.mark_price_pns.map(|v| v.to_string()), "fundingEventBlock": event.funding_event_block,
-        "fundingPaymentPns": event.funding_payment_pns.map(|v| v.to_string()), "fundingSumPns": event.funding_sum_pns.map(|v| v.to_string()),
-        "fundingAllowOverwrite": event.funding_allow_overwrite, "fundingScalingExponent": event.funding_scaling_exp,
-        "provenance": event.provenance.as_ref().map(|p| json!({"schemaVersion": p.schema_version, "handlerVersion": p.handler_version,
-            "classifierVersion": p.classifier_version, "ingestionProfile": p.ingestion_profile, "abiFingerprint": p.abi_fingerprint}))
-    }))).collect::<Result<Vec<_>>>()?;
+    let evidence = events.iter().map(event_value).collect::<Result<Vec<_>>>()?;
     let mut manifest = manifest(
         &events,
         &as_of,

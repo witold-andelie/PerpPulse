@@ -2,6 +2,14 @@
 
 Real-time protocol-to-wallet risk intelligence for perpetual markets on Monad.
 
+> Public-release configuration (2026-10-12): [Render](render.yaml) serves a
+> clearly labeled historical Envio window, blocks 89,200,000–89,210,000,
+> containing 49,204 real Monad events. It is not a current market feed.
+> Six markets and four covered accounts drive protocol flows, risk signals,
+> wallet comparisons, stress scenarios and source-event inspection.
+> [Deployment and verification](docs/render-deployment.md) describe the
+> pinned historical registry, SDK checks and the free hosting limits.
+
 PerpPulse turns Perpl market state and Envio-indexed onchain events into a small set of traceable risk signals. A judge or trader can move from a protocol-level anomaly to the affected market, wallet, and source event without losing the selected time or as-of context.
 
 > 2026-10-11 update: the owner withdrew Nansen from the project. The optional

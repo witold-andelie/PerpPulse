@@ -634,6 +634,15 @@ pub fn run_service(
             };
             if method == "GET" {
                 let asset_path = target.split('?').next().unwrap_or(&target);
+                if asset_path == "/logo.png" {
+                    let _ = write_bytes(
+                        &mut stream,
+                        200,
+                        "image/png",
+                        include_bytes!("../../../assets/branding/perppulse-logo.png"),
+                    );
+                    return;
+                }
                 let asset = match asset_path {
                     "/" => Some((
                         "text/html; charset=utf-8",
@@ -733,13 +742,22 @@ fn write_response(
     content_type: &str,
     body: &str,
 ) -> std::io::Result<()> {
+    write_bytes(stream, status, content_type, body.as_bytes())
+}
+
+fn write_bytes(
+    stream: &mut std::net::TcpStream,
+    status: u16,
+    content_type: &str,
+    body: &[u8],
+) -> std::io::Result<()> {
     let header = format!(
         "HTTP/1.1 {status} {}\r\ncontent-type: {content_type}\r\ncontent-length: {}\r\nconnection: close\r\ncache-control: no-store\r\nx-content-type-options: nosniff\r\ncontent-security-policy: default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\r\n\r\n",
         reason(status),
         body.len()
     );
     stream.write_all(header.as_bytes())?;
-    stream.write_all(body.as_bytes())?;
+    stream.write_all(body)?;
     stream.flush()
 }
 

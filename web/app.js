@@ -22,11 +22,11 @@ async function refresh() {
     if (!response.ok) throw new Error(data.error || "Snapshot request failed");
     if (!Array.isArray(data.wallets) || !Array.isArray(data.events)) throw new Error("Invalid snapshot contract");
     snapshot = data; byId("error").hidden = true;
-    byId("status").textContent = data.mode === "fixture" ? "Synthetic fixture / deterministic replay" : (data.protocol && data.protocol.scope === "protocol" ? "Live coverage / protocol reader" : "Live coverage / limited account scope");
-    byId("mode").textContent = data.mode === "fixture" ? "FIXTURE DEMO" : (data.protocol && data.protocol.scope === "protocol" ? "LIVE PROTOCOL + WATCHLIST" : "LIVE ACCOUNT SLICE");
+    byId("status").textContent = data.mode === "fixture" ? "Synthetic fixture / deterministic replay" : (data.mode === "historical" ? "Historical Envio data / fixed block window" : (data.protocol && data.protocol.scope === "protocol" ? "Live coverage / protocol reader" : "Live coverage / limited account scope"));
+    byId("mode").textContent = data.mode === "fixture" ? "FIXTURE DEMO" : (data.mode === "historical" ? "HISTORICAL ENVIO WINDOW" : (data.protocol && data.protocol.scope === "protocol" ? "LIVE PROTOCOL + WATCHLIST" : "LIVE ACCOUNT SLICE"));
     byId("mode").className = data.mode === "live" ? "badge live" : "badge";
     byId("cutoff").textContent = `As of ${data.asOfBlock} · ${new Date(data.asOfTimestampMs).toISOString()} · coverage ${data.startBlock}–${data.processedBlock}`;
-    byId("scope").textContent = data.mode === "fixture" ? "Synthetic fixture scope" : (data.protocol && data.protocol.scope === "protocol" ? "Protocol coverage and selected accounts" : "Selected account scope");
+    byId("scope").textContent = data.mode === "fixture" ? "Synthetic fixture scope" : (data.mode === "historical" ? "Historical protocol flows and covered accounts" : (data.protocol && data.protocol.scope === "protocol" ? "Protocol coverage and selected accounts" : "Selected account scope"));
     const p = data.protocol;
     cards("metrics", [["Executed volume",p.takerVolume,"Maker fills / AUSD"],["Open interest",p.openInterest,"Mark-derived / AUSD"],["Position collateral",p.tvl,"Isolated deposits / AUSD"],["Protocol fees",p.protocolFees,"Insurance + protocol / AUSD"],["Liquidations",p.liquidations,"Covered events"],["Active accounts",p.activeAccounts,"Covered metric scope"]]);
     byId("source-note").textContent = `${data.sourceNote} ${(p.warnings || []).join(" ")}`;

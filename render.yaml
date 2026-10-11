@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: perppulse
+    runtime: docker
+    repo: https://github.com/witold-andelie/PerpPulse
+    branch: main
+    plan: free
+    region: frankfurt
+    autoDeployTrigger: off
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: PERPPULSE_SERVE_MODE
+        value: historical
+      - key: PERPPULSE_ACCOUNTS
+        value: "4198,4199,4200,4201"
+      - key: PERPPULSE_GRAPHQL_URL
+        value: https://indexer.dev.hyperindex.xyz/972db24/v1/graphql
+      - key: PERPPULSE_RPC_URL
+        value: https://rpc.monad.xyz
+      - key: PERPPULSE_REGISTRY
+        value: fixtures/protocol/mainnet-registry-block-89210000.json
+      - key: PERPPULSE_REGISTRY_PROOF
+        value: fixtures/protocol/historical-market-proof-89210000.json
+      - key: PERPPULSE_START_BLOCK
+        value: "89200000"
+      - key: PERPPULSE_END_BLOCK
+        value: "89210000"
+      - key: PERPPULSE_EVENT_COUNT
+        value: "49204"

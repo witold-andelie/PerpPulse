@@ -265,6 +265,48 @@ fn v3_row(mut value: Value) -> Value {
     value
 }
 
+#[test]
+fn whole_protocol_archive_reads_unready_data_but_never_unlocks_live_reads() {
+    let created = v3_row(row(
+        "AccountCreated",
+        0,
+        json!({"id":"42","account":"0x1111111111111111111111111111111111111111"}),
+        "ACCOUNT_CREATED",
+    ));
+    let point = json!({"id":"143:0xblock:0xtx:0","blockNumber":"54773030",
+        "blockHash":"0xblock","logIndex":0,"timestampMs":"1770000600000"});
+    let server = Mock::new(move |body| {
+        let query = body["query"].as_str().unwrap();
+        if query.contains("PerpPulseRustCoverage") {
+            json!({"data":{"_meta":[{"chainId":143,"startBlock":"54773010",
+                "progressBlock":"54773030","sourceBlock":"54774030","eventsProcessed":"1",
+                "isReady":false}],"CanonicalEvent":[point]}})
+        } else if query.contains("PerpPulseRustVerifyEvent") {
+            json!({"data":{"CanonicalEvent":[point]}})
+        } else {
+            assert_eq!(body["variables"]["endLog"], i32::MAX);
+            json!({"data":{"CanonicalEvent":[created]}})
+        }
+    });
+    let registry = perppulse::registry::load_registry(
+        perppulse::events::repo_root().join("fixtures/protocol/mainnet-registry.json"),
+    )
+    .unwrap();
+    let client = EnvioClient::new(&server.endpoint, None, 1000, 50_000).unwrap();
+    let cutoff = perppulse::AsOf::new(143, 54773030, "0xblock", 1770000600000, None).unwrap();
+    let archive = client
+        .fetch_archived_protocol_at(&registry, &cutoff, 50_000)
+        .unwrap();
+    assert_eq!(archive.events.len(), 1);
+    assert!(!archive.coverage.is_ready);
+    assert!(client
+        .read_protocol_events(&archive.coverage, &cutoff, &registry, None, 50_000)
+        .is_err());
+    assert!(client
+        .fetch_archived_protocol_at(&registry, &cutoff, 50_001)
+        .is_err());
+}
+
 fn market_mock(failure: &'static str) -> Mock {
     market_mock_with(failure, Arc::new(std::sync::Mutex::new(Vec::new())))
 }

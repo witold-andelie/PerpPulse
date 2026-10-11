@@ -1,5 +1,5 @@
 {
-  "version": "perppulse-methodology-v10",
+  "version": "perppulse-methodology-v11",
   "safety": "read-only",
   "canonicalSource": "Monad Exchange lifecycle events indexed by Envio",
   "verifier": "Perpl dex-sdk at an identical chain, block hash, log cutoff, and timestamp",
@@ -28,6 +28,7 @@
     "sdkFundedRiskComparison": "Verifier only: project price and funding separately to collateral native units before adding total PnL/equity, because the SDK loads deltaPnlCNS and premiumPnlCNS separately. Buffer uses SDK-width canonical entry-based maintenance. Preserve exact canonical values alongside these projections; liquidation is compared at price ticks. Unknown funding scorecards contain zero checks and remain unverified"
   },
   "eligibility": {
+    "historicalServing": "Explicit fixed-window mode only, with a pinned start/end and at most 50000 events. Independent start/end block headers are checked before and after acquisition. Historical data never certifies current freshness or relaxes live readiness checks. Source availability and immutable anchors are rechecked; expired verification or unavailable sources clear the served snapshot, and changed pinned facts quarantine it. Protocol state remains unavailable without deployment history; accounts still require observed birth or deployment coverage.",
     "positionReplay": "Exact risk-hotpath-v2 or risk-hotpath-v3 provenance and coverage from deployment or account creation; mixed profiles fail",
     "cutoff": "One immutable event cutoff shared across all selected accounts",
     "freshness": "Indexer source lag, observation age, and live processed-watermark advancement are checked separately",

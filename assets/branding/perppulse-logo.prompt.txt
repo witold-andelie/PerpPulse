@@ -1,0 +1,9 @@
+Use case: logo-brand.
+Asset type: final project logo for the PerpPulse hackathon submission, one square image, intended 1024 x 1024 pixels.
+Primary request: Design an original, polished identity for PerpPulse, a read-only onchain perpetual-market risk intelligence dashboard.
+Scene/backdrop: perfectly flat solid deep navy #0b1119, edge to edge, opaque.
+Subject: a bold geometric capital P emblem, with a crisp angular market-pulse zigzag incorporated into its negative space. The P should have an unmistakable strong silhouette, an upright stem and a sculpted squared loop, expertly balanced proportions, thick clean edges, simple geometry, memorable even at a small thumbnail size. Mint green #66e6bd emblem. This is a finance/data pulse, not a medical symbol.
+Style/medium: extremely clean flat graphic logo, vector-like precision rendered as a raster image, premium understated financial software identity. No decorative flourish, no texture, no gradients, no glow, no 3D, no shadows, no mockup.
+Composition/framing: single centered emblem above a centered compact wordmark, spacious deliberate negative space, emblem about half the canvas width, comfortable exterior margins, carefully balanced vertical stack.
+Text (verbatim): "PerpPulse". Spell P-e-r-p-P-u-l-s-e, exact capitalization. Only this text, in off-white #e7edf3, bold contemporary geometric sans-serif, beautifully typeset and very legible, beneath the emblem. No slogan or other letters.
+Constraints: one finished logo, square, flat three-color artwork, actual 1024 x 1024 output if possible, both dimensions between 500 and 2000 pixels, sharp crisp typography and edges. Use an efficient PNG or WEBP output below 2 MB if possible. Do not use the Monad, Envio, Nansen or Perpl logo, and do not add coins, candlesticks, axes, grids, tiny labels, watermarks or a presentation board.

@@ -714,7 +714,37 @@ impl EnvioClient {
         after: Option<(u64, u32)>,
         budget: usize,
     ) -> Result<Vec<CanonicalEvent>> {
-        if !coverage.is_ready
+        self.read_protocol_scope((coverage, as_of), registry, after, budget, false)
+    }
+
+    /// Explicit whole-block historical protocol read; never a live fallback.
+    /// The caller independently verifies the cutoff header before and after acquisition.
+    pub fn fetch_archived_protocol_at(
+        &self,
+        registry: &ProtocolRegistry,
+        as_of: &AsOf,
+        budget: usize,
+    ) -> Result<ProtocolEventSlice> {
+        if as_of.log_index.is_some() || budget == 0 || budget > 50_000 {
+            return Err(DataQualityError::msg(
+                "historical protocol read requires a whole block and a 1..50000 event budget",
+            ));
+        }
+        let coverage = self.archived_coverage(as_of)?;
+        let events = self.read_protocol_scope((&coverage, as_of), registry, None, budget, true)?;
+        Ok(ProtocolEventSlice { coverage, events })
+    }
+
+    fn read_protocol_scope(
+        &self,
+        scope: (&EnvioCoverage, &AsOf),
+        registry: &ProtocolRegistry,
+        after: Option<(u64, u32)>,
+        budget: usize,
+        historical: bool,
+    ) -> Result<Vec<CanonicalEvent>> {
+        let (coverage, as_of) = scope;
+        if (!historical && !coverage.is_ready)
             || as_of.chain_id == 0
             || as_of.chain_id > i32::MAX as u64
             || as_of.chain_id != coverage.evidence.chain_id
@@ -798,7 +828,11 @@ impl EnvioClient {
             }
         }
         self.verify_event(&coverage.latest_event)?;
-        let final_coverage = self.fetch_coverage(as_of.chain_id)?;
+        let final_coverage = if historical {
+            self.archived_coverage(as_of)?
+        } else {
+            self.fetch_coverage(as_of.chain_id)?
+        };
         if final_coverage.evidence.start_block != coverage.evidence.start_block
             || final_coverage.evidence.processed_block < coverage.evidence.processed_block
             || final_coverage.source_block < coverage.source_block
@@ -1078,6 +1112,12 @@ struct ProtocolVariables {
 pub struct MarketEventSlice {
     pub events: Vec<CanonicalEvent>,
     pub missing_markets: Vec<u32>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ProtocolEventSlice {
+    pub coverage: EnvioCoverage,
+    pub events: Vec<CanonicalEvent>,
 }
 
 #[derive(Serialize)]

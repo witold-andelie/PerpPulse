@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "envio-free-window-v1",
+  "observedAt": "2026-10-11T21:38:12.244404+00:00",
+  "chainId": 143,
+  "startBlock": 89200000,
+  "endBlock": 89210000,
+  "canonicalEventCount": 49204,
+  "safetyBudget": 50000,
+  "freePlanEventThreshold": 100000,
+  "source": {
+    "endpoint": "https://indexer.dev.hyperindex.xyz/bfd9fc7/v1/graphql",
+    "deploymentCommit": "e0969fe1b159165bafc08bafe2a37e8dd1168565",
+    "ingestionProfile": "risk-hotpath-v3",
+    "schemaVersion": "canonical-event-v5",
+    "handlerVersion": "envio-handlers-v5"
+  },
+  "eventsByType": {
+    "AccountCreated": 8,
+    "CollateralDeposit": 16,
+    "CollateralWithdrawal": 13,
+    "FundingEventCompleted": 6,
+    "IncreasePositionCollateral": 10,
+    "MakerOrderFilled": 19738,
+    "MarkUpdated": 1344,
+    "PositionClosed": 5623,
+    "PositionDecreased": 6504,
+    "PositionIncreasedV2": 9588,
+    "PositionInverted": 740,
+    "PositionLiquidated": 1,
+    "PositionOpenedV2": 5613
+  },
+  "firstEvent": {
+    "blockNumber": "89200000",
+    "logIndex": 91,
+    "blockHash": "0x814b572e69b1a13fe577a5ce05f53bf9e2df7a21ac80f6a8da6a6c144c9c95c6",
+    "timestampMs": "1784634181000",
+    "ingestionProfile": "risk-hotpath-v3",
+    "schemaVersion": "canonical-event-v5",
+    "handlerVersion": "envio-handlers-v5"
+  },
+  "lastEvent": {
+    "blockNumber": "89209999",
+    "logIndex": 182,
+    "blockHash": "0xb2154b837f925dae3dbbbac7a09cc267ded3ca70bc7b71007d7e65087473be9a",
+    "timestampMs": "1784638189000",
+    "ingestionProfile": "risk-hotpath-v3",
+    "schemaVersion": "canonical-event-v5",
+    "handlerVersion": "envio-handlers-v5"
+  },
+  "sourceArtifactSha256": {
+    "envio/config.yaml": "f60f24ffe9b258c23c9e848f23431add5f0eb3aa29dc36a1dc95add8d87570e3",
+    "envio/schema.graphql": "014c4ef0dd71ed2bcce85df6c22e56eed1ce0543a790ded3af1e73e0dcd80fd1",
+    "envio/src/EventHandlers.ts": "4cbd31cf87f88ca5bd57d416d6f0272793c705c0546dee0fa54b7ae61fb067e7",
+    "envio/src/canonical.ts": "667021692f3ef8cb044489be753d558bf3dba9b0f4ba8553ae0bd66bc59fc3a9",
+    "envio/abis/Exchange.events.json": "8858f1c8a42836c58459ec37a89359deb015b23e0840c7f21efddf1c3b7315e6"
+  },
+  "limits": [
+    "Selected public historical count evidence, not an unredacted provider response.",
+    "One canonical row is written for each configured Exchange event.",
+    "The cloud processed-event total must be verified after deployment.",
+    "No current freshness, full-history position state or lifetime PnL is claimed.",
+    "Free hosting remains subject to storage, inactivity and maximum-age limits."
+  ]
+}

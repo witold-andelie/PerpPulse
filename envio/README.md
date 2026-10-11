@@ -15,6 +15,14 @@ ledger in `crates/perppulse` is the only position and PnL engine.
 
 Use the proxy address, not the implementation address.
 
+## Envio Cloud free demo
+
+Use `config.free.yaml` for the Development Free deployment. It has a fixed
+historical end block and a verified 49,204-event window; the full-history
+`config.yaml` is too large for that plan. See the
+[deployment scope and verification guide](../docs/envio-free-deployment.md).
+The free window is historical and must not be presented as a fresh live feed.
+
 ## Local run
 
 Envio supports Windows through WSL. Docker Desktop must be running with WSL

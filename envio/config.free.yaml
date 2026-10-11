@@ -1,0 +1,52 @@
+# Historical window only. Do not remove end_block on the free plan.
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: perppulse
+description: Fixed historical Perpl lifecycle window for the PerpPulse free demo
+rollback_on_reorg: true
+field_selection:
+  transaction_fields:
+    - hash
+  block_fields:
+    - parentHash
+contracts:
+  - name: Exchange
+    abi_file_path: abis/Exchange.events.json
+    handler: src/EventHandlers.ts
+    events:
+      - event: AccountCreated
+      - event: AccountLiquidationCredit
+      - event: CollateralDeposit
+      - event: CollateralWithdrawal
+      - event: IncreasePositionCollateral
+      - event: PositionCollateralDecreased
+      - event: PositionLiquidationCredit
+      - event: PositionOpened
+      - event: PositionOpenedV2
+      - event: PositionIncreased
+      - event: PositionIncreasedV2
+      - event: PositionDecreased
+      - event: PositionClosed
+      - event: PositionLiquidated
+      - event: PositionDeleveraged
+      - event: PositionDeleveragedV2
+      - event: PositionInverted
+      - event: PositionUnwound
+      - event: PositionUnwoundV2
+      - event: PositionUnwoundWithoutPayment
+      - event: PositionUnwoundWithoutPaymentV2
+      - event: MarkUpdated
+      - event: FundingSumScalingExpUpdated
+      - event: FundingEventCompleted
+      - event: MakerOrderFilled
+      - event: MakerOrderFilledV2
+      - event: ContractAdded
+      - event: ContractAddedV2
+      - event: TransferAccountToProtocol
+      - event: TransferProtocolToAccount
+networks:
+  - id: 143
+    start_block: 89200000
+    end_block: 89210000
+    contracts:
+      - name: Exchange
+        address: "0x34B6552d57a35a1D042CcAe1951BD1C370112a6F"

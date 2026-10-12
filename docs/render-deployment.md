@@ -6,6 +6,32 @@ or API credential is needed. The image entrypoint requires explicit
 historical environment variables; its default fixture command remains a
 synthetic local preview.
 
+Public demo: **https://perppulse.onrender.com**.
+Service `srv-db61siqjnfac73c47mug`, deployment `dep-db61sj2jnfac73c47o50`,
+application commit `1cd3425385eb514a55f8c9bbe58b869fe98ad1f3`.
+Render reported deployment live at 2026-10-11T23:42:58.744909Z.
+[Public acceptance](evidence/render-public-2026-10-12.json) records exact
+source/registry hashes and selected checks. HTTP 200 was verified without
+credentials at 2026-10-11T23:43:33.925223Z. Actual browser inspection confirmed
+the historical badge, real July cutoff, protocol flows, account switching,
+source-linked risk signals and enabled manifest export. Source-failure
+behavior was separately checked locally: HTTP 503, cleared rows and disabled
+export. This does not claim a public upstream outage was induced.
+
+Cold-start recovery was observed on 2026-10-12: a new process logged startup
+at 19:17:38.250645Z and the full 49,204-event scope at 19:17:57.678896Z.
+The independent public HTTP check at 19:18:10.630289Z matched the original
+canonical, registry and proof hashes. These are startup/read markers, not a
+complete cold-start-duration measurement. No additional manual restart was
+needed after this recovery evidence was observed.
+
+[Analytics CI](https://github.com/witold-andelie/PerpPulse/actions/runs/38185114041)
+and [publication policy](https://github.com/witold-andelie/PerpPulse/actions/runs/38185113928)
+both passed for the exact deployed commit. Rust/fresh PostgreSQL/DOT job
+114605660526, Envio job 114605660321 and pinned SDK job 114605660484 all
+succeeded. Local Rust tests, historical regressions, formatting, Clippy,
+entrypoint shell syntax and staged publication checks also passed.
+
 ## Data and financial scope
 
 Envio deployment `8ac8f338a87c94c07c9eb685bcf5e5d6fe4484e2` on `envio-free`

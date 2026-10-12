@@ -1,0 +1,124 @@
+{
+  "version": "public-deployment-acceptance-v1",
+  "recordedAt": "2026-10-12T19:21:38.375558+00:00",
+  "applicationCommit": "1cd3425385eb514a55f8c9bbe58b869fe98ad1f3",
+  "serviceId": "srv-db61siqjnfac73c47mug",
+  "deploymentId": "dep-db61sj2jnfac73c47o50",
+  "plan": "free",
+  "region": "frankfurt",
+  "autoDeploy": "no",
+  "deploymentLiveAt": "2026-10-11T23:42:58.744909Z",
+  "envioCommit": "8ac8f338a87c94c07c9eb685bcf5e5d6fe4484e2",
+  "envioBranch": "envio-free",
+  "graphqlUrl": "https://indexer.dev.hyperindex.xyz/972db24/v1/graphql",
+  "firstPublicHttp": {
+    "observedAt": "2026-10-11T23:43:33.925223+00:00",
+    "baseUrl": "https://perppulse.onrender.com",
+    "health": {
+      "asOfBlock": 89210000,
+      "chainId": 143,
+      "fixture": "Envio historical Monad window",
+      "mode": "historical",
+      "processedBlock": 89210000,
+      "product": "PerpPulse",
+      "status": "ok"
+    },
+    "eventCount": 49204,
+    "inspectableEventCount": 512,
+    "canonicalInputsHash": "sha256:3fcfd3d2eb3c29956936c61c276d72d5861b084f21c1f5f8c2194b32f336f7d1",
+    "registryInputsHash": "sha256:d2f960f15fda5a13f19052d24f431736b7c9360c42ea61617d2ae64da98b8bb8",
+    "historicalRegistryProofHash": "sha256:d6ad7049ec656b25b8e6bd25e80dcf78208166cae27b969e74a2f38080b2e2db",
+    "volume": "1953921.189425",
+    "protocolFees": "481.270924",
+    "activeAccounts": 354,
+    "checks": {
+      "historicalMode": true,
+      "sameCutoff": true,
+      "exactRealInputs": true,
+      "registryProofMatched": true,
+      "fourCoveredAccounts": true,
+      "missingGlobalStateNull": true,
+      "missingFundedRiskNull": true,
+      "writes405": true,
+      "logoPng": true
+    }
+  },
+  "resumedPublicHttp": {
+    "observedAt": "2026-10-12T19:18:10.630289+00:00",
+    "baseUrl": "https://perppulse.onrender.com",
+    "health": {
+      "asOfBlock": 89210000,
+      "chainId": 143,
+      "fixture": "Envio historical Monad window",
+      "mode": "historical",
+      "processedBlock": 89210000,
+      "product": "PerpPulse",
+      "status": "ok"
+    },
+    "eventCount": 49204,
+    "inspectableEventCount": 512,
+    "canonicalInputsHash": "sha256:3fcfd3d2eb3c29956936c61c276d72d5861b084f21c1f5f8c2194b32f336f7d1",
+    "registryInputsHash": "sha256:d2f960f15fda5a13f19052d24f431736b7c9360c42ea61617d2ae64da98b8bb8",
+    "historicalRegistryProofHash": "sha256:d6ad7049ec656b25b8e6bd25e80dcf78208166cae27b969e74a2f38080b2e2db",
+    "volume": "1953921.189425",
+    "protocolFees": "481.270924",
+    "activeAccounts": 354,
+    "checks": {
+      "historicalMode": true,
+      "sameCutoff": true,
+      "exactRealInputs": true,
+      "registryProofMatched": true,
+      "fourCoveredAccounts": true,
+      "missingGlobalStateNull": true,
+      "missingFundedRiskNull": true,
+      "writes405": true,
+      "logoPng": true
+    }
+  },
+  "coldStartRecovery": {
+    "startupLogAt": "2026-10-12T19:17:38.250645483Z",
+    "fullHistoricalScopeLogAt": "2026-10-12T19:17:57.678896941Z",
+    "eventCount": 49204,
+    "marketIds": [
+      1,
+      10,
+      20,
+      31,
+      40,
+      50
+    ],
+    "hashesUnchanged": true,
+    "limit": "Startup-to-scope markers are not a complete cold-start duration."
+  },
+  "browserChecks": {
+    "historicalBadge": true,
+    "actualJulyCutoff": true,
+    "protocolFlows": true,
+    "accountSwitching": true,
+    "linkedSourceEvents": true,
+    "missingFundingVisiblyUnavailable": true,
+    "manifestExportEnabled": true
+  },
+  "localFailureChecks": {
+    "httpStatus": 503,
+    "financialRowsCleared": true,
+    "manifestExportDisabled": true,
+    "scope": "Separate loopback unavailable-source preview; no public upstream outage was induced."
+  },
+  "ci": {
+    "analyticsRun": 38185114041,
+    "policyRun": 38185113928,
+    "status": "success",
+    "jobs": {
+      "rustPostgresDot": 114605660526,
+      "envio": 114605660321,
+      "sdkReference": 114605660484
+    }
+  },
+  "limitations": [
+    "Fixed historical Envio source, not a current market feed.",
+    "Protocol-wide state and unknown funding remain unavailable.",
+    "Render free services sleep; Envio Development has a maximum 30-day deployment age.",
+    "No new billable resources, trading or signing were used."
+  ]
+}
